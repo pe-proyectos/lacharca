@@ -1,0 +1,80 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { hilos, timeAgo } from '../lib/hilos'
+const CAPI = 'https://capibaratraductor.com'
+let posts: any[] = []
+try { const d = await hilos('/feed?limit=25'); posts = d?.items || [] } catch (e) { posts = [] }
+function renderContent(c: string) {
+  return c.replace(/#([\p{L}\p{N}_]{1,80})/gu, '<span class="text-teal-400">#$1</span>').replace(/@([a-zA-Z0-9_]{1,30})/g, '<span class="text-teal-300">@$1</span>')
+}
+---
+<Layout title="La Charca">
+  <div class="max-w-[1000px] mx-auto flex gap-6 px-0 sm:px-4">
+    <!-- Nav izquierda -->
+    <nav class="hidden lg:flex flex-col w-[220px] shrink-0 sticky top-0 h-screen py-5 pr-2">
+      <div class="flex items-center gap-2 px-3 py-3 mb-2">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" class="text-teal-400"><path d="M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="text-xl font-black text-white">La Charca</span>
+      </div>
+      <a href="/" class="flex items-center gap-3 px-4 py-2.5 rounded-full text-[17px] font-bold text-white/90 hover:bg-teal-400/10">Inicio</a>
+      <a href={CAPI} class="flex items-center gap-3 px-4 py-2.5 rounded-full text-[17px] font-bold text-white/60 hover:bg-teal-400/10">CapibaraTraductor</a>
+      <a href={`${CAPI}/login`} class="mt-3 py-3 text-center rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black hover:from-teal-300 hover:to-cyan-400">Entrar</a>
+    </nav>
+
+    <!-- Feed -->
+    <div class="flex-1 min-w-0 max-w-[600px] mx-auto border-x border-white/[0.06] min-h-screen">
+      <div class="sticky top-0 z-10 backdrop-blur-xl bg-[#0a1214]/80 border-b border-white/[0.06] px-4 py-4">
+        <h1 class="text-xl font-black text-white flex items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-teal-400"><path d="M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.6"/></svg>
+          La Charca
+        </h1>
+        <p class="text-sm text-white/45 mt-0.5">La comunidad de lectores y scans</p>
+      </div>
+      <div class="h-[2px] bg-gradient-to-r from-transparent via-teal-400/40 to-transparent"></div>
+
+      {posts.length === 0 ? (
+        <div class="flex flex-col items-center justify-center text-center py-24 px-8">
+          <p class="text-5xl mb-3">🦫</p>
+          <p class="text-white/70 font-bold">La charca está tranquila.</p>
+          <a href={`${CAPI}/login`} class="mt-4 inline-block px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Rompe el silencio</a>
+        </div>
+      ) : (
+        <div>
+          {posts.map((p: any) => (
+            <article class="border-b border-white/[0.06] px-4 py-3.5 hover:bg-white/[0.015] transition-colors">
+              <div class="flex gap-3">
+                {p.author?.avatarUrl
+                  ? <img src={p.author.avatarUrl} alt="" class={`w-11 h-11 object-cover ${p.author.type === 'scan' || p.author.type === 'manga' ? 'rounded-xl' : 'rounded-full'} ring-1 ring-white/10`} />
+                  : <div class={`w-11 h-11 flex items-center justify-center bg-white/10 text-white/70 font-bold ${p.author?.type === 'scan' || p.author?.type === 'manga' ? 'rounded-xl' : 'rounded-full'}`}>{(p.author?.displayName || p.author?.handle || '?')[0]?.toUpperCase()}</div>}
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[15px] font-black text-white truncate">{p.author?.displayName || p.author?.handle}</span>
+                    {(p.author?.type === 'scan') && <svg width="15" height="15" viewBox="0 0 24 24" class="text-amber-400"><path fill="currentColor" d="M9 16.2l-3.5-3.5L4 14.2 9 19l11-11-1.5-1.5z"/></svg>}
+                    <span class="text-[13px] text-white/35">@{p.author?.handle} · {timeAgo(p.createdAt)}</span>
+                  </div>
+                  <p class="mt-0.5 text-[15px] leading-relaxed text-white/90 whitespace-pre-wrap break-words" set:html={renderContent(p.content || '')}></p>
+                  {p.media?.[0] && <img src={p.media[0]} alt="" class="mt-3 rounded-2xl max-h-[420px] w-full object-cover ring-1 ring-white/[0.06]" />}
+                  <div class="mt-2 flex items-center gap-6 text-[13px] text-white/45 font-medium">
+                    <span>💬 {p.commentsCount || ''}</span>
+                    <span>🔁 {p.repostCount || ''}</span>
+                    <span class="text-amber-400/80">❤ {p.likesCount || ''}</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+          <div class="flex items-center justify-center gap-2 text-white/30 py-8 text-sm">Llegaste al fondo de la charca.</div>
+        </div>
+      )}
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="hidden xl:block w-72 shrink-0 py-5">
+      <div class="rounded-2xl bg-gradient-to-br from-teal-500/10 to-cyan-500/5 border border-teal-400/20 p-5">
+        <p class="text-white font-black text-lg">Únete a la charca</p>
+        <p class="text-white/60 text-sm mt-1">Sigue scans y lectores, comenta y comparte con tu cuenta de CapibaraTraductor.</p>
+        <a href={`${CAPI}/register`} class="inline-block mt-4 px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Crear cuenta</a>
+      </div>
+    </aside>
+  </div>
+</Layout>
