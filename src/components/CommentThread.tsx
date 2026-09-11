@@ -230,8 +230,8 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
               onChange={(e) => pickImage(e.target.files?.[0])} />
             <button type="button" onClick={() => fileInput.current?.click()} disabled={!!image}
               aria-label="Adjuntar imagen" title={image ? 'Solo una imagen por comentario' : 'Adjuntar imagen'}
-              className="act shrink-0 disabled:opacity-35 disabled:cursor-default cursor-pointer">
-              <ImageSquare size={19} />
+              className="icon-btn shrink-0">
+              <ImageSquare size={20} />
             </button>
             <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1}
               onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send() }}

@@ -145,7 +145,8 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
             disabled={images.length >= MAX_IMAGES}
             title={images.length >= MAX_IMAGES ? `Máximo ${MAX_IMAGES} imágenes` : 'Añadir imágenes'}
             aria-label="Añadir imágenes"
-            className="act disabled:opacity-35 disabled:cursor-default cursor-pointer">
+            className="inline-flex items-center gap-1.5 icon-btn"
+            style={{ width: 'auto', padding: '0 12px' }}>
             <ImageSquare size={20} />
             {images.length > 0 && <span className="tabular-nums text-[13px]">{images.length}/{MAX_IMAGES}</span>}
           </button>

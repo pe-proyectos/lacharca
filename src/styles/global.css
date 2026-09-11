@@ -123,6 +123,19 @@ textarea, input { cursor: text; }
 .act.is-on { color: var(--blue); }
 .act.is-on:hover { background: rgba(37,99,235,.12); }
 
+/* Botón de icono para barras de composición: mismo lenguaje que .act pero sin
+   los márgenes negativos, que ahí descuadran la fila. */
+.icon-btn {
+  display: inline-grid; place-items: center;
+  width: 42px; height: 42px; border-radius: 999px;
+  color: var(--ink-3); background: transparent;
+  transition: color .16s ease, background .16s ease, transform .16s ease;
+  cursor: pointer;
+}
+.icon-btn:hover:not(:disabled) { background: rgba(37,99,235,.09); color: var(--blue); }
+.icon-btn:active:not(:disabled) { transform: scale(.94); }
+.icon-btn:disabled { opacity: .35; cursor: default; }
+
 /* Chip / pill */
 .chip {
   display: inline-flex; align-items: center; gap: .4rem;
