@@ -4,6 +4,8 @@
    LA CHARCA — claro, amplio, tipografía grande. Agua.
    ============================================================ */
 :root {
+  /* Separación del botón de mensajes: en móvil esquiva la barra inferior. */
+  --dock-bottom: 24px;
   color-scheme: light;
 
   --paper:   #eef3fb;   /* fondo */
@@ -186,6 +188,7 @@ textarea, input { cursor: text; }
 .tap { -webkit-tap-highlight-color: transparent; }
 
 @media (max-width: 767px) {
+  :root { --dock-bottom: calc(70px + env(safe-area-inset-bottom)); }
   /* Nada de zoom automático al enfocar un campo en iOS. */
   input, textarea, select { font-size: 16px !important; }
 

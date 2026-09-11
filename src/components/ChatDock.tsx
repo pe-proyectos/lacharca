@@ -158,7 +158,7 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
           className="fixed z-40 right-4 md:right-5 rounded-full flex items-center gap-2 px-4 py-3 cursor-pointer transition hover:-translate-y-0.5 tap"
           style={{
             background: 'var(--blue)', color: '#fff', boxShadow: '0 8px 28px rgba(37,99,235,.35)',
-            bottom: 'calc(76px + env(safe-area-inset-bottom))', minHeight: 52,
+            bottom: 'var(--dock-bottom)', minHeight: 52,
           }}>
           <ChatCircleDots size={20} weight="fill" />
           <span className="text-[14px] font-medium hidden sm:block">Mensajes</span>

@@ -3,7 +3,13 @@ import { ChatCircle, Heart, BookmarkSimple, ShareNetwork, LinkSimple, Check } fr
 import { hilosApi } from '../lib/hilosClient'
 
 interface C { id: number; content: string; parentCommentId: number | null; createdAt: string; author: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
-interface Props { postId: number; likes: number; comments: number; liked?: boolean; saved?: boolean; logged: boolean; compact?: boolean }
+interface Props {
+  postId: number; likes: number; comments: number
+  liked?: boolean; saved?: boolean; logged: boolean; compact?: boolean
+  /** En el permalink el hilo ya está debajo: el botón lleva hasta él en vez de
+   *  abrir una segunda caja de comentarios. */
+  commentsAnchor?: string
+}
 
 function ago(iso: string) {
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000))
@@ -13,7 +19,7 @@ function ago(iso: string) {
   return `${Math.floor(s / 86400)}d`
 }
 
-const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: liked0, saved: saved0, logged }) => {
+const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: liked0, saved: saved0, logged, commentsAnchor }) => {
   const [liked, setLiked] = useState(!!liked0)
   const [likes, setLikes] = useState(l0)
   const [saved, setSaved] = useState(!!saved0)
@@ -37,9 +43,25 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
   }
 
   const toggleComments = async () => {
+    // Si la vista ya muestra el hilo completo, no duplicamos la caja.
+    if (commentsAnchor) {
+      const el = document.getElementById(commentsAnchor)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        const box = el.querySelector('textarea') as HTMLTextAreaElement | null
+        setTimeout(() => box?.focus(), 320)
+        return
+      }
+    }
     const next = !open
     setOpen(next)
-    if (next && list === null) { try { setList(await hilosApi.comments(postId)) } catch { setList([]) } }
+    if (next && list === null) {
+      setList(null)
+      try {
+        const d = await hilosApi.comments(postId)
+        setList(Array.isArray(d) ? d : d?.items || [])
+      } catch { setList([]) }
+    }
   }
 
   const send = async () => {
@@ -80,8 +102,9 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
   return (
     <div className="mt-3">
       <div className="flex items-center gap-1">
-        <button type="button" onClick={toggleComments} className={`act ${open ? 'is-on' : ''}`} title="Comentarios" aria-label="Comentarios">
-          <ChatCircle size={19} weight={open ? 'fill' : 'regular'} />
+        <button type="button" onClick={toggleComments} className={`act ${open && !commentsAnchor ? 'is-on' : ''}`}
+          title={commentsAnchor ? 'Ir a los comentarios' : 'Comentarios'} aria-label="Comentarios" aria-expanded={commentsAnchor ? undefined : open}>
+          <ChatCircle size={19} weight={open && !commentsAnchor ? 'fill' : 'regular'} />
           {count > 0 && <span className="tabular-nums">{count}</span>}
         </button>
 
@@ -118,14 +141,24 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
             </div>
           )}
           {list === null ? (
-            <div className="space-y-3">{[0,1].map((i) => <div key={i} className="skeleton h-12" />)}</div>
+            <div className="space-y-4" aria-hidden>
+              {[0, 1].map((i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="skeleton rounded-full shrink-0" style={{ width: 32, height: 32 }} />
+                  <div className="flex-1 space-y-2">
+                    <div className="skeleton h-3 rounded" style={{ width: '26%' }} />
+                    <div className="skeleton h-3.5 rounded" style={{ width: i ? '62%' : '86%' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : list.length === 0 ? (
             <p className="t-sub py-4 text-center">Sin comentarios todavía.</p>
           ) : (
             <div className="space-y-4">
               {list.map((c) => (
                 <div key={c.id} className="flex items-start gap-2.5 rise" style={c.id < 0 ? { opacity: .55 } : undefined}>
-                  <a href={`/@${c.author?.handle}`} className="shrink-0">
+                  <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle} className="shrink-0">
                     {c.author?.avatarUrl
                       ? <img src={c.author.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
                       : <span className="grid place-items-center w-8 h-8 rounded-full text-[12px] font-semibold" style={{ background: '#dbe8fb', color: 'var(--blue)' }}>{(c.author?.displayName || c.author?.handle || '?')[0]?.toUpperCase()}</span>}

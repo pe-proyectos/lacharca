@@ -56,9 +56,11 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
         {post.likesCount > 0 && <span> · {n(post.likesCount)} me gusta</span>}
       </p>
 
-      <PostActions client:load postId={post.id} likes={post.likesCount || 0} comments={post.commentsCount || 0} liked={post.liked} saved={post.saved} logged={!!viewer} />
+      <PostActions client:load postId={post.id} likes={post.likesCount || 0} comments={post.commentsCount || 0} liked={post.liked} saved={post.saved} logged={!!viewer} commentsAnchor="comentarios" />
     </article>
 
-    <CommentThread client:load postId={post.id} initial={comments} logged={!!viewer} />
+    <div id="comentarios">
+      <CommentThread client:load postId={post.id} initial={comments} logged={!!viewer} total={post.commentsCount || 0} />
+    </div>
   </Shell>
 </Layout>

@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { hilosApi } from '../lib/hilosClient'
 
 interface C { id: number; content: string; parentCommentId: number | null; createdAt: string; author: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
-interface Props { postId: number; initial: C[]; logged: boolean }
+interface Props { postId: number; initial: C[]; logged: boolean; total?: number }
 
 // Enlaces, menciones y etiquetas navegables. Las URLs largas se muestran
 // acortadas para que no rompan la columna de lectura.
@@ -43,8 +43,33 @@ const Avatar = ({ c, size = 36 }: any) => (
     : <div style={{ width: size, height: size, background: '#dbe8fb', color: 'var(--blue)' }} className="rounded-full flex items-center justify-center text-xs font-semibold shrink-0">{(c?.displayName || c?.handle || '?')[0]?.toUpperCase()}</div>
 )
 
-const CommentThread: React.FC<Props> = ({ postId, initial, logged }) => {
+// Esqueleto con la silueta real de un comentario: avatar, nombre y dos lineas.
+const CommentSkeleton = ({ nested = false }: { nested?: boolean }) => (
+  <div className={nested ? 'mt-3 ml-10' : 'py-3'} style={nested ? undefined : { borderBottom: '1px solid var(--line)' }} aria-hidden>
+    <div className="flex items-start gap-2.5">
+      <div className="skeleton rounded-full shrink-0" style={{ width: nested ? 30 : 36, height: nested ? 30 : 36 }} />
+      <div className="min-w-0 flex-1 space-y-2">
+        <div className="skeleton h-3 rounded" style={{ width: '28%' }} />
+        <div className="skeleton h-3.5 rounded" style={{ width: '88%' }} />
+        <div className="skeleton h-3.5 rounded" style={{ width: '54%' }} />
+      </div>
+    </div>
+  </div>
+)
+
+const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) => {
   const [items, setItems] = useState<C[]>(initial || [])
+  const [loading, setLoading] = useState((initial || []).length === 0 && total > 0)
+
+  React.useEffect(() => {
+    if (!loading) return
+    let alive = true
+    hilosApi.comments(postId)
+      .then((d: any) => { if (alive) setItems(Array.isArray(d) ? d : d?.items || []) })
+      .catch(() => {})
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [postId, loading])
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [replyTo, setReplyTo] = useState<number | null>(null)
@@ -129,7 +154,11 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged }) => {
       ) : (
         <a href="/auth/login" className="btn-ghost w-full justify-center my-2">Únete a la charca para comentar</a>
       )}
-      {roots.length === 0 ? <p className="t-sub py-8 text-center">Sin comentarios.</p> : roots.map((c) => <Item key={c.id} c={c} />)}
+      {loading
+        ? <div>{Array.from({ length: Math.min(4, Math.max(2, total)) }).map((_, i) => <CommentSkeleton key={i} />)}</div>
+        : roots.length === 0
+          ? <p className="t-sub py-8 text-center">Todavía no hay comentarios. Escribe el primero.</p>
+          : roots.map((c) => <Item key={c.id} c={c} />)}
     </div>
   )
 }
