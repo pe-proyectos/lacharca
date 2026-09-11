@@ -1,119 +1,87 @@
 @import "tailwindcss";
 
 /* ============================================================
-   LA CHARCA — Liquid Glass Design System
-   Superficies de vidrio sobre profundidad de agua.
+   LA CHARCA — Liquid Glass (Apple-style)
+   Tipografía grande y ligera, superficies de vidrio, agua profunda.
    ============================================================ */
 :root {
   color-scheme: dark;
 
-  /* Profundidad del agua (fondo por capas) */
-  --depth-abyss: #061627;
-  --depth-deep:  #0a2740;
-  --depth-mid:   #0f3a5c;
+  --depth-1: #0b2a45;
+  --depth-2: #08182b;
+  --depth-3: #040d18;
 
-  /* Acentos: agua clara y reflejo */
-  --aqua-400: #38e0d8;
-  --aqua-500: #14b8c4;
-  --ocean-400: #3b9df5;
-  --ocean-500: #1c7ed6;
-  --sun-400: #fbbf24;      /* reflejo cálido: likes, destacados */
+  --aqua: #5fe3dc;
+  --ocean: #4aa8ff;
+  --sun: #ffcf5c;
 
-  /* Vidrio */
-  --glass-bg: rgba(255, 255, 255, 0.07);
-  --glass-bg-strong: rgba(255, 255, 255, 0.11);
-  --glass-border: rgba(255, 255, 255, 0.16);
-  --glass-border-lit: rgba(120, 220, 255, 0.28);
-  --glass-blur: 26px;
-
-  /* Texto */
-  --ink-1: rgba(255, 255, 255, 0.96);
-  --ink-2: rgba(255, 255, 255, 0.68);
-  --ink-3: rgba(255, 255, 255, 0.42);
-  --ink-4: rgba(255, 255, 255, 0.24);
-
-  --radius: 20px;
+  --ink-1: rgba(255,255,255,0.98);
+  --ink-2: rgba(255,255,255,0.66);
+  --ink-3: rgba(255,255,255,0.40);
+  --ink-4: rgba(255,255,255,0.22);
 }
 
-html {
-  background: var(--depth-abyss);
-}
+html { background: var(--depth-3); }
+
 body {
-  background: transparent;   /* el fondo lo pintan las capas ::before/::after */
+  background: transparent;
   color: var(--ink-1);
-  -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Tight', system-ui, sans-serif;
+  font-feature-settings: 'ss01', 'cv01';
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Fondo: profundidad de agua con luz que entra desde arriba */
+/* Profundidad de agua */
 body::before {
-  content: '';
-  position: fixed; inset: 0; z-index: -2;
+  content: ''; position: fixed; inset: 0; z-index: -2;
   background:
-    radial-gradient(100% 70% at 50% -15%, rgba(70, 235, 225, 0.38), transparent 62%),
-    radial-gradient(80% 55% at 12% 8%, rgba(59, 157, 245, 0.30), transparent 60%),
-    radial-gradient(70% 50% at 90% 20%, rgba(120, 90, 255, 0.18), transparent 60%),
-    linear-gradient(180deg, var(--depth-mid) 0%, var(--depth-deep) 40%, var(--depth-abyss) 100%);
+    radial-gradient(90% 60% at 50% -10%, rgba(95, 227, 220, 0.30), transparent 60%),
+    radial-gradient(70% 50% at 10% 15%, rgba(74, 168, 255, 0.24), transparent 58%),
+    radial-gradient(60% 45% at 92% 30%, rgba(150, 110, 255, 0.16), transparent 60%),
+    linear-gradient(180deg, var(--depth-1) 0%, var(--depth-2) 42%, var(--depth-3) 100%);
 }
-/* Cáusticas suaves (reflejos de agua) */
 body::after {
-  content: '';
-  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background:
-    radial-gradient(50% 34% at 18% 22%, rgba(56,224,216,0.16), transparent 68%),
-    radial-gradient(45% 30% at 82% 55%, rgba(59,157,245,0.14), transparent 68%),
-    radial-gradient(38% 26% at 60% 85%, rgba(120,90,255,0.10), transparent 70%);
-  animation: drift 24s ease-in-out infinite alternate;
+    radial-gradient(46% 32% at 22% 26%, rgba(95,227,220,0.14), transparent 68%),
+    radial-gradient(42% 28% at 80% 58%, rgba(74,168,255,0.12), transparent 68%);
+  animation: drift 26s ease-in-out infinite alternate;
 }
 @keyframes drift {
   from { transform: translate3d(0,0,0) scale(1); }
-  to   { transform: translate3d(0,-2%,0) scale(1.06); }
+  to   { transform: translate3d(0,-2.5%,0) scale(1.07); }
 }
 
-/* ---------- Utilidades de vidrio ---------- */
+/* ---------- Escala tipográfica Apple ---------- */
+.t-hero    { font-size: clamp(40px, 6vw, 64px); font-weight: 600; letter-spacing: -0.035em; line-height: 1.04; }
+.t-title   { font-size: clamp(26px, 3.2vw, 34px); font-weight: 600; letter-spacing: -0.028em; line-height: 1.1; }
+.t-section { font-size: 21px; font-weight: 600; letter-spacing: -0.022em; }
+.t-body    { font-size: 17px; font-weight: 400; letter-spacing: -0.012em; line-height: 1.5; }
+.t-sub     { font-size: 15px; font-weight: 400; letter-spacing: -0.008em; color: var(--ink-2); }
+.t-caption { font-size: 13px; font-weight: 400; color: var(--ink-3); }
+
+.ink-2 { color: var(--ink-2); }
+.ink-3 { color: var(--ink-3); }
+.aqua  { color: var(--aqua); }
+
+/* Superficie de vidrio (para bloques grandes/listas) */
 .glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
-  border: 1px solid var(--glass-border);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.22),
-    inset 0 -1px 0 rgba(0,0,0,0.22),
-    0 16px 48px -20px rgba(0,0,0,0.85);
+  background: rgba(255,255,255,0.055);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.11);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.24), inset 0 -1px 0 rgba(0,0,0,.18), 0 20px 60px -24px rgba(0,0,0,.8);
 }
-.glass-strong { background: var(--glass-bg-strong); }
-.glass-hover { transition: background .22s ease, border-color .22s ease, transform .22s ease; }
-.glass-hover:hover { background: rgba(255,255,255,0.115); border-color: var(--glass-border-lit); }
+.glass-hover { transition: background .3s cubic-bezier(.2,.8,.2,1), border-color .3s, transform .3s; }
+.glass-hover:hover { background: rgba(255,255,255,0.085); border-color: rgba(255,255,255,.18); }
 
-/* Borde superior luminoso (como el filo del agua) */
-.glass-lit { position: relative; }
-.glass-lit::before {
-  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
-  background: linear-gradient(160deg, rgba(120,220,255,.5), transparent 35%, transparent 65%, rgba(255,255,255,.08));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* Botón líquido */
-.btn-liquid {
-  background: linear-gradient(135deg, var(--aqua-400), var(--ocean-500));
-  color: #02131a; font-weight: 900;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 8px 28px -10px rgba(56,224,216,.6);
-  transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s, filter .18s;
-}
-.btn-liquid:hover { filter: brightness(1.08); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 12px 34px -10px rgba(56,224,216,.75); }
-.btn-liquid:active { transform: scale(.975); }
-
-.link-aqua { color: var(--aqua-400); }
-.link-aqua:hover { color: #7af3ec; }
-
-::selection { background: rgba(56,224,216,.28); }
-
-/* Scrollbar sutil */
-* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.14) transparent; }
-*::-webkit-scrollbar { width: 8px; height: 8px; }
-*::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 99px; }
+::selection { background: rgba(95,227,220,.3); }
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.12) transparent; }
+*::-webkit-scrollbar { width: 8px; }
+*::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 99px; }
 
 @media (prefers-reduced-motion: reduce) {
   body::after { animation: none; }

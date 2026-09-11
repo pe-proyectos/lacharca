@@ -5,6 +5,7 @@ import { hilos, timeAgo } from '../lib/hilos'
 import { getViewer } from '../lib/session'
 import Composer from '../components/Composer'
 import PostActions from '../components/PostActions'
+import { GlassButton } from '../components/Glass'
 
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 const actingPage = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
@@ -28,34 +29,35 @@ const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.in
 <Layout title="La Charca">
   <Shell viewer={viewer} active={scope === 'following' ? 'following' : 'home'}>
     {viewer && (
-      <div class="glass glass-lit rounded-[20px] mb-4 overflow-hidden">
+      <div class="glass rounded-[28px] mb-5 overflow-hidden">
         <Composer client:load user={viewer.user} />
       </div>
     )}
 
     {!viewer && (
-      <div class="glass glass-lit rounded-[20px] p-6 mb-4 text-center">
-        <p class="text-2xl mb-1">🦫</p>
-        <p class="font-extrabold text-lg">Únete a la charca</p>
-        <p class="text-sm mt-1" style="color:var(--ink-2)">Tu cuenta propia, vinculada a CapibaraTraductor.</p>
-        <a href="/auth/login" class="btn-liquid inline-block mt-4 px-5 py-2.5 rounded-full text-sm">Continuar con CapibaraTraductor</a>
+      <div class="glass rounded-[32px] p-10 mb-5 text-center">
+        <p class="t-title mb-2">Únete a la charca</p>
+        <p class="t-sub max-w-sm mx-auto">Tu cuenta propia de La Charca, vinculada a tu cuenta de CapibaraTraductor.</p>
+        <div class="mt-7 flex justify-center">
+          <GlassButton client:load href="/auth/login" size="lg" tint>Continuar con CapibaraTraductor</GlassButton>
+        </div>
       </div>
     )}
 
     {posts.length === 0 ? (
-      <div class="glass rounded-[20px] py-20 text-center">
+      <div class="glass rounded-[32px] py-24 text-center">
         <p class="text-5xl mb-3">🦫</p>
-        <p class="font-bold" style="color:var(--ink-2)">
+        <p class="t-body ink-2">
           {scope === 'following' ? 'Tu manada aún es pequeña. Sigue scans y lectores.' : 'La charca está tranquila.'}
         </p>
       </div>
     ) : (
-      <div class="space-y-3">
+      <div class="space-y-4">
         {posts.map((p: any) => {
           const imgs = (p.content || '').split(/\s+/).filter((w: string) => /^https?:\/\//.test(w) && isMedia(w))
           const body = (p.content || '').split('\n').filter((l: string) => !imgs.includes(l.trim())).join('\n')
           return (
-            <article class="glass glass-hover glass-lit rounded-[20px] p-4">
+            <article class="glass glass-hover rounded-[28px] p-5">
               <div class="flex gap-3">
                 <a href={`/@${p.author?.handle}`} class="shrink-0">
                   {p.author?.avatarUrl
@@ -64,16 +66,16 @@ const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.in
                 </a>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <a href={`/@${p.author?.handle}`} class="font-bold hover:underline truncate">{p.author?.displayName || p.author?.handle}</a>
+                    <a href={`/@${p.author?.handle}`} class="text-[16px] font-semibold hover:opacity-80 transition truncate no-underline">{p.author?.displayName || p.author?.handle}</a>
                     {p.author?.type === 'scan' && <span class="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md" style="background:rgba(251,191,36,.14);color:var(--sun-400)">scan</span>}
-                    <a href={`/post/${p.id}`} class="text-[13px] hover:underline" style="color:var(--ink-3)">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>
+                    <a href={`/post/${p.id}`} class="t-caption hover:opacity-80 transition no-underline">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>
                   </div>
                   {body.trim() && (
-                    <p class="mt-1 text-[15px] leading-relaxed whitespace-pre-wrap break-words">
+                    <p class="mt-1.5 t-body whitespace-pre-wrap break-words">
                       {tokenize(body).map((w) =>
-                        w.t === 'tag' ? <span class="link-aqua">{w.v}</span>
-                        : w.t === 'at' ? <a href={`/${w.v}`} class="link-aqua hover:underline">{w.v}</a>
-                        : w.t === 'url' ? <a href={w.v} target="_blank" rel="noopener" class="link-aqua break-all hover:underline">{w.v}</a>
+                        w.t === 'tag' ? <span class="aqua">{w.v}</span>
+                        : w.t === 'at' ? <a href={`/${w.v}`} class="aqua no-underline hover:opacity-80">{w.v}</a>
+                        : w.t === 'url' ? <a href={w.v} target="_blank" rel="noopener" class="aqua break-all no-underline hover:opacity-80">{w.v}</a>
                         : w.v)}
                     </p>
                   )}
@@ -86,18 +88,18 @@ const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.in
             </article>
           )
         })}
-        <p class="text-center text-xs py-8" style="color:var(--ink-4)">Llegaste al fondo de la charca.</p>
+        <p class="text-center t-caption py-10">Llegaste al fondo de la charca.</p>
       </div>
     )}
 
     <Fragment slot="aside">
-      <div class="glass glass-lit rounded-[20px] p-5">
-        <h2 class="font-extrabold mb-3 flex items-center gap-2">
+      <div class="glass rounded-[28px] p-6">
+        <h2 class="t-section mb-4 flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="color:var(--aqua-400)"><path d="M3 17l6-6 4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           Haciendo olas
         </h2>
         {trending.length === 0
-          ? <p class="text-sm" style="color:var(--ink-3)">Aguas tranquilas por ahora.</p>
+          ? <p class="t-sub">Aguas tranquilas por ahora.</p>
           : <ul class="space-y-2">{trending.map((t: any) => (
               <li><a href={`/tag/${t.tag}`} class="block -mx-2 px-2 py-1.5 rounded-xl hover:bg-white/[0.05]">
                 <span class="font-semibold text-sm">#{t.tag}</span>
@@ -105,9 +107,9 @@ const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.in
               </a></li>))}</ul>}
       </div>
       {viewer && (
-        <div class="glass rounded-[20px] p-5">
-          <p class="text-sm" style="color:var(--ink-2)">Hola, <b style="color:var(--ink-1)">{viewer.user.displayName || viewer.user.handle}</b></p>
-          <a href={`/@${viewer.user.handle}`} class="link-aqua text-sm font-bold mt-2 inline-block hover:underline">Ver mi perfil →</a>
+        <div class="glass rounded-[28px] p-6">
+          <p class="t-sub">Hola, <b style="color:var(--ink-1)">{viewer.user.displayName || viewer.user.handle}</b></p>
+          <a href={`/@${viewer.user.handle}`} class="aqua text-[15px] mt-2 inline-block no-underline hover:opacity-80 transition">Ver mi perfil →</a>
         </div>
       )}
     </Fragment>

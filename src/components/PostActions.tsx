@@ -43,12 +43,12 @@ const PostActions: React.FC<Props> = ({ postId, likes: likes0, comments: comment
   }
 
   return (
-    <div className="mt-2">
-      <div className="flex items-center gap-6 text-[13px] font-medium">
-        <button type="button" onClick={toggleComments} className={`flex items-center gap-1.5 cursor-pointer transition ${open ? 'text-teal-300' : 'text-white/50 hover:text-white'}`}>
+    <div className="mt-4">
+      <div className="flex items-center gap-7">
+        <button type="button" onClick={toggleComments} className="flex items-center gap-2 cursor-pointer transition text-[14px] hover:opacity-70" style={{ color: open ? "var(--aqua)" : "var(--ink-3)" }}>
           <span>💬</span> <span className="tabular-nums">{count || ''}</span>
         </button>
-        <button type="button" onClick={toggleLike} className={`flex items-center gap-1.5 cursor-pointer transition ${liked ? 'text-amber-400' : 'text-white/50 hover:text-amber-300'}`}>
+        <button type="button" onClick={toggleLike} className="flex items-center gap-2 cursor-pointer transition text-[14px] hover:opacity-70" style={{ color: liked ? "var(--sun)" : "var(--ink-3)" }}>
           <span>{liked ? '❤' : '♡'}</span> <span className="tabular-nums">{likes || ''}</span>
         </button>
       </div>
