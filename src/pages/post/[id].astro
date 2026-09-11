@@ -19,7 +19,7 @@ const comments = (await hilos(`/posts/${id}/comments`, acting).catch(() => [])) 
 <Layout title={`${(post.content || 'Publicación').slice(0, 60)} — La Charca`}>
   <Shell viewer={viewer}>
   <div>
-    <article class="card p-5 mb-4">
+    <article class="pb-8 mb-6" style="border-bottom:1px solid var(--line)">
       <div class="flex items-center gap-2 mb-2">
         <a href={`/@${post.author?.handle}`} class="flex items-center gap-2 min-w-0">
           {post.author?.avatarUrl
@@ -35,7 +35,7 @@ const comments = (await hilos(`/posts/${id}/comments`, acting).catch(() => [])) 
       <PostActions client:load postId={post.id} likes={post.likesCount || 0} comments={post.commentsCount || 0} liked={post.liked} logged={!!viewer} />
     </article>
 
-    <div class="card p-5">
+    <div class=" p-5">
       <CommentThread client:load postId={post.id} initial={comments} logged={!!viewer} />
     </div>
   </div>

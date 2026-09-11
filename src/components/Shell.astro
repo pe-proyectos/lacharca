@@ -1,39 +1,81 @@
 ---
-const { viewer, active = 'home' } = Astro.props
+// Layout de 3 columnas sin navbar: nav izquierda (usuario abajo),
+// contenido central protagonista, sidebar derecha con descubrimiento.
+const { viewer, active = 'home', wide = false } = Astro.props
+const items = [
+  { href: '/', label: 'Inicio', key: 'home', d: 'M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z' },
+  { href: '/?feed=following', label: 'Tu manada', key: 'following', d: 'M17 20h5v-2a3 3 0 0 0-5.36-1.86M17 20H7m10 0v-2c0-.66-.13-1.3-.36-1.86m0 0a5 5 0 0 0-9.28 0M7 20H2v-2a3 3 0 0 1 5.36-1.86M7 20v-2c0-.66.13-1.3.36-1.86m0 0a5 5 0 0 1 9.28 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0z' },
+  { href: '/explorar', label: 'Explorar', key: 'explore', d: 'M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z' },
+  { href: '/guardados', label: 'Guardados', key: 'saved', d: 'M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z' },
+]
 ---
-<div class="min-h-screen">
-  <header class="sticky top-0 z-40" style="background:rgba(238,243,251,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)">
-    <div class="max-w-[1200px] mx-auto px-6 h-[72px] flex items-center gap-8">
-      <a href="/" class="flex items-center gap-2.5 shrink-0">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="color:var(--aqua)">
-          <path d="M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="1.7"/>
-        </svg>
-        <span class="text-[18px] font-semibold tracking-[-0.03em]">La Charca</span>
-      </a>
-      <nav class="hidden md:flex items-center gap-7 text-[15px]">
-        <a href="/" class={active === 'home' ? 'font-semibold' : 'ink-2 hover:text-[color:var(--ink)] transition'}>La corriente</a>
-        <a href="/?feed=following" class={active === 'following' ? 'font-semibold' : 'ink-2 hover:text-[color:var(--ink)] transition'}>Tu manada</a>
-      </nav>
-      <div class="ml-auto flex items-center gap-4">
-        {viewer ? (
-          <>
-            <a href={`/@${viewer.user.handle}`} class="flex items-center gap-2.5 group">
-              {viewer.user.avatarUrl
-                ? <img src={viewer.user.avatarUrl} alt="" class="w-8 h-8 rounded-full object-cover" />
-                : <span class="grid place-items-center w-8 h-8 rounded-full text-[13px] font-semibold" style="background:#dbe8fb;color:var(--blue)">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</span>}
-              <span class="text-[15px] hidden sm:block group-hover:opacity-70 transition">{viewer.user.displayName || viewer.user.handle}</span>
-            </a>
-            <a href="/auth/logout" class="t-caption hover:opacity-70 transition">Salir</a>
-          </>
-        ) : (
-          <a href="/auth/login" class="btn">Entrar</a>
-        )}
-      </div>
-    </div>
-  </header>
+<div class="min-h-screen flex">
+  <!-- NAV IZQUIERDA -->
+  <nav class="hidden md:flex flex-col shrink-0 w-[84px] xl:w-[260px] h-screen sticky top-0 px-3 xl:px-5 py-6" style="border-right:1px solid var(--line)">
+    <a href="/" class="flex items-center gap-2.5 px-2 xl:px-3 mb-8">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="color:var(--aqua)">
+        <path d="M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="1.7"/>
+      </svg>
+      <span class="hidden xl:block text-[19px] font-semibold tracking-[-0.03em]">La Charca</span>
+    </a>
 
-  <div class="max-w-[1200px] mx-auto px-6 py-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_300px]">
-    <main class="min-w-0"><slot /></main>
-    <aside class="hidden lg:block"><div class="sticky top-28 space-y-6"><slot name="aside" /></div></aside>
+    <div class="flex flex-col gap-1">
+      {items.map((it) => (
+        <a href={it.href} class={`flex items-center gap-4 px-3 py-2.5 rounded-xl transition ${active === it.key ? 'font-semibold' : 'ink-2'}`}
+           style={active === it.key ? 'background:#e3ecfa' : ''}
+           onmouseover="this.style.background='#e9eff9'" onmouseout={active === it.key ? "this.style.background='#e3ecfa'" : "this.style.background='transparent'"}>
+          <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width={active === it.key ? 2.2 : 1.8} stroke-linecap="round" stroke-linejoin="round"><path d={it.d}/></svg>
+          <span class="hidden xl:block text-[16px]">{it.label}</span>
+        </a>
+      ))}
+    </div>
+
+    {viewer && (
+      <a href="/?compose=1" class="btn justify-center mt-5 hidden xl:flex">Publicar</a>
+    )}
+
+    <!-- USUARIO ABAJO -->
+    <div class="mt-auto">
+      {viewer ? (
+        <div class="flex items-center gap-3 p-2 rounded-xl" onmouseover="this.style.background='#e9eff9'" onmouseout="this.style.background='transparent'">
+          <a href={`/@${viewer.user.handle}`} class="flex items-center gap-3 min-w-0 flex-1">
+            {viewer.user.avatarUrl
+              ? <img src={viewer.user.avatarUrl} alt="" class="w-9 h-9 rounded-full object-cover shrink-0" />
+              : <span class="grid place-items-center w-9 h-9 rounded-full text-[14px] font-semibold shrink-0" style="background:#dbe8fb;color:var(--blue)">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</span>}
+            <span class="hidden xl:block min-w-0">
+              <span class="block text-[15px] font-medium truncate">{viewer.user.displayName || viewer.user.handle}</span>
+              <span class="block t-caption truncate">@{viewer.user.handle}</span>
+            </span>
+          </a>
+          <a href="/auth/logout" class="hidden xl:block t-caption hover:opacity-70 shrink-0">Salir</a>
+        </div>
+      ) : (
+        <a href="/auth/login" class="btn w-full justify-center">Entrar</a>
+      )}
+    </div>
+  </nav>
+
+  <!-- CENTRO -->
+  <main class={`flex-1 min-w-0 ${wide ? '' : 'max-w-[680px]'} mx-auto px-4 sm:px-8 py-8`} style="border-right:1px solid var(--line)">
+    <slot />
+  </main>
+
+  <!-- SIDEBAR DERECHA -->
+  <aside class="hidden lg:block w-[340px] shrink-0 px-6 py-8">
+    <div class="sticky top-8 space-y-8"><slot name="aside" /></div>
+  </aside>
+
+  <!-- NAV MOVIL (abajo) -->
+  <div class="md:hidden fixed bottom-0 inset-x-0 z-50 flex items-center justify-around py-2.5" style="background:rgba(238,243,251,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line)">
+    {items.map((it) => (
+      <a href={it.href} class={active === it.key ? '' : 'ink-3'}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d={it.d}/></svg>
+      </a>
+    ))}
+    <a href={viewer ? `/@${viewer.user.handle}` : '/auth/login'}>
+      {viewer?.user?.avatarUrl
+        ? <img src={viewer.user.avatarUrl} alt="" class="w-6 h-6 rounded-full object-cover" />
+        : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="ink-3"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>}
+    </a>
   </div>
 </div>
