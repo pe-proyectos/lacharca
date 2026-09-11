@@ -9,6 +9,13 @@ const SSO_SECRET = process.env.SSO_SECRET || ''
 const SESSION_DAYS = 30
 const hilos = createHilos({ baseUrl: process.env.HILOS_BASE || 'https://hilos.rest', secretKey: process.env.HILOS_SECRET_KEY || '' })
 
+// Cliente de hilos actuando como la page del usuario de La Charca.
+const asUser = (userId: number) => createHilos({
+  baseUrl: process.env.HILOS_BASE || 'https://hilos.rest',
+  secretKey: process.env.HILOS_SECRET_KEY || '',
+  actingPage: `external:lacharca:user:${userId}`,
+})
+
 function slugify(s: string) {
   return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30) || 'capi'
 }
@@ -64,6 +71,14 @@ async function syncPage(user: any) {
     })
     if (page?.id && page.id !== user.hilosPageId) await prisma.user.update({ where: { id: user.id }, data: { hilosPageId: page.id } })
   } catch { /* la sesion no depende de hilos */ }
+}
+
+async function fetchDirectory(qs: URLSearchParams, userId?: number) {
+  const headers: Record<string, string> = { Authorization: `Bearer ${process.env.HILOS_SECRET_KEY || ''}` }
+  if (userId) headers['X-Hilos-Page'] = `external:lacharca:user:${userId}`
+  const res = await fetch(`${process.env.HILOS_BASE || 'https://hilos.rest'}/v1/pages/directory?${qs}`, { headers })
+  const json: any = await res.json().catch(() => ({}))
+  return json?.data ?? { items: [], hasMore: false }
 }
 
 const app = new Elysia()

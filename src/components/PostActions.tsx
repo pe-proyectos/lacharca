@@ -45,9 +45,18 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
   const send = async () => {
     if (!logged) return needLogin()
     const c = text.trim(); if (!c || busy) return
-    setBusy(true)
-    try { const created = await hilosApi.comment(postId, c); setList((l) => [...(l || []), created]); setCount((n) => n + 1); setText('') }
-    catch { flash('No se pudo comentar') } finally { setBusy(false) }
+    // Optimista: pintamos el comentario al instante con un id temporal.
+    const tempId = -Date.now()
+    const optimistic: C = { id: tempId, content: c, parentCommentId: null, createdAt: new Date().toISOString(), author: { handle: 'tu', displayName: 'Tú', avatarUrl: null } }
+    setList((l) => [...(l || []), optimistic])
+    setCount((n) => n + 1); setText(''); setBusy(true)
+    try {
+      const created = await hilosApi.comment(postId, c)
+      setList((l) => (l || []).map((x) => (x.id === tempId ? created : x)))   // reconciliar
+    } catch {
+      setList((l) => (l || []).filter((x) => x.id !== tempId))                // revertir
+      setCount((n) => Math.max(0, n - 1)); setText(c); flash('No se pudo comentar')
+    } finally { setBusy(false) }
   }
 
   const share = async () => {
@@ -60,9 +69,12 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
   const copyLink = async () => {
     try { await navigator.clipboard.writeText(url); flash('Enlace copiado') } catch { flash('No se pudo copiar') }
   }
-  const toggleSave = () => {
+  const toggleSave = async () => {
     if (!logged) return needLogin()
-    setSaved((s) => !s); flash(saved ? 'Quitado de guardados' : 'Guardado')
+    const next = !saved
+    setSaved(next); flash(next ? 'Guardado' : 'Quitado de guardados')   // optimista
+    try { const r = await hilosApi.save(postId); setSaved(!!r.saved) }   // reconciliar
+    catch { setSaved(!next); flash('No se pudo guardar') }               // revertir
   }
 
   return (
@@ -112,7 +124,7 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
           ) : (
             <div className="space-y-4">
               {list.map((c) => (
-                <div key={c.id} className="flex items-start gap-2.5 rise">
+                <div key={c.id} className="flex items-start gap-2.5 rise" style={c.id < 0 ? { opacity: .55 } : undefined}>
                   <a href={`/@${c.author?.handle}`} className="shrink-0">
                     {c.author?.avatarUrl
                       ? <img src={c.author.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />

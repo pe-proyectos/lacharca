@@ -21,7 +21,7 @@ function ago(iso: string) {
 const Avatar = ({ c, size = 36 }: any) => (
   c?.avatarUrl
     ? <img src={c.avatarUrl} alt="" style={{ width: size, height: size }} className="rounded-full object-cover shrink-0" />
-    : <div style={{ width: size, height: size }} className="rounded-full flex items-center justify-center text-xs font-semibold shrink-0" style={{ background: "#dbe8fb", color: "var(--blue)" }}>{(c?.displayName || c?.handle || '?')[0]?.toUpperCase()}</div>
+    : <div style={{ width: size, height: size, background: '#dbe8fb', color: 'var(--blue)' }} className="rounded-full flex items-center justify-center text-xs font-semibold shrink-0">{(c?.displayName || c?.handle || '?')[0]?.toUpperCase()}</div>
 )
 
 const CommentThread: React.FC<Props> = ({ postId, initial, logged }) => {
@@ -41,12 +41,19 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged }) => {
     if (!logged) return needLogin()
     const content = (parentId ? replyText : text).trim()
     if (!content || busy) return
+    // Optimista: mostramos el comentario al instante y reconciliamos al responder el API.
+    const tempId = -Date.now()
+    const optimistic: any = { id: tempId, content, parentCommentId: parentId ?? null, createdAt: new Date().toISOString(), author: { handle: 'tu', displayName: 'Tú', avatarUrl: null }, pending: true }
+    setItems((l) => [...l, optimistic])
+    if (parentId) { setReplyText(''); setReplyTo(null) } else setText('')
     setBusy(true)
     try {
       const c = await hilosApi.comment(postId, content, parentId)
-      setItems((l) => [...l, c])
-      if (parentId) { setReplyText(''); setReplyTo(null) } else setText('')
-    } catch { /* noop */ } finally { setBusy(false) }
+      setItems((l) => l.map((x) => (x.id === tempId ? c : x)))
+    } catch {
+      setItems((l) => l.filter((x) => x.id !== tempId))   // revertir
+      if (parentId) setReplyText(content); else setText(content)
+    } finally { setBusy(false) }
   }
 
   const Item = ({ c, nested = false }: { c: C; nested?: boolean }) => {

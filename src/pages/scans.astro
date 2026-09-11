@@ -1,0 +1,14 @@
+---
+import Layout from '../layouts/Layout.astro'
+import Shell from '../components/Shell.astro'
+import Directory from '../components/Directory'
+import { getViewer } from '../lib/session'
+const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
+const type = Astro.url.searchParams.get('tipo') === 'personas' ? 'user' : Astro.url.searchParams.get('tipo') === 'scans' ? 'scan' : ''
+---
+<Layout title="Directorio — La Charca">
+  <Shell viewer={viewer} active="explore" wide>
+    <h1 class="t-title mb-6">Scans y lectores</h1>
+    <Directory client:load logged={!!viewer} initialType={type} />
+  </Shell>
+</Layout>

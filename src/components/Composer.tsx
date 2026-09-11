@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { hilosApi } from '../lib/hilosClient'
 
-interface Props { user: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
+interface Props { user: { handle: string; displayName?: string | null; avatarUrl?: string | null }; onPosted?: () => void }
 
-const Composer: React.FC<Props> = ({ user }) => {
+const Composer: React.FC<Props> = ({ user, onPosted }) => {
   const [content, setContent] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -16,7 +16,8 @@ const Composer: React.FC<Props> = ({ user }) => {
     try {
       await hilosApi.createPost(text)
       setContent('')
-      window.location.reload() // el feed es SSR; recargamos para verlo
+      onPosted?.()            // el padre inserta el post al instante
+      if (!onPosted) window.location.reload()
     } catch (e: any) {
       setErr(e?.message === 'rate_limited' ? 'Vas muy rápido, espera un momento.' : 'No se pudo publicar.')
       setBusy(false)

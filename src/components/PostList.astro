@@ -45,7 +45,7 @@ function tokenize(c) {
               {imgs.slice(0, 4).map((u) => (
                 <a href={`/post/${p.id}`} class="media block mt-3"><img src={u} alt="" loading="lazy" class="max-h-[560px] w-full object-cover" /></a>
               ))}
-              <PostActions client:visible postId={p.id} likes={p.likesCount || 0} comments={p.commentsCount || 0} liked={p.liked} logged={!!viewer} />
+              <PostActions client:visible postId={p.id} likes={p.likesCount || 0} comments={p.commentsCount || 0} liked={p.liked} saved={p.saved} logged={!!viewer} />
             </div>
           </div>
         </article>

@@ -1,18 +1,26 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import Shell from '../components/Shell.astro'
+import PostList from '../components/PostList.astro'
 import { getViewer } from '../lib/session'
+import { hilos } from '../lib/hilos'
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 if (!viewer) return Astro.redirect('/auth/login')
+const actingPage = `external:lacharca:user:${viewer.id}`
+let posts: any[] = []
+try { posts = (await hilos('/saved?limit=30', actingPage))?.items || [] } catch {}
 ---
 <Layout title="Guardados — La Charca">
   <Shell viewer={viewer} active="saved">
-    <h1 class="t-title mb-6">Guardados</h1>
-    <div class="py-24 text-center">
-      <svg width="40" height="40" viewBox="0 0 256 256" fill="currentColor" class="ink-3 mx-auto mb-4"><path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z" opacity=".2"/><path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z"/></svg>
-      <p class="t-body ink-2">Aún no guardaste publicaciones.</p>
-      <p class="t-sub mt-1">Toca el marcador en cualquier post para guardarlo aquí.</p>
-      <a href="/" class="btn mt-6">Explorar la corriente</a>
-    </div>
+    <h1 class="t-title mb-2">Guardados</h1>
+    <p class="t-sub mb-4">Solo tú ves esta lista.</p>
+    {posts.length === 0 ? (
+      <div class="py-24 text-center">
+        <svg width="40" height="40" viewBox="0 0 256 256" fill="currentColor" class="ink-3 mx-auto mb-4"><path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z"/></svg>
+        <p class="t-body ink-2">Aún no guardaste publicaciones.</p>
+        <p class="t-sub mt-1">Toca el marcador en cualquier post para guardarlo aquí.</p>
+        <a href="/" class="btn mt-6">Explorar la corriente</a>
+      </div>
+    ) : <PostList posts={posts} viewer={viewer} />}
   </Shell>
 </Layout>

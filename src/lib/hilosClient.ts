@@ -44,6 +44,7 @@ export const hilosApi = {
   comments: (id: number) => hilosFetch(`/posts/${id}/comments`),
   comment: (id: number, content: string, parentCommentId?: number) =>
     hilosFetch(`/posts/${id}/comments`, { method: 'POST', body: JSON.stringify({ content, ...(parentCommentId ? { parentCommentId } : {}) }) }),
+  save: (id: number) => hilosFetch(`/posts/${id}/save`, { method: 'POST' }),
   follow: (handle: string) => hilosFetch(`/pages/${encodeURIComponent(handle)}/follow`, { method: 'POST' }),
   feed: (scope: 'foryou' | 'following' = 'foryou', page = 0) => hilosFetch(`/feed?scope=${scope}&page=${page}&limit=25`),
 }
