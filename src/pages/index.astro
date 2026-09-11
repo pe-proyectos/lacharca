@@ -15,6 +15,9 @@ let posts: any[] = []
 try { const d = await hilos(`/feed?limit=30&scope=${scope}`, actingPage); posts = d?.items || [] } catch { posts = [] }
 let trending: any[] = []
 try { trending = (await hilos('/socials/trending')) || [] } catch {}
+// Sin hashtags con traccion mostramos lo que de verdad se esta moviendo.
+let active: any[] = []
+if (!trending.length) { try { active = (await hilos('/socials/active?limit=6')) || [] } catch {} }
 let suggested: any[] = []
 try { suggested = (await hilos('/pages/suggested?limit=5', actingPage)) || [] } catch {}
 
@@ -62,13 +65,24 @@ try { suggested = (await hilos('/pages/suggested?limit=5', actingPage)) || [] } 
 
       <div>
         <h2 class="t-section mb-4">Haciendo olas</h2>
-        {trending.length === 0
-          ? <p class="t-sub">Aguas tranquilas por ahora.</p>
-          : <div class="space-y-3">{trending.map((t: any) => (
-              <a href={`/tag/${t.tag}`} class="block hover:opacity-70 transition">
-                <span class="block text-[15px] font-medium">#{t.tag}</span>
-                <span class="block t-caption">{Number(t.count).toLocaleString('es')} publicaciones</span>
-              </a>))}</div>}
+        {trending.length > 0 ? (
+          <div class="space-y-3">{trending.map((t: any) => (
+            <a href={`/tag/${t.tag}`} class="block hover:opacity-70 transition">
+              <span class="block text-[15px] font-medium">#{t.tag}</span>
+              <span class="block t-caption">{Number(t.count).toLocaleString('es')} publicaciones</span>
+            </a>))}</div>
+        ) : active.length > 0 ? (
+          <div class="space-y-3">{active.map((a: any) => (
+            <a href={`/@${a.page.handle}`} class="flex items-center gap-3 hover:opacity-70 transition">
+              {a.page.avatarUrl
+                ? <img src={a.page.avatarUrl} alt="" width="36" height="36" class="rounded-xl object-cover shrink-0" style="width:36px;height:36px" />
+                : <span class="grid place-items-center rounded-xl text-[13px] font-semibold shrink-0" style="width:36px;height:36px;background:#dbe8fb;color:var(--blue)">{(a.page.displayName || a.page.handle)[0]?.toUpperCase()}</span>}
+              <span class="min-w-0">
+                <span class="block text-[14px] font-medium truncate">{a.page.displayName || a.page.handle}</span>
+                <span class="block t-caption">{Number(a.count).toLocaleString('es')} esta semana</span>
+              </span>
+            </a>))}</div>
+        ) : <p class="t-sub">Aguas tranquilas por ahora.</p>}
       </div>
 
       <p class="t-caption leading-relaxed">
