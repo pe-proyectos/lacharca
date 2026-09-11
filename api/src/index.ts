@@ -266,7 +266,7 @@ const app = new Elysia()
       include: { identities: { select: { provider: true, externalUserId: true, email: true } } },
     })
     if (!user) return { status: false, message: 'not_found' }
-    const capibara = user.identities.find((i: any) => i.provider === 'capibara')
+    const capibara = user.identities.find((i: any) => i.provider === 'capibaratraductor')
     return {
       status: true,
       data: {
