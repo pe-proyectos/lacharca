@@ -213,9 +213,9 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
       {logged ? (
         <div className="mb-4">
           {image && (
-            <div className="relative inline-block mb-2 media" style={{ opacity: image.url ? 1 : 0.55 }}>
+            <div className="relative inline-block mb-2 media post-media" style={{ opacity: image.url ? 1 : 0.55, cursor: 'default', ['--media-bg' as any]: `url('${image.preview}')` }}>
               {image.preview
-                ? <img src={image.preview} alt="" className="max-h-40 rounded-xl" />
+                ? <img src={image.preview} alt="" style={{ maxHeight: 220 }} />
                 : <span className="block px-4 py-3 t-caption" style={{ color: '#b42318' }}>La imagen supera los 5 MB</span>}
               {!image.url && !image.failed && <span className="absolute inset-0 skeleton rounded-xl" />}
               <button type="button" onClick={clearImage} aria-label="Quitar imagen"

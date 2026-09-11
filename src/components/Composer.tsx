@@ -114,8 +114,12 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
         {images.length > 0 && (
           <div className={`grid gap-2 mt-2 mb-1 ${images.length > 1 ? 'grid-cols-2' : ''}`}>
             {images.map((img) => (
-              <div key={img.id} className="relative media" style={{ opacity: img.url ? 1 : 0.55 }}>
-                <img src={img.preview} alt="" className="w-full max-h-56 object-cover" />
+              <div key={img.id}
+                className={`relative media post-media ${images.length > 1 ? 'post-media--grid' : ''}`}
+                style={{ opacity: img.url ? 1 : 0.55, cursor: 'default', ['--media-bg' as any]: `url('${img.preview}')` }}>
+                {/* La previsualización enseña la imagen entera: así se ve igual
+                    que cuando quede publicada. */}
+                <img src={img.preview} alt="" style={{ maxHeight: images.length > 1 ? undefined : 360 }} />
                 {!img.url && !img.failed && <span className="absolute inset-0 skeleton" />}
                 {img.failed && (
                   <span className="absolute inset-0 grid place-items-center text-[12px] font-medium" style={{ background: 'rgba(180,35,24,.12)', color: '#b42318' }}>
