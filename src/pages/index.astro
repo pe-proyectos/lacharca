@@ -74,7 +74,7 @@ function renderContent(c: string) {
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <a href={`/@${p.author?.handle}`} class="text-[15px] font-black text-white truncate hover:underline">{p.author?.displayName || p.author?.handle}</a>
                     {(p.author?.type === 'scan') && <svg width="15" height="15" viewBox="0 0 24 24" class="text-amber-400"><path fill="currentColor" d="M9 16.2l-3.5-3.5L4 14.2 9 19l11-11-1.5-1.5z"/></svg>}
-                    <span class="text-[13px] text-white/35">@{p.author?.handle} · {timeAgo(p.createdAt)}</span>
+                    <span class="text-[13px] text-white/35">@{p.author?.handle} · <a href={`/post/${p.id}`} class="hover:underline">{timeAgo(p.createdAt)}</a></span>
                   </div>
                   <p class="mt-0.5 text-[15px] leading-relaxed text-white/90 whitespace-pre-wrap break-words" set:html={renderContent(p.content || '')}></p>
                   {p.media?.[0] && <img src={p.media[0]} alt="" class="mt-3 rounded-2xl max-h-[420px] w-full object-cover ring-1 ring-white/[0.06]" />}
