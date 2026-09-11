@@ -30,6 +30,15 @@ async function uniqueHandle(base: string) {
 }
 async function suggestHandle(base: string) { return uniqueHandle(base) }
 
+// Token de sesion: header Authorization (SSR) o cookie httpOnly lc_session (navegador).
+function sessionToken(request: Request): string | null {
+  const h = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+  if (h) return h
+  const raw = request.headers.get('cookie') || ''
+  const m = raw.match(/(?:^|;\s*)lc_session=([^;]+)/)
+  return m ? decodeURIComponent(m[1]) : null
+}
+
 async function sessionUser(token?: string | null) {
   if (!token) return null
   const s = await prisma.session.findUnique({ where: { token }, include: { user: true } })
@@ -176,7 +185,7 @@ const app = new Elysia()
 
   // Sesion actual (+ page token de hilos para acciones del cliente).
   .get('/auth/me', async ({ request }: any) => {
-    const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+    const token = sessionToken(request)
     const user = await sessionUser(token)
     if (!user) return { status: false, message: 'unauthenticated' }
     return { status: true, data: { user: publicUser(user) } }
@@ -185,7 +194,7 @@ const app = new Elysia()
   // BFF: emite un page token de CORTA VIDA para que el navegador hable directo
   // con hilos.rest. Requiere sesion valida (cookie httpOnly -> Authorization).
   .post('/auth/token', async ({ request }: any) => {
-    const user = await sessionUser(request.headers.get('authorization')?.replace(/^Bearer\s+/i, ''))
+    const user = await sessionUser(sessionToken(request))
     if (!user) return { status: false, message: 'unauthenticated' }
     try {
       const r = await hilos.pageTokens.create({
@@ -200,7 +209,7 @@ const app = new Elysia()
   })
 
   .post('/auth/logout', async ({ request }: any) => {
-    const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+    const token = sessionToken(request)
     if (token) await prisma.session.deleteMany({ where: { token } })
     return { status: true }
   })
@@ -218,9 +227,20 @@ const app = new Elysia()
     return { status: true, data: { deleted: user.handle, note: 'La cuenta de CapibaraTraductor no fue modificada.' } }
   }, { body: t.Object({ handle: t.String() }) })
 
+  // Directorio paginado de pages (scroll infinito de scans/lectores).
+  .get('/pages/directory', async ({ request, query }: any) => {
+    const user = await sessionUser(sessionToken(request))
+    const qs = new URLSearchParams()
+    qs.set('page', String(Math.max(0, Number(query.page) || 0)))
+    qs.set('limit', String(Math.min(30, Number(query.limit) || 20)))
+    if (query.type) qs.set('type', String(query.type))
+    if (query.q) qs.set('q', String(query.q))
+    return { status: true, data: await fetchDirectory(qs, user?.id) }
+  })
+
   // Seguir / dejar de seguir una page
   .post('/pages/:handle/follow', async ({ request, params }: any) => {
-    const user = await sessionUser(request.headers.get('authorization')?.replace(/^Bearer\s+/i, ''))
+    const user = await sessionUser(sessionToken(request))
     if (!user) return { status: false, message: 'unauthenticated' }
     try { return { status: true, data: await asUser(user.id).pages.follow(params.handle) } }
     catch (e: any) { return { status: false, message: e?.code || e?.message || 'error' } }
@@ -228,7 +248,7 @@ const app = new Elysia()
 
   // Responder a un comentario (anidado)
   .post('/posts/:id/comments/:commentId/reply', async ({ request, params, body }: any) => {
-    const user = await sessionUser(request.headers.get('authorization')?.replace(/^Bearer\s+/i, ''))
+    const user = await sessionUser(sessionToken(request))
     if (!user) return { status: false, message: 'unauthenticated' }
     const content = String(body.content || '').trim()
     if (!content) return { status: false, message: 'empty_comment' }
