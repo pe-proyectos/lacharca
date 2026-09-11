@@ -203,6 +203,26 @@ const app = new Elysia()
     return { status: true, data: { deleted: user.handle, note: 'La cuenta de CapibaraTraductor no fue modificada.' } }
   }, { body: t.Object({ handle: t.String() }) })
 
+  // Seguir / dejar de seguir una page
+  .post('/pages/:handle/follow', async ({ request, params }: any) => {
+    const user = await sessionUser(request.headers.get('authorization')?.replace(/^Bearer\s+/i, ''))
+    if (!user) return { status: false, message: 'unauthenticated' }
+    try { return { status: true, data: await asUser(user.id).pages.follow(params.handle) } }
+    catch (e: any) { return { status: false, message: e?.code || e?.message || 'error' } }
+  })
+
+  // Responder a un comentario (anidado)
+  .post('/posts/:id/comments/:commentId/reply', async ({ request, params, body }: any) => {
+    const user = await sessionUser(request.headers.get('authorization')?.replace(/^Bearer\s+/i, ''))
+    if (!user) return { status: false, message: 'unauthenticated' }
+    const content = String(body.content || '').trim()
+    if (!content) return { status: false, message: 'empty_comment' }
+    try {
+      const c = await asUser(user.id).comments.create(Number(params.id), { content, parentCommentId: Number(params.commentId) })
+      return { status: true, data: c }
+    } catch (e: any) { return { status: false, message: e?.code || 'error' } }
+  })
+
   .onError(({ error, set }) => { set.status = 400; return { status: false, message: (error as any)?.message || 'error' } })
   .listen(Number(process.env.PORT) || 3200)
 

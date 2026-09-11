@@ -8,7 +8,8 @@ const CAPI = 'https://capibaratraductor.com'
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 let posts: any[] = []
 const actingPage = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
-try { const d = await hilos('/feed?limit=25', actingPage); posts = d?.items || [] } catch (e) { posts = [] }
+const scope = (Astro.url.searchParams.get('feed') === 'following' && viewer) ? 'following' : 'foryou'
+try { const d = await hilos(`/feed?limit=25&scope=${scope}`, actingPage); posts = d?.items || [] } catch (e) { posts = [] }
 function renderContent(c: string) {
   return c.replace(/#([\p{L}\p{N}_]{1,80})/gu, '<span class="text-teal-400">#$1</span>').replace(/@([a-zA-Z0-9_]{1,30})/g, '<span class="text-teal-300">@$1</span>')
 }
@@ -52,13 +53,20 @@ function renderContent(c: string) {
       </div>
       <div class="h-[2px] bg-gradient-to-r from-transparent via-teal-400/40 to-transparent"></div>
 
+      {viewer && (
+        <div class="flex border-b border-white/[0.06]">
+          <a href="/" class={`flex-1 text-center py-3 text-sm font-bold transition ${scope === 'foryou' ? 'text-white border-b-2 border-teal-400' : 'text-white/45 hover:text-white'}`}>La corriente</a>
+          <a href="/?feed=following" class={`flex-1 text-center py-3 text-sm font-bold transition ${scope === 'following' ? 'text-white border-b-2 border-teal-400' : 'text-white/45 hover:text-white'}`}>Tu manada</a>
+        </div>
+      )}
+
       {viewer && <Composer client:load user={viewer.user} />}
 
       {posts.length === 0 ? (
         <div class="flex flex-col items-center justify-center text-center py-24 px-8">
           <p class="text-5xl mb-3">🦫</p>
-          <p class="text-white/70 font-bold">La charca está tranquila.</p>
-          <a href="/auth/login" class="mt-4 inline-block px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Rompe el silencio</a>
+          <p class="text-white/70 font-bold">{scope === "following" ? "Tu manada aún es pequeña. Sigue scans y lectores." : "La charca está tranquila."}</p>
+          {!viewer && <a href="/auth/login" class="mt-4 inline-block px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Rompe el silencio</a>}
         </div>
       ) : (
         <div>
@@ -90,11 +98,19 @@ function renderContent(c: string) {
 
     <!-- Sidebar -->
     <aside class="hidden xl:block w-72 shrink-0 py-5">
-      <div class="rounded-2xl bg-gradient-to-br from-teal-500/10 to-cyan-500/5 border border-teal-400/20 p-5">
-        <p class="text-white font-black text-lg">Únete a la charca</p>
-        <p class="text-white/60 text-sm mt-1">Tu cuenta de La Charca, vinculada a CapibaraTraductor. Un clic y listo.</p>
-        <a href="/auth/login" class="inline-block mt-4 px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Continuar con CapibaraTraductor</a>
-      </div>
+      {viewer ? (
+        <div class="rounded-2xl bg-white/[0.03] border border-white/10 p-5">
+          <p class="text-white font-black">Hola, {viewer.user.displayName || viewer.user.handle}</p>
+          <p class="text-white/55 text-sm mt-1">Estás en la charca. Comparte lo que estés leyendo.</p>
+          <a href={`/@${viewer.user.handle}`} class="inline-block mt-3 text-teal-400 text-sm font-bold hover:underline">Ver mi perfil →</a>
+        </div>
+      ) : (
+        <div class="rounded-2xl bg-gradient-to-br from-teal-500/10 to-cyan-500/5 border border-teal-400/20 p-5">
+          <p class="text-white font-black text-lg">Únete a la charca</p>
+          <p class="text-white/60 text-sm mt-1">Tu cuenta de La Charca, vinculada a CapibaraTraductor. Un clic y listo.</p>
+          <a href="/auth/login" class="inline-block mt-4 px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Continuar con CapibaraTraductor</a>
+        </div>
+      )}
     </aside>
   </div>
 </Layout>

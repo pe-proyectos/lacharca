@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro'
 import { hilos, timeAgo } from '../../lib/hilos'
 import { getViewer } from '../../lib/session'
 import PostActions from '../../components/PostActions'
+import CommentThread from '../../components/CommentThread'
 
 const id = Number(Astro.params.id)
 if (!Number.isFinite(id)) return Astro.redirect('/')
@@ -13,16 +14,6 @@ const post = await hilos(`/posts/${id}`, acting).catch(() => null)
 if (!post) return Astro.redirect('/?post=no_encontrado')
 const comments = (await hilos(`/posts/${id}/comments`, acting).catch(() => [])) || []
 
-// Separa URLs de imagen del texto (los comentarios migrados traen la URL al final)
-function split(content: string) {
-  const parts = (content || '').split(/\s+/)
-  const imgs = parts.filter((p) => /^https?:\/\/\S+\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(p) || p.includes('r2.hilos.rest'))
-  const text = (content || '').split('\n').filter((l) => !imgs.includes(l.trim())).join('\n').trim()
-  return { text, imgs }
-}
-const byParent = new Map<number, any[]>()
-for (const c of comments) { const k = c.parentCommentId || 0; if (!byParent.has(k)) byParent.set(k, []); byParent.get(k)!.push(c) }
-const roots = byParent.get(0) || []
 ---
 <Layout title={`${(post.content || 'Publicación').slice(0, 60)} — La Charca`}>
   <div class="max-w-[640px] mx-auto border-x border-white/[0.06] min-h-screen">
@@ -48,42 +39,7 @@ const roots = byParent.get(0) || []
     </article>
 
     <div class="px-4 py-2">
-      <h2 class="text-sm font-black text-white/50 uppercase tracking-wider py-2">{comments.length} comentarios</h2>
-      {roots.length === 0 && <p class="text-white/40 text-sm py-6 text-center">Sin comentarios.</p>}
-      {roots.map((c: any) => {
-        const { text, imgs } = split(c.content)
-        const replies = byParent.get(c.id) || []
-        return (
-          <div class="py-3 border-b border-white/[0.04]">
-            <div class="flex items-start gap-2.5">
-              <a href={`/@${c.author?.handle}`}>
-                {c.author?.avatarUrl
-                  ? <img src={c.author.avatarUrl} alt="" class="w-9 h-9 rounded-full object-cover" />
-                  : <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white/70">{(c.author?.displayName || c.author?.handle || '?')[0]?.toUpperCase()}</div>}
-              </a>
-              <div class="min-w-0 flex-1">
-                <p class="text-[13px]"><a href={`/@${c.author?.handle}`} class="font-bold text-white hover:underline">{c.author?.displayName || c.author?.handle}</a> <span class="text-white/35">· {timeAgo(c.createdAt)}</span></p>
-                {text && <p class="text-[14px] text-white/85 whitespace-pre-wrap break-words mt-0.5">{text}</p>}
-                {imgs.map((u: string) => <img src={u} alt="" loading="lazy" class="mt-2 rounded-xl max-h-80 ring-1 ring-white/10" />)}
-                {replies.length > 0 && (
-                  <div class="mt-3 pl-3 border-l-2 border-white/10 space-y-3">
-                    {replies.map((r: any) => {
-                      const rr = split(r.content)
-                      return (
-                        <div>
-                          <p class="text-[13px]"><a href={`/@${r.author?.handle}`} class="font-bold text-white hover:underline">{r.author?.displayName || r.author?.handle}</a> <span class="text-white/35">· {timeAgo(r.createdAt)}</span></p>
-                          {rr.text && <p class="text-[14px] text-white/80 whitespace-pre-wrap break-words">{rr.text}</p>}
-                          {rr.imgs.map((u: string) => <img src={u} alt="" loading="lazy" class="mt-2 rounded-xl max-h-72 ring-1 ring-white/10" />)}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )
-      })}
+      <CommentThread client:load postId={post.id} initial={comments} logged={!!viewer} />
     </div>
   </div>
 </Layout>
