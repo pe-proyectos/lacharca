@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro'
+import Shell from '../components/Shell.astro'
+import NotificationList from '../components/NotificationList'
+import { hilos } from '../lib/hilos'
+import { getViewer } from '../lib/session'
+
+const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
+if (!viewer) return Astro.redirect('/auth/login')
+const acting = `external:lacharca:user:${viewer.user.id}`
+
+let initial: any = { items: [], hasMore: false }
+try { initial = (await hilos('/notifications?limit=20', acting)) || initial } catch {}
+---
+<Layout title="Avisos — La Charca" noindex>
+  <Shell viewer={viewer} active="alerts">
+    <h1 class="t-title mb-2">Avisos</h1>
+    <p class="t-sub mb-6">Respuestas, menciones y gente nueva en tu charca.</p>
+    <NotificationList client:load initial={initial.items} hasMore={initial.hasMore} />
+  </Shell>
+</Layout>

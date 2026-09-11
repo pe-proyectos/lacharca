@@ -254,6 +254,33 @@ const app = new Elysia()
     return { status: !json?.error, data: json?.data ?? { items: [], hasMore: false } }
   })
 
+  // Avisos del usuario (la vista los pinta en el servidor).
+  .get('/notifications', async ({ request, query }: any) => {
+    const user = await sessionUser(sessionToken(request))
+    if (!user) return { status: false, message: 'unauthenticated' }
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${process.env.HILOS_SECRET_KEY || ''}`,
+      'X-Hilos-Page': `external:lacharca:user:${user.id}`,
+    }
+    const qs = new URLSearchParams({ page: String(Math.max(0, Number(query.page) || 0)), limit: '20' })
+    const res = await fetch(`${process.env.HILOS_BASE || 'https://hilos.rest'}/v1/notifications?${qs}`, { headers })
+    const json: any = await res.json().catch(() => ({}))
+    return { status: !json?.error, data: json?.data ?? { items: [], hasMore: false } }
+  })
+
+  // Publicaciones de una page, paginadas (scroll infinito del perfil).
+  .get('/pages/:handle/posts', async ({ request, params, query }: any) => {
+    const user = await sessionUser(sessionToken(request))
+    const qs = new URLSearchParams()
+    qs.set('page', String(Math.max(0, Number(query.page) || 0)))
+    qs.set('limit', String(Math.min(30, Number(query.limit) || 25)))
+    const headers: Record<string, string> = { Authorization: `Bearer ${process.env.HILOS_SECRET_KEY || ''}` }
+    if (user) headers['X-Hilos-Page'] = `external:lacharca:user:${user.id}`
+    const res = await fetch(`${process.env.HILOS_BASE || 'https://hilos.rest'}/v1/pages/${encodeURIComponent(String(params.handle))}/posts?${qs}`, { headers })
+    const json: any = await res.json().catch(() => ({}))
+    return { status: !json?.error, data: json?.data ?? { items: [], hasMore: false } }
+  })
+
   // Ficha publica de una page (la usa la tarjeta flotante al hacer hover).
   .get('/pages/:handle', async ({ request, params }: any) => {
     const user = await sessionUser(sessionToken(request))

@@ -2,6 +2,7 @@
 // Layout de 3 columnas sin navbar: nav izquierda (usuario abajo),
 // contenido central protagonista, sidebar derecha con descubrimiento.
 import ChatDock from './ChatDock'
+import NotifBadge from './NotifBadge'
 import NavProgress from './NavProgress'
 import UserHoverCard from './UserHoverCard'
 import SideDiscovery from './SideDiscovery.astro'
@@ -22,6 +23,9 @@ const items = [
   { href: '/explorar', label: 'Explorar', key: 'explore',
     r: 'M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z',
     f: 'M229.66,218.34l-50.06-50.06a88.11,88.11,0,1,0-11.32,11.32l50.06,50.06a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z' },
+  { href: '/avisos', label: 'Avisos', key: 'alerts',
+    r: 'M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z',
+    f: 'M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216Z' },
   { href: '/guardados', label: 'Guardados', key: 'saved',
     r: 'M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z',
     f: 'M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z' },
@@ -40,7 +44,8 @@ const items = [
         <a href={it.href} class={`nav-item flex items-center gap-4 px-3 py-2.5 rounded-xl ${active === it.key ? 'font-semibold' : 'ink-2'}`}
            style={active === it.key ? 'background:#e3ecfa' : ''}>
           <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" class="shrink-0"><path d={active === it.key ? it.f : it.r}/></svg>
-          <span class="hidden xl:block text-[16px]">{it.label}</span>
+          <span class="hidden xl:block text-[16px] flex-1">{it.label}</span>
+          {it.key === 'alerts' && viewer && <NotifBadge client:idle />}
         </a>
       ))}
     </div>

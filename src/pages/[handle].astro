@@ -5,6 +5,7 @@ import PostList from '../components/PostList.astro'
 import FollowButton from '../components/FollowButton'
 import ProfileEditor from '../components/ProfileEditor'
 import MessageButton from '../components/MessageButton'
+import ProfileMore from '../components/ProfileMore'
 import { hilos } from '../lib/hilos'
 import { getViewer } from '../lib/session'
 import { num, plural } from '../lib/format'
@@ -19,7 +20,7 @@ const actingPage = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}`
 
 const page = await hilos(`/pages/${encodeURIComponent(handle)}`, actingPage).catch(() => null)
 if (!page) return Astro.redirect('/?perfil=no_encontrado')
-const wall = await hilos(`/pages/${encodeURIComponent(handle)}/posts?limit=30`, actingPage).catch(() => null)
+const wall = await hilos(`/pages/${encodeURIComponent(handle)}/posts?limit=25`, actingPage).catch(() => null)
 const posts = wall?.items || []
 const isScan = page.type === 'scan' || page.type === 'manga'
 const isMe = viewer?.user?.handle === page.handle
@@ -73,5 +74,7 @@ const desc = page.bio || `${kind} en La Charca. ${plural(page.followersCount, 's
     </header>
 
     <PostList posts={posts} viewer={viewer} empty={isMe ? 'Todavía no publicaste nada. Escribe algo desde Inicio.' : 'Sin publicaciones todavía.'} />
+
+    {wall?.hasMore && <ProfileMore client:visible handle={page.handle} logged={!!viewer} startPage={1} />}
   </Shell>
 </Layout>

@@ -66,5 +66,8 @@ export const hilosApi = {
   messages: (id: number, page = 0) => hilosFetch(`/conversations/${id}/messages?page=${page}&limit=40`),
   send: (handle: string, content: string) => hilosFetch('/messages', { method: 'POST', body: JSON.stringify({ handle, content }) }),
   unread: () => hilosFetch('/messages/unread'),
+  notifications: (page = 0) => hilosFetch(`/notifications?page=${page}&limit=20`),
+  notificationsUnread: () => hilosFetch('/notifications/unread'),
+  readNotifications: (id?: number) => hilosFetch('/notifications/read', { method: 'POST', body: JSON.stringify(id ? { id } : {}) }),
   feed: (scope: 'foryou' | 'following' = 'foryou', page = 0) => hilosFetch(`/feed?scope=${scope}&page=${page}&limit=25`),
 }
