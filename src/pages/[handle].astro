@@ -32,8 +32,8 @@ const desc = page.bio || `${kind} en La Charca. ${plural(page.followersCount, 's
   <Shell viewer={viewer} active={isMe ? "me" : "none"}>
     <header class="pb-7 mb-2" style="border-bottom:1px solid var(--line)">
       {page.bannerUrl
-        ? <img src={page.bannerUrl} alt="" class="w-full h-40 sm:h-52 object-cover rounded-2xl mb-5" />
-        : <div class="w-full h-28 sm:h-36 rounded-2xl mb-5" style="background:linear-gradient(120deg,#dbe8fb,#e8f4f6)"></div>}
+        ? <img src={page.bannerUrl} alt="" class="w-full h-32 sm:h-52 object-cover rounded-2xl mb-5" />
+        : <div class="w-full h-20 sm:h-32 rounded-2xl mb-5" style="background:linear-gradient(120deg,#dbe8fb,#e8f4f6)"></div>}
       <div class="flex items-start gap-4 sm:gap-5">
         {page.avatarUrl
           ? <img src={page.avatarUrl} alt={name} width="88" height="88" class={`avatar-xl object-cover shrink-0 ${isScan ? 'rounded-2xl' : 'rounded-full'}`} />
