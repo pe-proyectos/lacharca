@@ -54,7 +54,7 @@ const desc = page.bio || `${kind} en La Charca. ${plural(page.followersCount, 's
 
           <div class="flex items-center flex-wrap gap-x-5 gap-y-1.5 mt-4 text-[14px]">
             <a href={`/@${page.handle}/seguidores`} class="hover:opacity-70 transition">
-              <b class="font-semibold tabular-nums">{num(page.followersCount)}</b> <span class="ink-2">{Number(page.followersCount || 0) === 1 ? "seguidor" : "seguidores"}</span>
+              <b class="font-semibold tabular-nums" data-followers={page.handle} data-count={page.followersCount || 0}>{num(page.followersCount)}</b> <span class="ink-2">{Number(page.followersCount || 0) === 1 ? "seguidor" : "seguidores"}</span>
             </a>
             <a href={`/@${page.handle}/siguiendo`} class="hover:opacity-70 transition">
               <b class="font-semibold tabular-nums">{num(page.followingCount)}</b> <span class="ink-2">siguiendo</span>

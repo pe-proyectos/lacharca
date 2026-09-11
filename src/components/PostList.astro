@@ -3,6 +3,16 @@ import PostActions from './PostActions'
 import { timeAgo } from '../lib/hilos'
 const { posts = [], viewer, empty = 'Aún no hay nada por aquí.' } = Astro.props
 const isMedia = (u) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.includes('r2.hilos.rest')
+
+// Separa el texto de las imágenes de un comentario: en la vista previa se ve
+// una miniatura, no un enlace kilométrico.
+function splitComment(content) {
+  const words = (content || '').split(/\s+/)
+  const imgs = words.filter((w) => /^https?:\/\//.test(w) && isMedia(w))
+  let text = (content || '')
+  for (const u of imgs) text = text.replace(u, '')
+  return { text: text.replace(/\s+/g, ' ').trim(), imgs }
+}
 function tokenize(c) {
   return (c || '').split(/(\s+)/).map((w) => {
     if (/^#[\p{L}\p{N}_]+$/u.test(w)) return { t: 'tag', v: w }
@@ -72,7 +82,17 @@ function tokenize(c) {
                       </a>
                       <p class="t-sub min-w-0 flex-1">
                         <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle} class="font-medium hover:opacity-70 mr-1.5" style="color:var(--ink)">{c.author?.displayName || c.author?.handle}</a>
-                        <span class="ink-2">{c.content.length > 120 ? `${c.content.slice(0, 120)}…` : c.content}</span>
+                        {splitComment(c.content).text && (
+                          <span class="ink-2">
+                            {splitComment(c.content).text.length > 120 ? `${splitComment(c.content).text.slice(0, 120)}…` : splitComment(c.content).text}
+                          </span>
+                        )}
+                        {splitComment(c.content).imgs.slice(0, 3).map((u) => (
+                          <a href={`/post/${p.id}`} class="inline-block align-middle ml-1.5 media" style="border-radius:8px">
+                            <img src={u} alt="Imagen del comentario" loading="lazy" width="34" height="34"
+                              style="width:34px;height:34px;object-fit:cover;display:block" />
+                          </a>
+                        ))}
                       </p>
                     </div>
                   ))}
