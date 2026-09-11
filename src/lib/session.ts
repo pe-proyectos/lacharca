@@ -1,5 +1,5 @@
 // Sesión propia de La Charca (cookie httpOnly) + consulta a su API.
-export const API = process.env.LACHARCA_API || import.meta.env.LACHARCA_API || 'https://api.lacharca.com'
+export const API = process.env.LACHARCA_API || import.meta.env.LACHARCA_API || 'https://lacharca.com/api'
 export const CAPI = 'https://capibaratraductor.com'
 
 export async function getViewer(token?: string | null) {
