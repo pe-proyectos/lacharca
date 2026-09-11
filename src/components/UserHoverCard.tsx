@@ -68,9 +68,10 @@ const UserHoverCard: React.FC = () => {
     <div
       onMouseEnter={() => clearTimeout(hideTimer.current)}
       onMouseLeave={() => { setPos(null); setPage(null) }}
-      className="fixed z-50 w-[300px] rounded-2xl p-4 rise"
+      className="fixed z-50 rounded-2xl p-4 rise"
       style={{
         left: pos.x, top: pos.y, transform: pos.above ? 'translateY(-100%)' : undefined,
+        width: 'min(300px, calc(100vw - 24px))',
         background: '#fff', border: '1px solid var(--line)', boxShadow: '0 12px 36px rgba(16,31,56,.14)',
       }}>
       {loading || !page ? (

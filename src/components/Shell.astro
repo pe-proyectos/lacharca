@@ -71,7 +71,8 @@ const items = [
   </nav>
 
   <!-- CENTRO -->
-  <main class="flex-1 min-w-0 px-5 sm:px-8 xl:px-10 py-8" style={hasAside ? 'border-right:1px solid var(--line)' : ''}>
+  <main class="flex-1 min-w-0 px-4 sm:px-8 xl:px-10 py-6 sm:py-8 pb-[calc(84px+env(safe-area-inset-bottom))] md:pb-8"
+    style={hasAside ? 'border-right:1px solid var(--line)' : ''}>
     <div class={wide ? '' : 'max-w-[1240px]'}>
       <slot />
     </div>
@@ -87,18 +88,23 @@ const items = [
   )}
 
   <!-- NAV MOVIL (abajo) -->
-  <div class="md:hidden fixed bottom-0 inset-x-0 z-50 flex items-center justify-around py-2.5" style="background:rgba(238,243,251,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line)">
+  <nav aria-label="Navegación" class="md:hidden fixed bottom-0 inset-x-0 z-50 flex items-stretch justify-around"
+    style="background:rgba(238,243,251,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)">
     {items.map((it) => (
-      <a href={it.href} class={active === it.key ? '' : 'ink-3'}>
-        <svg width="25" height="25" viewBox="0 0 256 256" fill="currentColor"><path d={active === it.key ? it.f : it.r}/></svg>
+      <a href={it.href} aria-label={it.label} aria-current={active === it.key ? 'page' : undefined}
+        class={`flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] tap ${active === it.key ? '' : 'ink-3'}`}>
+        <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d={active === it.key ? it.f : it.r}/></svg>
+        <span class="text-[10px] font-medium leading-none">{it.label}</span>
       </a>
     ))}
-    <a href={viewer ? `/@${viewer.user.handle}` : '/auth/login'}>
+    <a href={viewer ? `/@${viewer.user.handle}` : '/auth/login'} aria-label={viewer ? 'Tu perfil' : 'Entrar'}
+      class="flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] tap">
       {viewer?.user?.avatarUrl
-        ? <img src={viewer.user.avatarUrl} alt="" class="w-6 h-6 rounded-full object-cover" />
-        : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="ink-3"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>}
+        ? <img src={viewer.user.avatarUrl} alt="" width="24" height="24" class="rounded-full object-cover" style="width:24px;height:24px" />
+        : <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" class="ink-3"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"/></svg>}
+      <span class="text-[10px] font-medium leading-none">{viewer ? 'Perfil' : 'Entrar'}</span>
     </a>
-  </div>
+  </nav>
 
   <NavProgress client:idle />
   {viewer && <ChatDock client:idle me={viewer.user.handle} />}

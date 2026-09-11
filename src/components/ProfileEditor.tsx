@@ -56,15 +56,17 @@ const ProfileEditor: React.FC<Props> = (props) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(16,31,56,.45)' }}
+    <div className="fixed inset-0 z-[55] flex items-end sm:items-center justify-center sm:p-4" style={{ background: 'rgba(16,31,56,.45)' }}
       onClick={(e) => { if (e.target === e.currentTarget && !busy) setOpen(false) }}>
-      <div className="w-full max-w-[520px] rounded-3xl overflow-hidden rise" style={{ background: '#fff', border: '1px solid var(--line)' }}>
+      {/* En móvil es una hoja que sube desde abajo, como en una app nativa. */}
+      <div className="w-full sm:max-w-[520px] rounded-t-3xl sm:rounded-3xl overflow-hidden rise"
+        style={{ background: '#fff', border: '1px solid var(--line)', maxHeight: '92dvh', paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--line)' }}>
           <h2 className="t-section">Editar perfil</h2>
           <button type="button" onClick={() => !busy && setOpen(false)} className="act" aria-label="Cerrar"><X size={18} /></button>
         </div>
 
-        <div className="max-h-[70vh] overflow-y-auto">
+        <div className="overflow-y-auto" style={{ maxHeight: "68dvh" }}>
           <button type="button" onClick={() => bannerInput.current?.click()}
             className="relative block w-full h-32 cursor-pointer group"
             style={{ background: banner ? `center/cover url(${banner})` : '#dbe8fb' }}>

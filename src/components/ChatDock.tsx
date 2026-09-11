@@ -2,8 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { ChatCircleDots, X, PaperPlaneTilt, CaretLeft, LockSimple, MagnifyingGlass } from '@phosphor-icons/react'
 import { hilosApi } from '../lib/hilosClient'
 import { timeAgo } from '../lib/time'
+import FollowButton from './FollowButton'
 
-interface Page { handle: string; displayName?: string | null; avatarUrl?: string | null; type?: string }
+interface Page {
+  handle: string; displayName?: string | null; avatarUrl?: string | null; type?: string
+  bio?: string | null; followersCount?: number; followingCount?: number; postsCount?: number
+}
+const n = (v: any) => Number(v || 0).toLocaleString('es')
 interface Conv { id: number; page: Page; canRead: boolean; unread: number; lastMessageAt: string; lastMessage: { content: string; createdAt: string; mine: boolean } | null }
 interface Msg { id: number; content: string; createdAt: string; mine: boolean; pending?: boolean }
 
@@ -30,6 +35,7 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
   const [text, setText] = useState('')
   const [unread, setUnread] = useState(0)
   const [q, setQ] = useState('')
+  const [lockedPage, setLockedPage] = useState<Page | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const lastSeen = useRef<string | null>(null)
 
@@ -116,11 +122,27 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
     }
   }
 
-  const openConv = (c: Conv) => {
+  const openConv = async (c: Conv) => {
     setActive(c)
-    if (c.canRead) loadMsgs(c)
-    else { setMsgs([]); setCanWrite(false) }
-    setUnread((n) => Math.max(0, n - c.unread))
+    setLockedPage(null)
+    if (c.canRead) { loadMsgs(c) }
+    else {
+      setMsgs([]); setCanWrite(false)
+      // Para decidir si seguir a alguien hay que poder verlo: traemos su ficha.
+      const full = await hilosApi.page(c.page.handle).catch(() => null)
+      setLockedPage(full || c.page)
+    }
+    setUnread((x) => Math.max(0, x - c.unread))
+  }
+
+  // Al seguir desde el chat, la conversación se desbloquea sin salir de aquí.
+  const onFollowed = async (following: boolean) => {
+    if (!following || !active) return
+    const updated = { ...active, canRead: true }
+    setActive(updated)
+    setCanWrite(true)
+    await loadMsgs(updated)
+    loadConvs()
   }
 
   const shown = (convs || []).filter((c) => {
@@ -133,8 +155,11 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
     <>
       {!open && (
         <button type="button" onClick={() => setOpen(true)} aria-label="Mensajes"
-          className="fixed z-40 bottom-20 md:bottom-6 right-5 rounded-full shadow-lg flex items-center gap-2 px-4 py-3 cursor-pointer transition hover:-translate-y-0.5"
-          style={{ background: 'var(--blue)', color: '#fff', boxShadow: '0 8px 28px rgba(37,99,235,.35)' }}>
+          className="fixed z-40 right-4 md:right-5 rounded-full flex items-center gap-2 px-4 py-3 cursor-pointer transition hover:-translate-y-0.5 tap"
+          style={{
+            background: 'var(--blue)', color: '#fff', boxShadow: '0 8px 28px rgba(37,99,235,.35)',
+            bottom: 'calc(76px + env(safe-area-inset-bottom))', minHeight: 52,
+          }}>
           <ChatCircleDots size={20} weight="fill" />
           <span className="text-[14px] font-medium hidden sm:block">Mensajes</span>
           {unread > 0 && (
@@ -145,8 +170,15 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
       )}
 
       {open && (
-        <div className="fixed z-40 bottom-0 md:bottom-6 right-0 md:right-5 w-full md:w-[380px] h-[70vh] md:h-[520px] flex flex-col rounded-t-3xl md:rounded-3xl overflow-hidden"
-          style={{ background: '#fff', border: '1px solid var(--line)', boxShadow: '0 16px 48px rgba(16,31,56,.18)' }}>
+        <div className="fixed z-[55] inset-x-0 bottom-0 md:inset-x-auto md:bottom-6 md:right-5 w-full md:w-[380px] flex flex-col rounded-t-3xl md:rounded-3xl overflow-hidden"
+          style={{
+            background: '#fff', border: '1px solid var(--line)', boxShadow: '0 16px 48px rgba(16,31,56,.18)',
+            height: 'min(86dvh, 560px)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+          }}>
+          <div className="md:hidden pt-2.5 pb-1 flex justify-center shrink-0" aria-hidden>
+            <span className="block w-10 h-1 rounded-full" style={{ background: 'var(--line)' }} />
+          </div>
           <header className="flex items-center gap-2 px-4 py-3 shrink-0" style={{ borderBottom: '1px solid var(--line)' }}>
             {active ? (
               <>
@@ -221,11 +253,46 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
                     {[0, 1, 2].map((i) => <div key={i} className={`skeleton h-9 rounded-2xl ${i % 2 ? 'w-2/5 ml-auto' : 'w-3/5'}`} />)}
                   </div>
                 ) : !active.canRead ? (
-                  <div className="px-4 py-10 text-center">
-                    <LockSimple size={26} className="ink-3 mx-auto mb-3" />
-                    <p className="t-body ink-2">@{active.page.handle} te escribió.</p>
-                    <p className="t-sub mt-1">Para leer sus mensajes y responder, primero tienes que seguirlo.</p>
-                    <a href={`/@${active.page.handle}`} className="btn mt-5 inline-block">Ver su perfil</a>
+                  <div className="py-2">
+                    {/* Resumen del perfil: lo justo para decidir si seguir. */}
+                    <div className="rounded-2xl p-4 text-center" style={{ border: '1px solid var(--line)', background: '#fff' }}>
+                      <a href={`/@${active.page.handle}`} className="inline-block">
+                        <Avatar p={lockedPage || active.page} size={64} />
+                      </a>
+                      <a href={`/@${active.page.handle}`} className="block text-[16px] font-semibold mt-2.5 hover:opacity-70 truncate">
+                        {(lockedPage || active.page).displayName || active.page.handle}
+                      </a>
+                      <span className="block t-caption">@{active.page.handle}</span>
+
+                      {lockedPage === null ? (
+                        <div className="mt-3 space-y-2">
+                          <div className="skeleton h-3 w-3/4 mx-auto rounded" />
+                          <div className="skeleton h-3 w-1/2 mx-auto rounded" />
+                        </div>
+                      ) : (
+                        <>
+                          {lockedPage.bio && <p className="t-sub mt-2.5 line-clamp-3" style={{ color: 'var(--ink-2)' }}>{lockedPage.bio}</p>}
+                          <div className="flex items-center justify-center gap-4 mt-3 text-[13px]">
+                            <a href={`/@${lockedPage.handle}/seguidores`} className="hover:opacity-70">
+                              <b className="font-semibold tabular-nums">{n(lockedPage.followersCount)}</b> <span className="ink-2">seguidores</span>
+                            </a>
+                            <a href={`/@${lockedPage.handle}/siguiendo`} className="hover:opacity-70">
+                              <b className="font-semibold tabular-nums">{n(lockedPage.followingCount)}</b> <span className="ink-2">siguiendo</span>
+                            </a>
+                          </div>
+                          <p className="t-caption mt-1">{n(lockedPage.postsCount)} publicaciones</p>
+                        </>
+                      )}
+
+                      <div className="mt-4 flex items-center justify-center gap-2.5">
+                        <FollowButton handle={active.page.handle} logged followers={lockedPage?.followersCount || 0} onChange={onFollowed} />
+                        <a href={`/@${active.page.handle}`} className="chip">Ver perfil</a>
+                      </div>
+                    </div>
+
+                    <p className="t-sub text-center mt-4 px-4 inline-flex items-center justify-center gap-1.5 w-full">
+                      <LockSimple size={14} /> Sigue a @{active.page.handle} para leer sus mensajes y responder.
+                    </p>
                   </div>
                 ) : msgs.length === 0 ? (
                   <p className="t-sub text-center py-10">Escribe el primer mensaje.</p>

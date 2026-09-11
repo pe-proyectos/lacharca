@@ -172,3 +172,31 @@ textarea, input { cursor: text; }
   50%  { transform: translateX(120%); }
   100% { transform: translateX(320%); }
 }
+
+.avatar-xl { width: 72px; height: 72px; }
+@media (min-width: 640px) { .avatar-xl { width: 88px; height: 88px; } }
+
+/* Móvil: que se sienta como una app nativa y no como una web encogida. */
+.tap { -webkit-tap-highlight-color: transparent; }
+
+@media (max-width: 767px) {
+  /* Nada de zoom automático al enfocar un campo en iOS. */
+  input, textarea, select { font-size: 16px !important; }
+
+  /* Titulares proporcionados a una pantalla pequeña. */
+  .t-hero  { font-size: clamp(34px, 10vw, 52px); }
+  .t-title { font-size: clamp(24px, 6.5vw, 32px); }
+
+  /* Objetivos de toque cómodos. */
+  .act { min-width: 40px; min-height: 40px; }
+  .btn, .chip { min-height: 42px; }
+
+  /* Sin hover real: quitamos efectos que se quedan "pegados" tras tocar. */
+  .row:hover { background: transparent; }
+  .media:hover img { transform: none; }
+}
+
+/* Respeta a quien pide menos movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
