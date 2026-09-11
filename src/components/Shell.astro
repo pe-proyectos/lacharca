@@ -114,5 +114,5 @@ const items = [
 
   <NavProgress client:idle />
   {viewer && <ChatDock client:idle me={viewer.user.handle} />}
-  <UserHoverCard client:idle />
+  <UserHoverCard client:idle me={viewer?.user?.handle ?? null} />
 </div>

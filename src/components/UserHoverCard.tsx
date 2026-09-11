@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
+import FollowButton from './FollowButton'
+import MessageButton from './MessageButton'
 
 interface Page {
   handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null
   bio?: string | null; followersCount?: number; followingCount?: number; postsCount?: number
+  viewerFollows?: boolean
 }
 
 // Cache entre montajes: pasar el raton por el mismo perfil no repite la llamada.
@@ -11,7 +14,7 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
 
 // Tarjeta flotante al pasar el cursor sobre una mención o un enlace de perfil.
 // Se activa sobre cualquier ancla con data-hover-handle dentro de la página.
-const UserHoverCard: React.FC = () => {
+const UserHoverCard: React.FC<{ me?: string | null }> = ({ me = null }) => {
   const [page, setPage] = useState<Page | null>(null)
   const [pos, setPos] = useState<{ x: number; y: number; above: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
@@ -115,7 +118,18 @@ const UserHoverCard: React.FC = () => {
               <b className="font-semibold tabular-nums">{n(page.followingCount)}</b> <span className="ink-2">siguiendo</span>
             </a>
           </div>
-          <p className="t-caption mt-1">{n(page.postsCount)} publicaciones</p>
+          <p className="t-caption mt-1">{n(page.postsCount)} {Number(page.postsCount || 0) === 1 ? 'publicación' : 'publicaciones'}</p>
+
+          {/* Poder actuar desde aquí: es el gesto natural tras mirar un perfil. */}
+          {page.handle !== me && (
+            <div className="flex items-center gap-2 mt-3.5">
+              <FollowButton handle={page.handle} initialFollowing={page.viewerFollows} logged={!!me}
+                followers={page.followersCount || 0} compact />
+              {me && page.type === 'user' && (
+                <MessageButton handle={page.handle} canMessage={!!page.viewerFollows} compact />
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
