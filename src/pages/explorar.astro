@@ -1,0 +1,69 @@
+---
+import Layout from '../layouts/Layout.astro'
+import Shell from '../components/Shell.astro'
+import PostList from '../components/PostList.astro'
+import { hilos } from '../lib/hilos'
+import { getViewer } from '../lib/session'
+import FollowButton from '../components/FollowButton'
+
+const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
+const acting = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
+const q = (Astro.url.searchParams.get('q') || '').trim()
+
+let posts: any[] = []
+let pages: any[] = []
+try {
+  if (q) { const d = await hilos(`/socials/search?q=${encodeURIComponent(q)}`, acting); posts = d?.items || []; pages = d?.users || [] }
+  else { const d = await hilos('/feed?limit=30', acting); posts = d?.items || [] }
+} catch {}
+let suggested: any[] = []
+try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } catch {}
+---
+<Layout title="Explorar — La Charca">
+  <Shell viewer={viewer} active="explore">
+    <h1 class="t-title mb-6">Explorar</h1>
+    <form method="GET" class="flex items-center gap-2 mb-8 px-4 py-3 rounded-2xl" style="background:#fff;border:1px solid var(--line)">
+      <svg width="19" height="19" viewBox="0 0 256 256" fill="currentColor" class="ink-3 shrink-0"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
+      <input name="q" value={q} placeholder="Buscar publicaciones, scans o lectores" autocomplete="off"
+        class="flex-1 bg-transparent text-[16px] focus:outline-none" />
+      {q && <a href="/explorar" class="t-caption hover:opacity-70 shrink-0">Limpiar</a>}
+    </form>
+
+    {!q && suggested.length > 0 && (
+      <div class="mb-10">
+        <h2 class="t-section mb-4">Scans y lectores</h2>
+        <div class="grid sm:grid-cols-2 gap-3">
+          {suggested.map((s: any) => (
+            <div class="flex items-center gap-3 p-3 rounded-2xl" style="border:1px solid var(--line);background:#fff">
+              <a href={`/@${s.handle}`} class="shrink-0">
+                {s.avatarUrl
+                  ? <img src={s.avatarUrl} alt="" class={`w-11 h-11 object-cover ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} />
+                  : <span class={`grid place-items-center w-11 h-11 font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="background:#dbe8fb;color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
+              </a>
+              <a href={`/@${s.handle}`} class="min-w-0 flex-1">
+                <span class="block text-[15px] font-medium truncate">{s.displayName || s.handle}</span>
+                <span class="block t-caption truncate">{s.postsCount} publicaciones</span>
+              </a>
+              <FollowButton client:visible handle={s.handle} logged={!!viewer} followers={s.followersCount || 0} />
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {q && pages.length > 0 && (
+      <div class="mb-8">
+        <h2 class="t-section mb-3">Cuentas</h2>
+        {pages.map((u: any) => (
+          <a href={`/@${u.handle || u.slug}`} class="row flex items-center gap-3 py-3">
+            <span class="grid place-items-center w-10 h-10 rounded-full text-[13px] font-semibold" style="background:#dbe8fb;color:var(--blue)">{(u.displayName || u.username || u.handle || '?')[0]?.toUpperCase()}</span>
+            <span class="text-[15px] font-medium">{u.displayName || u.username || u.handle}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <h2 class="t-section mb-2">{q ? 'Publicaciones' : 'Lo más reciente'}</h2>
+    <PostList posts={posts} viewer={viewer} empty={q ? 'Sin resultados.' : 'Todavía no hay publicaciones.'} />
+  </Shell>
+</Layout>

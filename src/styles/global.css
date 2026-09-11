@@ -73,3 +73,92 @@ a { text-decoration: none; color: inherit; }
 *::-webkit-scrollbar-thumb { background: #c9d8ef; border-radius: 99px; }
 
 @media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; } }
+
+
+/* ============================================================
+   INTERACCIÓN — cursores, hovers, transiciones
+   ============================================================ */
+a, button, [role="button"], summary, label[for] { cursor: pointer; }
+button:disabled, [aria-disabled="true"] { cursor: not-allowed; }
+textarea, input { cursor: text; }
+
+:where(a, button):focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* Fila de post: realce completo al pasar el mouse */
+.row {
+  transition: background .16s ease;
+  margin-inline: -1.25rem;
+  padding-inline: 1.25rem;
+  border-radius: 14px;
+}
+.row:hover { background: #e8eef9; }
+
+/* Item de navegación */
+.nav-item { transition: background .16s ease, color .16s ease; }
+.nav-item:hover { background: #e6edf8; }
+
+/* Botones de acción (like, comentar, compartir) */
+.act {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-size: 14px; color: var(--ink-3);
+  padding: 6px 10px; margin: -6px -4px; border-radius: 999px;
+  transition: color .16s ease, background .16s ease, transform .16s ease;
+}
+.act:hover { background: rgba(37,99,235,.09); color: var(--blue); }
+.act:active { transform: scale(.94); }
+.act.is-on { color: var(--blue); }
+.act.is-on:hover { background: rgba(37,99,235,.12); }
+
+/* Chip / pill */
+.chip {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: 13px; font-weight: 500; color: var(--ink-2);
+  background: #fff; border: 1px solid var(--line);
+  padding: 7px 14px; border-radius: 999px;
+  transition: border-color .16s, background .16s, color .16s;
+}
+.chip:hover { border-color: #b9cdee; color: var(--ink); }
+.chip.is-on { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+/* Imágenes: leve zoom al hover */
+.media { overflow: hidden; border-radius: 16px; border: 1px solid var(--line); }
+.media img { transition: transform .4s cubic-bezier(.2,.8,.2,1); display: block; }
+.media:hover img { transform: scale(1.015); }
+
+/* Entrada suave de listas */
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise .32s cubic-bezier(.2,.8,.2,1) both; }
+
+/* Skeleton */
+@keyframes shimmer { 100% { background-position: -200% 0; } }
+.skeleton {
+  background: linear-gradient(90deg, #e6ecf7 25%, #eff3fa 37%, #e6ecf7 63%);
+  background-size: 200% 100%; animation: shimmer 1.4s linear infinite;
+  border-radius: 10px;
+}
+
+/* View transitions de Astro */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: fadeOut .14s ease both; }
+::view-transition-new(root) { animation: fadeIn .22s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes fadeOut { to { opacity: 0; } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* Toast */
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+  background: var(--ink); color: #fff; font-size: 14px; font-weight: 500;
+  padding: 12px 20px; border-radius: 999px; z-index: 90;
+  box-shadow: 0 12px 40px -12px rgba(16,31,56,.5);
+  animation: rise .26s cubic-bezier(.2,.8,.2,1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .toast { animation: none; }
+  .media img { transition: none; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+}

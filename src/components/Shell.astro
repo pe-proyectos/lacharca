@@ -2,11 +2,20 @@
 // Layout de 3 columnas sin navbar: nav izquierda (usuario abajo),
 // contenido central protagonista, sidebar derecha con descubrimiento.
 const { viewer, active = 'home', wide = false } = Astro.props
+// Iconos Phosphor (paths oficiales). r = regular, f = fill (estado activo).
 const items = [
-  { href: '/', label: 'Inicio', key: 'home', d: 'M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z' },
-  { href: '/?feed=following', label: 'Tu manada', key: 'following', d: 'M17 20h5v-2a3 3 0 0 0-5.36-1.86M17 20H7m10 0v-2c0-.66-.13-1.3-.36-1.86m0 0a5 5 0 0 0-9.28 0M7 20H2v-2a3 3 0 0 1 5.36-1.86M7 20v-2c0-.66.13-1.3.36-1.86m0 0a5 5 0 0 1 9.28 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0z' },
-  { href: '/explorar', label: 'Explorar', key: 'explore', d: 'M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z' },
-  { href: '/guardados', label: 'Guardados', key: 'saved', d: 'M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z' },
+  { href: '/', label: 'Inicio', key: 'home',
+    r: 'M218.83,103.77l-80-75.48a1.14,1.14,0,0,1-.11-.11,16,16,0,0,0-21.53,0l-.11.11L37.17,103.77A16,16,0,0,0,32,115.55V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V160h32v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V115.55A16,16,0,0,0,218.83,103.77ZM208,208H160V160a16,16,0,0,0-16-16H112a16,16,0,0,0-16,16v48H48V115.55l.11-.1L128,40l79.9,75.43.11.1Z',
+    f: 'M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z' },
+  { href: '/?feed=following', label: 'Tu manada', key: 'following',
+    r: 'M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z',
+    f: 'M164.47,195.63a8,8,0,0,1-6.7,12.37H10.23a8,8,0,0,1-6.7-12.37,95.83,95.83,0,0,1,47.22-37.71,60,60,0,1,1,66.5,0A95.83,95.83,0,0,1,164.47,195.63Zm87.91-.15a95.87,95.87,0,0,0-47.13-37.56A60,60,0,0,0,144.7,54.59a4,4,0,0,0-1.33,6A75.83,75.83,0,0,1,147,150.53a4,4,0,0,0,1.07,5.53,112.32,112.32,0,0,1,29.85,30.83,23.92,23.92,0,0,1,3.65,16.47,4,4,0,0,0,3.95,4.64h60a8,8,0,0,0,7.73-5.93A8.22,8.22,0,0,0,252.38,195.48Z' },
+  { href: '/explorar', label: 'Explorar', key: 'explore',
+    r: 'M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z',
+    f: 'M229.66,218.34l-50.06-50.06a88.11,88.11,0,1,0-11.32,11.32l50.06,50.06a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z' },
+  { href: '/guardados', label: 'Guardados', key: 'saved',
+    r: 'M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z',
+    f: 'M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z' },
 ]
 ---
 <div class="min-h-screen flex">
@@ -21,10 +30,9 @@ const items = [
 
     <div class="flex flex-col gap-1">
       {items.map((it) => (
-        <a href={it.href} class={`flex items-center gap-4 px-3 py-2.5 rounded-xl transition ${active === it.key ? 'font-semibold' : 'ink-2'}`}
-           style={active === it.key ? 'background:#e3ecfa' : ''}
-           onmouseover="this.style.background='#e9eff9'" onmouseout={active === it.key ? "this.style.background='#e3ecfa'" : "this.style.background='transparent'"}>
-          <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width={active === it.key ? 2.2 : 1.8} stroke-linecap="round" stroke-linejoin="round"><path d={it.d}/></svg>
+        <a href={it.href} class={`nav-item flex items-center gap-4 px-3 py-2.5 rounded-xl ${active === it.key ? 'font-semibold' : 'ink-2'}`}
+           style={active === it.key ? 'background:#e3ecfa' : ''}>
+          <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" class="shrink-0"><path d={active === it.key ? it.f : it.r}/></svg>
           <span class="hidden xl:block text-[16px]">{it.label}</span>
         </a>
       ))}
@@ -37,7 +45,7 @@ const items = [
     <!-- USUARIO ABAJO -->
     <div class="mt-auto">
       {viewer ? (
-        <div class="flex items-center gap-3 p-2 rounded-xl" onmouseover="this.style.background='#e9eff9'" onmouseout="this.style.background='transparent'">
+        <div class="nav-item flex items-center gap-3 p-2 rounded-xl">
           <a href={`/@${viewer.user.handle}`} class="flex items-center gap-3 min-w-0 flex-1">
             {viewer.user.avatarUrl
               ? <img src={viewer.user.avatarUrl} alt="" class="w-9 h-9 rounded-full object-cover shrink-0" />
@@ -69,7 +77,7 @@ const items = [
   <div class="md:hidden fixed bottom-0 inset-x-0 z-50 flex items-center justify-around py-2.5" style="background:rgba(238,243,251,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line)">
     {items.map((it) => (
       <a href={it.href} class={active === it.key ? '' : 'ink-3'}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d={it.d}/></svg>
+        <svg width="25" height="25" viewBox="0 0 256 256" fill="currentColor"><path d={active === it.key ? it.f : it.r}/></svg>
       </a>
     ))}
     <a href={viewer ? `/@${viewer.user.handle}` : '/auth/login'}>

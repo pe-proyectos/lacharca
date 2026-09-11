@@ -1,0 +1,22 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import Shell from '../../components/Shell.astro'
+import PostList from '../../components/PostList.astro'
+import { hilos } from '../../lib/hilos'
+import { getViewer } from '../../lib/session'
+
+const tag = (Astro.params.tag || '').toLowerCase()
+const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
+const acting = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
+let posts: any[] = []
+try { const d = await hilos(`/socials/tag/${encodeURIComponent(tag)}`, acting); posts = d?.items || [] } catch {}
+---
+<Layout title={`#${tag} — La Charca`}>
+  <Shell viewer={viewer} active="explore">
+    <div class="mb-6">
+      <p class="eyebrow mb-2">Etiqueta</p>
+      <h1 class="t-title">#{tag}</h1>
+    </div>
+    <PostList posts={posts} viewer={viewer} empty={`Aún no hay publicaciones con #${tag}.`} />
+  </Shell>
+</Layout>
