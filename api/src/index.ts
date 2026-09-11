@@ -144,9 +144,24 @@ const app = new Elysia()
     const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
     const user = await sessionUser(token)
     if (!user) return { status: false, message: 'unauthenticated' }
-    let pageToken: string | null = null
-    try { pageToken = (await hilos.pageTokens.create({ externalId: `lacharca:user:${user.id}`, ttl: 3600 }))?.token ?? null } catch {}
-    return { status: true, data: { user: { id: user.id, handle: user.handle, displayName: user.displayName, avatarUrl: user.avatarUrl, bio: user.bio }, pageToken } }
+    return { status: true, data: { user: publicUser(user) } }
+  })
+
+  // BFF: emite un page token de CORTA VIDA para que el navegador hable directo
+  // con hilos.rest. Requiere sesion valida (cookie httpOnly -> Authorization).
+  .post('/auth/token', async ({ request }: any) => {
+    const user = await sessionUser(request.headers.get('authorization')?.replace(/^Bearer\s+/i, ''))
+    if (!user) return { status: false, message: 'unauthenticated' }
+    try {
+      const r = await hilos.pageTokens.create({
+        externalId: `lacharca:user:${user.id}`,
+        ttl: 900,
+        scopes: ['read', 'post:write', 'comment:write', 'react', 'follow'],
+        origin: process.env.PUBLIC_ORIGIN || 'https://lacharca.com',
+      } as any)
+      if (!r?.token) return { status: false, message: 'token_failed' }
+      return { status: true, data: { token: r.token, expiresIn: r.expiresIn, hilosBase: process.env.HILOS_BASE || 'https://hilos.rest' } }
+    } catch (e: any) { return { status: false, message: e?.code || 'token_failed' } }
   })
 
   .post('/auth/logout', async ({ request }: any) => {
