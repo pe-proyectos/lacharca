@@ -28,7 +28,7 @@ async function sessionUser(token?: string | null) {
   return s.user
 }
 
-const app = new Elysia({ prefix: '/api' })
+const app = new Elysia()
   .use(cors({ origin: true, credentials: true }))
   .get('/health', () => ({ ok: true, service: 'lacharca-api' }))
 
