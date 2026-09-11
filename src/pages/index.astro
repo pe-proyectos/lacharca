@@ -2,10 +2,13 @@
 import Layout from '../layouts/Layout.astro'
 import { hilos, timeAgo } from '../lib/hilos'
 import { getViewer } from '../lib/session'
+import Composer from '../components/Composer'
+import PostActions from '../components/PostActions'
 const CAPI = 'https://capibaratraductor.com'
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 let posts: any[] = []
-try { const d = await hilos('/feed?limit=25'); posts = d?.items || [] } catch (e) { posts = [] }
+const actingPage = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
+try { const d = await hilos('/feed?limit=25', actingPage); posts = d?.items || [] } catch (e) { posts = [] }
 function renderContent(c: string) {
   return c.replace(/#([\p{L}\p{N}_]{1,80})/gu, '<span class="text-teal-400">#$1</span>').replace(/@([a-zA-Z0-9_]{1,30})/g, '<span class="text-teal-300">@$1</span>')
 }
@@ -47,6 +50,8 @@ function renderContent(c: string) {
       </div>
       <div class="h-[2px] bg-gradient-to-r from-transparent via-teal-400/40 to-transparent"></div>
 
+      {viewer && <Composer client:load user={viewer.user} />}
+
       {posts.length === 0 ? (
         <div class="flex flex-col items-center justify-center text-center py-24 px-8">
           <p class="text-5xl mb-3">🦫</p>
@@ -69,11 +74,7 @@ function renderContent(c: string) {
                   </div>
                   <p class="mt-0.5 text-[15px] leading-relaxed text-white/90 whitespace-pre-wrap break-words" set:html={renderContent(p.content || '')}></p>
                   {p.media?.[0] && <img src={p.media[0]} alt="" class="mt-3 rounded-2xl max-h-[420px] w-full object-cover ring-1 ring-white/[0.06]" />}
-                  <div class="mt-2 flex items-center gap-6 text-[13px] text-white/45 font-medium">
-                    <span>💬 {p.commentsCount || ''}</span>
-                    <span>🔁 {p.repostCount || ''}</span>
-                    <span class="text-amber-400/80">❤ {p.likesCount || ''}</span>
-                  </div>
+                  <PostActions client:visible postId={p.id} likes={p.likesCount || 0} comments={p.commentsCount || 0} liked={p.liked} logged={!!viewer} />
                 </div>
               </div>
             </article>
