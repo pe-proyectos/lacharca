@@ -5,6 +5,7 @@ import { hilos } from '../lib/hilos'
 import { getViewer } from '../lib/session'
 import FeedComposer from '../components/FeedComposer'
 import FeedMore from '../components/FeedMore'
+import SortBar from '../components/SortBar.astro'
 import PostList from '../components/PostList.astro'
 
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
@@ -24,9 +25,15 @@ const notice =
   : null
 
 let posts: any[] = []
+const SORTS = ['reciente', 'antiguo', 'popular', 'comentado', 'menos_popular', 'menos_comentado']
+const orden = SORTS.includes(sp.get('orden') || '') ? sp.get('orden')! : 'reciente'
+// El orden solo aplica a las listas cronológicas: "Lo mejor de hoy" ya trae su
+// propio ranking de relevancia.
+const sortable = scope !== 'foryou'
+let feedData: any = null
 try {
-  const d = await hilos(`/feed?limit=25&scope=${scope}&replies=1`, actingPage)
-  posts = d?.items || []
+  feedData = await hilos(`/feed?limit=25&scope=${scope}&replies=1${sortable ? `&sort=${orden}` : ''}`, actingPage)
+  posts = feedData?.items || []
 } catch { posts = [] }
 
 ---
@@ -60,9 +67,11 @@ try {
 
     {viewer && <FeedComposer client:load user={viewer.user} />}
 
+    {sortable && posts.length > 1 && <SortBar current={orden} />}
+
     <PostList posts={posts} viewer={viewer} empty={scope === "following" ? "Tu manada aún es pequeña. Sigue scans y lectores para llenar esta vista." : "La charca está tranquila."} />
 
-    {posts.length >= 25 && <FeedMore client:visible scope={scope} logged={!!viewer} startPage={1} />}
+    {feedData?.hasMore && <FeedMore client:visible scope={scope} logged={!!viewer} startPage={1} sort={sortable ? orden : undefined} />}
 
   </Shell>
 </Layout>

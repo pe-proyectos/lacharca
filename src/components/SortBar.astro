@@ -1,0 +1,30 @@
+---
+// Barra de ordenación para listas servidas por el servidor: cada opción es un
+// enlace, así el orden elegido queda en la URL y se puede compartir.
+const {
+  current = 'reciente',
+  base = '',
+  param = 'orden',
+  options = [
+    ['reciente', 'Recientes'],
+    ['antiguo', 'Antiguos'],
+    ['popular', 'Populares'],
+    ['comentado', 'Más comentados'],
+    ['menos_popular', 'Menos populares'],
+    ['menos_comentado', 'Menos comentados'],
+  ],
+} = Astro.props
+
+const href = (value: string) => {
+  const url = new URL(base || Astro.url.pathname + Astro.url.search, Astro.url.origin)
+  if (value === 'reciente') url.searchParams.delete(param)
+  else url.searchParams.set(value === 'reciente' ? '' : param, value)
+  return url.pathname + (url.search || '')
+}
+---
+<div class="flex items-center gap-2 mb-5 overflow-x-auto pb-1" style="scrollbar-width:none">
+  {options.map(([value, label]) => (
+    <a href={href(value)} class={`chip shrink-0 ${current === value ? 'is-on' : ''}`}
+      style="padding:6px 13px;font-size:13px;min-height:0">{label}</a>
+  ))}
+</div>

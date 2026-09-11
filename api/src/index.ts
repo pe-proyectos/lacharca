@@ -235,6 +235,7 @@ const app = new Elysia()
     qs.set('limit', String(Math.min(30, Number(query.limit) || 20)))
     if (query.type) qs.set('type', String(query.type))
     if (query.q) qs.set('q', String(query.q))
+    if (query.sort) qs.set('sort', String(query.sort))
     return { status: true, data: await fetchDirectory(qs, user?.id) }
   })
 
@@ -247,6 +248,7 @@ const app = new Elysia()
     qs.set('page', String(Math.max(0, Number(query.page) || 0)))
     qs.set('limit', String(Math.min(30, Number(query.limit) || 25)))
     if (query.replies) qs.set('replies', '1')
+    if (query.sort) qs.set('sort', String(query.sort))
     const headers: Record<string, string> = { Authorization: `Bearer ${process.env.HILOS_SECRET_KEY || ''}` }
     if (user) headers['X-Hilos-Page'] = `external:lacharca:user:${user.id}`
     const res = await fetch(`${process.env.HILOS_BASE || 'https://hilos.rest'}/v1/feed?${qs}`, { headers })
@@ -274,6 +276,7 @@ const app = new Elysia()
     const qs = new URLSearchParams()
     qs.set('page', String(Math.max(0, Number(query.page) || 0)))
     qs.set('limit', String(Math.min(30, Number(query.limit) || 25)))
+    if (query.sort) qs.set('sort', String(query.sort))
     const headers: Record<string, string> = { Authorization: `Bearer ${process.env.HILOS_SECRET_KEY || ''}` }
     if (user) headers['X-Hilos-Page'] = `external:lacharca:user:${user.id}`
     const res = await fetch(`${process.env.HILOS_BASE || 'https://hilos.rest'}/v1/pages/${encodeURIComponent(String(params.handle))}/posts?${qs}`, { headers })

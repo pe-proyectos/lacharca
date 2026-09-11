@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import PostCard, { type PostShape } from './PostCard'
 
-interface Props { handle: string; logged: boolean; startPage?: number; pageSize?: number }
+interface Props { handle: string; logged: boolean; startPage?: number; pageSize?: number; sort?: string }
 
 // Continuación paginada del muro de un perfil. Un scan puede tener miles de
 // publicaciones: se cargan por tandas conforme se baja.
-const ProfileMore: React.FC<Props> = ({ handle, logged, startPage = 1, pageSize = 25 }) => {
+const ProfileMore: React.FC<Props> = ({ handle, logged, startPage = 1, pageSize = 25, sort = 'reciente' }) => {
   const [items, setItems] = useState<PostShape[]>([])
   const [page, setPage] = useState(startPage)
   const [hasMore, setHasMore] = useState(true)
@@ -16,13 +16,13 @@ const ProfileMore: React.FC<Props> = ({ handle, logged, startPage = 1, pageSize 
   const load = useCallback(async (p: number) => {
     setLoading(true); setFailed(false)
     try {
-      const res = await fetch(`/api/pages/${encodeURIComponent(handle)}/posts?page=${p}&limit=${pageSize}`, { credentials: 'include' })
+      const res = await fetch(`/api/pages/${encodeURIComponent(handle)}/posts?page=${p}&limit=${pageSize}&sort=${encodeURIComponent(sort)}`, { credentials: 'include' })
       const json: any = await res.json().catch(() => ({}))
       if (!json?.data) throw new Error('bad_response')
       setItems((prev) => [...prev, ...(json.data.items || [])])
       setHasMore(!!json.data.hasMore)
     } catch { setFailed(true) } finally { setLoading(false) }
-  }, [handle, pageSize])
+  }, [handle, pageSize, sort])
 
   useEffect(() => {
     if (!hasMore || loading || failed) return

@@ -74,10 +74,31 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
   const [busy, setBusy] = useState(false)
   const [replyTo, setReplyTo] = useState<number | null>(null)
   const [replyText, setReplyText] = useState('')
+  const [sort, setSort] = useState<'reciente' | 'antiguo' | 'popular'>('reciente')
+  const [sorting, setSorting] = useState(false)
+
+  const changeSort = async (next: typeof sort) => {
+    if (next === sort) return
+    setSort(next); setSorting(true)
+    try {
+      const d: any = await hilosApi.commentsSorted(postId, next)
+      setItems(Array.isArray(d) ? d : d?.items || [])
+    } catch { /* nos quedamos con lo que ya había */ } finally { setSorting(false) }
+  }
 
   const byParent = new Map<number, C[]>()
   for (const c of items) { const k = c.parentCommentId || 0; if (!byParent.has(k)) byParent.set(k, []); byParent.get(k)!.push(c) }
-  const roots = byParent.get(0) || []
+  for (const [k, list] of byParent) {
+    if (k === 0) continue
+    list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+  }
+  const roots = (byParent.get(0) || []).slice().sort((a, b) => {
+    // Lo que acabas de escribir se queda arriba aunque aún no tenga fecha real.
+    if (a.id < 0 || b.id < 0) return a.id < 0 ? -1 : 1
+    return sort === 'antiguo'
+      ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
 
   const needLogin = () => { window.location.href = '/auth/login' }
 
@@ -100,7 +121,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
     } finally { setBusy(false) }
   }
 
-  const Item = ({ c, nested = false }: { c: C; nested?: boolean }) => {
+  const Item = ({ c, nested = false, rootId }: { c: C; nested?: boolean; rootId?: number }) => {
     const { text: body, imgs } = splitMedia(c.content)
     const replies = byParent.get(c.id) || []
     return (
@@ -114,10 +135,17 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
             </p>
             {body && <p className="t-body whitespace-pre-wrap break-words mt-0.5">{tokenize(body)}</p>}
             {imgs.map((u, i) => <img key={i} src={u} alt="" loading="lazy" className="mt-2 rounded-xl max-h-80" style={{ border: "1px solid var(--line)" }} />)}
-            {!nested && (
-              <button type="button" onClick={() => { if (!logged) return needLogin(); setReplyTo(replyTo === c.id ? null : c.id); setReplyText('') }}
-                className="mt-1.5 text-[13px] font-semibold cursor-pointer hover:opacity-70" style={{ color: "var(--blue)" }}>Responder</button>
-            )}
+            <button type="button"
+              onClick={() => {
+                if (!logged) return needLogin()
+                const target = nested ? (rootId ?? c.id) : c.id
+                if (replyTo === target && nested && replyText.startsWith(`@${c.author?.handle} `)) { setReplyTo(null); setReplyText(''); return }
+                if (replyTo === target && !nested) { setReplyTo(null); setReplyText(''); return }
+                setReplyTo(target)
+                // Al responder dentro de un hilo, dejamos la mención puesta.
+                setReplyText(nested && c.author?.handle ? `@${c.author.handle} ` : '')
+              }}
+              className="mt-1.5 text-[13px] font-semibold cursor-pointer hover:opacity-70" style={{ color: "var(--blue)" }}>Responder</button>
             {replyTo === c.id && (
               <div className="mt-2 flex items-end gap-2">
                 <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={1} autoFocus
@@ -130,7 +158,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
             )}
             {replies.length > 0 && (
               <div className="mt-4 pl-4 border-l-2 space-y-4" style={{ borderColor: "var(--line)" }}>
-                {replies.map((r) => <Item key={r.id} c={r} nested />)}
+                {replies.map((r) => <Item key={r.id} c={r} nested rootId={c.id} />)}
               </div>
             )}
           </div>
@@ -141,7 +169,19 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
 
   return (
     <div>
-      <h2 className="eyebrow py-3">{items.length} comentarios</h2>
+      <div className="flex items-center justify-between gap-3 py-3 flex-wrap">
+        <h2 className="eyebrow">{items.length} {items.length === 1 ? 'comentario' : 'comentarios'}</h2>
+        {items.length > 1 && (
+          <div className="flex items-center gap-1.5">
+            {([['reciente', 'Recientes'], ['antiguo', 'Antiguos'], ['popular', 'Populares']] as const).map(([k, label]) => (
+              <button key={k} type="button" onClick={() => changeSort(k)} disabled={sorting}
+                className={`chip cursor-pointer ${sort === k ? 'is-on' : ''}`} style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       {logged ? (
         <div className="flex items-end gap-2 mb-4">
           <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1}
@@ -154,7 +194,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
       ) : (
         <a href="/auth/login" className="btn-ghost w-full justify-center my-2">Únete a la charca para comentar</a>
       )}
-      {loading
+      {loading || sorting
         ? <div>{Array.from({ length: Math.min(4, Math.max(2, total)) }).map((_, i) => <CommentSkeleton key={i} />)}</div>
         : roots.length === 0
           ? <p className="t-sub py-8 text-center">Todavía no hay comentarios. Escribe el primero.</p>

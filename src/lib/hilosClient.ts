@@ -55,6 +55,8 @@ export const hilosApi = {
   createPost: (content: string) => hilosFetch('/posts', { method: 'POST', body: JSON.stringify({ content }) }),
   like: (id: number) => hilosFetch(`/posts/${id}/like`, { method: 'POST' }),
   comments: (id: number) => hilosFetch(`/posts/${id}/comments`),
+  commentsSorted: (id: number, sort: string, page = 0) =>
+    hilosFetch(`/posts/${id}/comments?sort=${encodeURIComponent(sort)}&page=${page}&limit=100`),
   comment: (id: number, content: string, parentCommentId?: number) =>
     hilosFetch(`/posts/${id}/comments`, { method: 'POST', body: JSON.stringify({ content, ...(parentCommentId ? { parentCommentId } : {}) }) }),
   save: (id: number) => hilosFetch(`/posts/${id}/save`, { method: 'POST' }),

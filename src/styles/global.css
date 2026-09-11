@@ -20,7 +20,9 @@
 }
 
 html, body {
-  overflow-x: hidden; /* red de seguridad contra desbordes puntuales */ background: var(--paper); }
+  overflow-x: clip; /* como hidden, pero sin romper position: sticky */
+  background: var(--paper);
+}
 
 body {
   color: var(--ink);

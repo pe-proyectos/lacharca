@@ -7,16 +7,19 @@ import { getViewer } from '../lib/session'
 import FollowButton from '../components/FollowButton'
 import { posts as postsLabel } from '../lib/format'
 import PageList from '../components/PageList.astro'
+import SortBar from '../components/SortBar.astro'
 
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 const acting = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
 const q = (Astro.url.searchParams.get('q') || '').trim()
+const SORTS = ['reciente', 'antiguo', 'popular', 'comentado', 'menos_popular', 'menos_comentado']
+const orden = SORTS.includes(Astro.url.searchParams.get('orden') || '') ? Astro.url.searchParams.get('orden')! : 'reciente'
 
 let posts: any[] = []
 let pages: any[] = []
 try {
   if (q) { const d = await hilos(`/socials/search?q=${encodeURIComponent(q)}`, acting); posts = d?.items || []; pages = d?.users || [] }
-  else { const d = await hilos('/feed?limit=30', acting); posts = d?.items || [] }
+  else { const d = await hilos(`/feed?scope=recent&limit=30&sort=${orden}`, acting); posts = d?.items || [] }
 } catch {}
 let suggested: any[] = []
 try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } catch {}
@@ -82,7 +85,8 @@ try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } cat
       </div>
     )}
 
-    <h2 class="t-section mb-2">{q ? 'Publicaciones' : 'Lo más reciente'}</h2>
+    <h2 class="t-section mb-3">{q ? 'Publicaciones' : 'Lo más reciente'}</h2>
+    {!q && posts.length > 1 && <SortBar current={orden} />}
     <PostList posts={posts} viewer={viewer} empty={q ? 'Sin resultados.' : 'Todavía no hay publicaciones.'} />
   </Shell>
 </Layout>

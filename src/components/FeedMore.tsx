@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import PostCard, { type PostShape } from './PostCard'
 
-interface Props { scope: string; logged: boolean; startPage?: number; pageSize?: number }
+interface Props { scope: string; logged: boolean; startPage?: number; pageSize?: number; sort?: string }
 
 // Continuación paginada del feed servido por SSR. Carga 25 posts por tanda con
 // scroll infinito, para no pedirle a la base de datos más de lo necesario.
-const FeedMore: React.FC<Props> = ({ scope, logged, startPage = 1, pageSize = 25 }) => {
+const FeedMore: React.FC<Props> = ({ scope, logged, startPage = 1, pageSize = 25, sort }) => {
   const [items, setItems] = useState<PostShape[]>([])
   const [page, setPage] = useState(startPage)
   const [hasMore, setHasMore] = useState(true)
@@ -16,14 +16,14 @@ const FeedMore: React.FC<Props> = ({ scope, logged, startPage = 1, pageSize = 25
   const load = useCallback(async (p: number) => {
     setLoading(true); setFailed(false)
     try {
-      const res = await fetch(`/api/feed?scope=${encodeURIComponent(scope)}&page=${p}&limit=${pageSize}&replies=1`, { credentials: 'include' })
+      const res = await fetch(`/api/feed?scope=${encodeURIComponent(scope)}&page=${p}&limit=${pageSize}&replies=1${sort ? `&sort=${encodeURIComponent(sort)}` : ''}`, { credentials: 'include' })
       const json: any = await res.json().catch(() => ({}))
       const d = json?.data
       if (!d) throw new Error('bad_response')
       setItems((prev) => [...prev, ...(d.items || [])])
       setHasMore(!!d.hasMore)
     } catch { setFailed(true) } finally { setLoading(false) }
-  }, [scope, pageSize])
+  }, [scope, pageSize, sort])
 
   useEffect(() => {
     if (!hasMore || loading || failed) return

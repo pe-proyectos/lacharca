@@ -7,6 +7,7 @@ interface Props { logged: boolean; initialType?: 'scan' | 'user' | ''; showTabs?
 
 const Directory: React.FC<Props> = ({ logged, initialType = '', showTabs = true }) => {
   const [type, setType] = useState<'scan' | 'user' | ''>(initialType)
+  const [sort, setSort] = useState('comentado')
   const [q, setQ] = useState('')
   const [query, setQuery] = useState('')
   const [items, setItems] = useState<P[]>([])
@@ -23,6 +24,7 @@ const Directory: React.FC<Props> = ({ logged, initialType = '', showTabs = true 
       const qs = new URLSearchParams({ page: String(p), limit: '24' })
       if (type) qs.set('type', type)
       if (query) qs.set('q', query)
+      qs.set('sort', sort)
       const res = await fetch(`/api/pages/directory?${qs}`, { credentials: 'include' })
       const json: any = await res.json().catch(() => ({}))
       if (my !== reqId.current) return
@@ -31,9 +33,9 @@ const Directory: React.FC<Props> = ({ logged, initialType = '', showTabs = true 
       setHasMore(!!d.hasMore)
     } catch { if (my === reqId.current) setHasMore(false) }
     finally { if (my === reqId.current) setLoading(false) }
-  }, [type, query])
+  }, [type, query, sort])
 
-  useEffect(() => { setItems([]); setPage(0); setHasMore(true); load(0, true) }, [type, query, load])
+  useEffect(() => { setItems([]); setPage(0); setHasMore(true); load(0, true) }, [type, query, sort, load])
 
   useEffect(() => {
     if (!hasMore || loading) return
@@ -64,12 +66,27 @@ const Directory: React.FC<Props> = ({ logged, initialType = '', showTabs = true 
       </form>
 
       {showTabs && (
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-4">
           <Tab v="" label="Todos" icon={null} />
           <Tab v="scan" label="Scans" icon={<BookOpen size={16} weight={type === 'scan' ? 'fill' : 'regular'} />} />
           <Tab v="user" label="Personas" icon={<Users size={16} weight={type === 'user' ? 'fill' : 'regular'} />} />
         </div>
       )}
+
+      <div className="flex items-center gap-1.5 mb-6 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        {([
+          ['comentado', 'Más publicaciones'],
+          ['popular', 'Más seguidos'],
+          ['reciente', 'Más nuevos'],
+          ['antiguo', 'Más antiguos'],
+          ['menos_popular', 'Menos seguidos'],
+          ['menos_comentado', 'Menos publicaciones'],
+        ] as const).map(([k, label]) => (
+          <button key={k} type="button" onClick={() => setSort(k)}
+            className={`chip shrink-0 cursor-pointer ${sort === k ? 'is-on' : ''}`}
+            style={{ padding: '6px 13px', fontSize: 13, minHeight: 0 }}>{label}</button>
+        ))}
+      </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
         {items.map((s) => (
