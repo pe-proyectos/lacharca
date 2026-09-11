@@ -1,0 +1,73 @@
+---
+// Panel derecho por defecto: descubrimiento real (no relleno). Se usa en las
+// vistas que no traen su propio contenido lateral.
+import { hilos } from '../lib/hilos'
+import FollowButton from './FollowButton'
+
+const { viewer } = Astro.props
+const acting = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
+
+let suggested: any[] = []
+try { suggested = (await hilos('/pages/suggested?limit=5', acting)) || [] } catch {}
+let trending: any[] = []
+try { trending = (await hilos('/socials/trending?limit=5')) || [] } catch {}
+let active: any[] = []
+if (!trending.length) { try { active = (await hilos('/socials/active?limit=5')) || [] } catch {} }
+const n = (v: any) => Number(v || 0).toLocaleString('es')
+---
+{suggested.length > 0 && (
+  <div>
+    <h2 class="t-section mb-4">A quién seguir</h2>
+    <div class="space-y-4">
+      {suggested.map((s: any) => (
+        <div class="flex items-center gap-3">
+          <a href={`/@${s.handle}`} data-hover-handle={s.handle} class="shrink-0">
+            {s.avatarUrl
+              ? <img src={s.avatarUrl} alt="" width="40" height="40" class={`object-cover ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:40px;height:40px" />
+              : <span class={`grid place-items-center text-[14px] font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:40px;height:40px;background:#dbe8fb;color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
+          </a>
+          <a href={`/@${s.handle}`} data-hover-handle={s.handle} class="min-w-0 flex-1">
+            <span class="block text-[14px] font-medium truncate">{s.displayName || s.handle}</span>
+            <span class="block t-caption truncate">{n(s.followersCount)} seguidores</span>
+          </a>
+          <FollowButton client:visible handle={s.handle} initialFollowing={s.viewerFollows} logged={!!viewer} followers={s.followersCount || 0} compact />
+        </div>
+      ))}
+    </div>
+    <a href="/scans" class="t-caption inline-block mt-4 hover:opacity-70 transition">Ver todo el directorio</a>
+  </div>
+)}
+
+{(trending.length > 0 || active.length > 0) && (
+  <div>
+    <h2 class="t-section mb-4">Haciendo olas</h2>
+    {trending.length > 0 ? (
+      <div class="space-y-3">
+        {trending.map((t: any) => (
+          <a href={`/tag/${t.tag}`} class="block hover:opacity-70 transition">
+            <span class="block text-[15px] font-medium">#{t.tag}</span>
+            <span class="block t-caption">{n(t.count)} publicaciones</span>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="space-y-3">
+        {active.map((a: any) => (
+          <a href={`/@${a.page.handle}`} data-hover-handle={a.page.handle} class="flex items-center gap-3 hover:opacity-70 transition">
+            {a.page.avatarUrl
+              ? <img src={a.page.avatarUrl} alt="" width="36" height="36" class="rounded-xl object-cover shrink-0" style="width:36px;height:36px" />
+              : <span class="grid place-items-center rounded-xl text-[13px] font-semibold shrink-0" style="width:36px;height:36px;background:#dbe8fb;color:var(--blue)">{(a.page.displayName || a.page.handle)[0]?.toUpperCase()}</span>}
+            <span class="min-w-0">
+              <span class="block text-[14px] font-medium truncate">{a.page.displayName || a.page.handle}</span>
+              <span class="block t-caption">{n(a.count)} esta semana</span>
+            </span>
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+)}
+
+<p class="t-caption leading-relaxed">
+  La Charca · <a href="https://capibaratraductor.com" class="hover:opacity-70">CapibaraTraductor</a>
+</p>

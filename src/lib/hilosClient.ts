@@ -38,6 +38,19 @@ export async function hilosFetch(path: string, init: RequestInit = {}, retry = t
   return json?.data
 }
 
+// Sube un archivo al almacenamiento de hilos (URL prefirmada) y devuelve la
+// URL publica. La clave nunca pasa por el navegador.
+export async function uploadToHilos(file: File): Promise<string> {
+  const pre = await hilosFetch('/uploads', {
+    method: 'POST',
+    body: JSON.stringify({ filename: file.name, contentType: file.type || 'application/octet-stream' }),
+  })
+  if (!pre?.uploadUrl) throw new Error('upload_failed')
+  const res = await fetch(pre.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' } })
+  if (!res.ok) throw new Error('upload_failed')
+  return pre.publicUrl
+}
+
 export const hilosApi = {
   createPost: (content: string) => hilosFetch('/posts', { method: 'POST', body: JSON.stringify({ content }) }),
   like: (id: number) => hilosFetch(`/posts/${id}/like`, { method: 'POST' }),
@@ -46,5 +59,12 @@ export const hilosApi = {
     hilosFetch(`/posts/${id}/comments`, { method: 'POST', body: JSON.stringify({ content, ...(parentCommentId ? { parentCommentId } : {}) }) }),
   save: (id: number) => hilosFetch(`/posts/${id}/save`, { method: 'POST' }),
   follow: (handle: string) => hilosFetch(`/pages/${encodeURIComponent(handle)}/follow`, { method: 'POST' }),
+  page: (handle: string) => hilosFetch(`/pages/${encodeURIComponent(handle)}`),
+  updateProfile: (handle: string, patch: Record<string, any>) =>
+    hilosFetch(`/pages/${encodeURIComponent(handle)}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+  conversations: (page = 0) => hilosFetch(`/conversations?page=${page}&limit=20`),
+  messages: (id: number, page = 0) => hilosFetch(`/conversations/${id}/messages?page=${page}&limit=40`),
+  send: (handle: string, content: string) => hilosFetch('/messages', { method: 'POST', body: JSON.stringify({ handle, content }) }),
+  unread: () => hilosFetch('/messages/unread'),
   feed: (scope: 'foryou' | 'following' = 'foryou', page = 0) => hilosFetch(`/feed?scope=${scope}&page=${page}&limit=25`),
 }

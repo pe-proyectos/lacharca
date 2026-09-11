@@ -239,6 +239,31 @@ const app = new Elysia()
   })
 
   // Seguir / dejar de seguir una page
+  // Feed paginado para el scroll infinito del navegador.
+  .get('/feed', async ({ request, query }: any) => {
+    const user = await sessionUser(sessionToken(request))
+    const qs = new URLSearchParams()
+    qs.set('scope', String(query.scope || 'foryou'))
+    qs.set('page', String(Math.max(0, Number(query.page) || 0)))
+    qs.set('limit', String(Math.min(30, Number(query.limit) || 25)))
+    if (query.replies) qs.set('replies', '1')
+    const headers: Record<string, string> = { Authorization: `Bearer ${process.env.HILOS_SECRET_KEY || ''}` }
+    if (user) headers['X-Hilos-Page'] = `external:lacharca:user:${user.id}`
+    const res = await fetch(`${process.env.HILOS_BASE || 'https://hilos.rest'}/v1/feed?${qs}`, { headers })
+    const json: any = await res.json().catch(() => ({}))
+    return { status: !json?.error, data: json?.data ?? { items: [], hasMore: false } }
+  })
+
+  // Ficha publica de una page (la usa la tarjeta flotante al hacer hover).
+  .get('/pages/:handle', async ({ request, params }: any) => {
+    const user = await sessionUser(sessionToken(request))
+    try {
+      const client = user ? asUser(user.id) : hilos
+      const page = await client.pages.get(String(params.handle).toLowerCase())
+      return { status: true, data: page }
+    } catch (e: any) { return { status: false, message: e?.code || 'not_found' } }
+  })
+
   .post('/pages/:handle/follow', async ({ request, params }: any) => {
     const user = await sessionUser(sessionToken(request))
     if (!user) return { status: false, message: 'unauthenticated' }

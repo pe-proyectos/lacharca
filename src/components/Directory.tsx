@@ -74,12 +74,12 @@ const Directory: React.FC<Props> = ({ logged, initialType = '', showTabs = true 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
         {items.map((s) => (
           <div key={s.id} className="flex flex-col items-center text-center gap-3 p-5 rounded-2xl rise" style={{ border: '1px solid var(--line)', background: '#fff' }}>
-            <a href={`/@${s.handle}`}>
+            <a href={`/@${s.handle}`} data-hover-handle={s.handle}>
               {s.avatarUrl
                 ? <img src={s.avatarUrl} alt="" className={`w-16 h-16 object-cover ${s.type === 'user' ? 'rounded-full' : 'rounded-2xl'}`} />
                 : <span className={`grid place-items-center w-16 h-16 text-xl font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-2xl'}`} style={{ background: '#dbe8fb', color: 'var(--blue)' }}>{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
             </a>
-            <a href={`/@${s.handle}`} className="min-w-0 w-full">
+            <a href={`/@${s.handle}`} data-hover-handle={s.handle} className="min-w-0 w-full">
               <span className="block text-[15px] font-semibold truncate">{s.displayName || s.handle}</span>
               <span className="block t-caption">
                 {s.postsCount > 0 ? `${Number(s.postsCount).toLocaleString('es')} publicaciones` : `@${s.handle}`}

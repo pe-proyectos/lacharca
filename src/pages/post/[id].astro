@@ -30,12 +30,12 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
   <Shell viewer={viewer}>
     <article class="pb-7 mb-1" style="border-bottom:1px solid var(--line)">
       <div class="flex items-center gap-3 mb-4">
-        <a href={`/@${post.author?.handle}`} class="shrink-0">
+        <a href={`/@${post.author?.handle}`} data-hover-handle={post.author?.handle} class="shrink-0">
           {post.author?.avatarUrl
             ? <img src={post.author.avatarUrl} alt={authorName} width="46" height="46" class="rounded-full object-cover" style="width:46px;height:46px" />
             : <span class="grid place-items-center rounded-full text-[15px] font-semibold" style="width:46px;height:46px;background:#dbe8fb;color:var(--blue)">{authorName[0]?.toUpperCase()}</span>}
         </a>
-        <a href={`/@${post.author?.handle}`} class="min-w-0">
+        <a href={`/@${post.author?.handle}`} data-hover-handle={post.author?.handle} class="min-w-0">
           <span class="block text-[15px] font-semibold truncate hover:underline">{authorName}</span>
           <span class="block t-caption">@{post.author?.handle}</span>
         </a>

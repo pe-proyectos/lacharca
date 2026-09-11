@@ -165,3 +165,10 @@ textarea, input { cursor: text; }
   .media img { transition: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 }
+
+/* Barra de progreso de navegación */
+@keyframes navbar-slide {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(120%); }
+  100% { transform: translateX(320%); }
+}

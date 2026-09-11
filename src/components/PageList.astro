@@ -10,12 +10,12 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
   <div>
     {pages.map((p: any) => (
       <div class="row flex items-center gap-3.5 py-4" style="border-bottom:1px solid var(--line)">
-        <a href={`/@${p.handle}`} class="shrink-0">
+        <a href={`/@${p.handle}`} data-hover-handle={p.handle} class="shrink-0">
           {p.avatarUrl
             ? <img src={p.avatarUrl} alt={p.displayName || p.handle} width="46" height="46" class={`object-cover ${p.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:46px;height:46px" />
             : <span class={`grid place-items-center text-[15px] font-semibold ${p.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:46px;height:46px;background:#dbe8fb;color:var(--blue)">{(p.displayName || p.handle)[0]?.toUpperCase()}</span>}
         </a>
-        <a href={`/@${p.handle}`} class="flex-1 min-w-0">
+        <a href={`/@${p.handle}`} data-hover-handle={p.handle} class="flex-1 min-w-0">
           <span class="block text-[15px] font-medium truncate">{p.displayName || p.handle}</span>
           <span class="block t-caption truncate">@{p.handle} · {n(p.followersCount)} seguidores</span>
         </a>

@@ -35,14 +35,14 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean }> = ({ post: p, log
   return (
     <article className="row py-6 rise" style={{ borderBottom: '1px solid var(--line)', opacity: p.pending ? 0.55 : 1 }}>
       <div className="flex gap-3.5">
-        <a href={`/@${p.author?.handle}`} className="shrink-0">
+        <a href={`/@${p.author?.handle}`} data-hover-handle={p.author?.handle} className="shrink-0">
           {p.author?.avatarUrl
             ? <img src={p.author.avatarUrl} alt="" className={`w-11 h-11 object-cover ${p.author.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} />
             : <span className={`grid place-items-center w-11 h-11 font-semibold ${p.author?.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style={{ background: '#dbe8fb', color: 'var(--blue)' }}>{(name || '?')[0]?.toUpperCase()}</span>}
         </a>
         <div className="min-w-0 flex-1 max-w-[760px]">
           <div className="flex items-center gap-2 flex-wrap">
-            <a href={`/@${p.author?.handle}`} className="text-[16px] font-semibold hover:opacity-70 truncate">{name}</a>
+            <a href={`/@${p.author?.handle}`} data-hover-handle={p.author?.handle} className="text-[16px] font-semibold hover:opacity-70 truncate">{name}</a>
             {p.author?.type === 'scan' && <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ background: '#e8f4f6', color: 'var(--aqua)' }}>scan</span>}
             {p.pending
               ? <span className="t-caption">@{p.author?.handle} · publicando…</span>

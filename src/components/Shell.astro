@@ -1,8 +1,16 @@
 ---
 // Layout de 3 columnas sin navbar: nav izquierda (usuario abajo),
 // contenido central protagonista, sidebar derecha con descubrimiento.
-const { viewer, active = 'home', wide = false } = Astro.props
-const hasAside = Astro.slots.has('aside')
+import ChatDock from './ChatDock'
+import NavProgress from './NavProgress'
+import UserHoverCard from './UserHoverCard'
+import SideDiscovery from './SideDiscovery.astro'
+
+const { viewer, active = 'home', wide = false, aside: asideMode = 'auto' } = Astro.props
+// El panel derecho nunca se queda vacio: si la vista no aporta contenido
+// propio, mostramos descubrimiento real (a quien seguir, que se mueve).
+const hasOwnAside = Astro.slots.has('aside')
+const hasAside = asideMode !== 'none'
 // Iconos Phosphor (paths oficiales). r = regular, f = fill (estado activo).
 const items = [
   { href: '/', label: 'Inicio', key: 'home',
@@ -72,7 +80,9 @@ const items = [
   <!-- SIDEBAR DERECHA (solo si hay contenido) -->
   {hasAside && (
     <aside class="hidden xl:block w-[340px] shrink-0 px-7 py-8">
-      <div class="sticky top-8 space-y-9"><slot name="aside" /></div>
+      <div class="sticky top-8 space-y-9">
+        {hasOwnAside ? <slot name="aside" /> : <SideDiscovery viewer={viewer} />}
+      </div>
     </aside>
   )}
 
@@ -89,4 +99,8 @@ const items = [
         : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="ink-3"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>}
     </a>
   </div>
+
+  <NavProgress client:idle />
+  {viewer && <ChatDock client:idle me={viewer.user.handle} />}
+  <UserHoverCard client:idle />
 </div>

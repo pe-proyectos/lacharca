@@ -1,15 +1,17 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import Shell from '../components/Shell.astro'
-import { hilos, timeAgo } from '../lib/hilos'
+import { hilos } from '../lib/hilos'
 import { getViewer } from '../lib/session'
 import FeedComposer from '../components/FeedComposer'
+import FeedMore from '../components/FeedMore'
 import PostList from '../components/PostList.astro'
-import FollowButton from '../components/FollowButton'
 
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 const actingPage = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
-const scope = (Astro.url.searchParams.get('feed') === 'following' && viewer) ? 'following' : 'foryou'
+const feedParam = Astro.url.searchParams.get('feed')
+// Inicio muestra lo relevante; la manada es cronologica y solo de quien sigues.
+const scope = feedParam === 'following' && viewer ? 'following' : feedParam === 'recent' ? 'recent' : 'foryou'
 
 // Avisos de vuelta de otros flujos (login, perfiles que ya no existen...).
 const sp = Astro.url.searchParams
@@ -22,14 +24,10 @@ const notice =
   : null
 
 let posts: any[] = []
-try { const d = await hilos(`/feed?limit=30&scope=${scope}`, actingPage); posts = d?.items || [] } catch { posts = [] }
-let trending: any[] = []
-try { trending = (await hilos('/socials/trending')) || [] } catch {}
-// Sin hashtags con traccion mostramos lo que de verdad se esta moviendo.
-let active: any[] = []
-if (!trending.length) { try { active = (await hilos('/socials/active?limit=6')) || [] } catch {} }
-let suggested: any[] = []
-try { suggested = (await hilos('/pages/suggested?limit=5', actingPage)) || [] } catch {}
+try {
+  const d = await hilos(`/feed?limit=25&scope=${scope}&replies=1`, actingPage)
+  posts = d?.items || []
+} catch { posts = [] }
 
 ---
 <Layout title="La Charca">
@@ -52,58 +50,19 @@ try { suggested = (await hilos('/pages/suggested?limit=5', actingPage)) || [] } 
       </div>
     )}
 
+    {viewer && (
+      <div class="flex items-center gap-2 mb-6">
+        <a href="/" class={`chip ${scope === 'foryou' ? 'is-on' : ''}`}>Lo mejor de hoy</a>
+        <a href="/?feed=following" class={`chip ${scope === 'following' ? 'is-on' : ''}`}>Tu manada</a>
+        <a href="/?feed=recent" class={`chip ${scope === 'recent' ? 'is-on' : ''}`}>Lo más nuevo</a>
+      </div>
+    )}
+
     {viewer && <FeedComposer client:load user={viewer.user} />}
 
-    <PostList posts={posts} viewer={viewer} empty={scope === "following" ? "Tu manada aún es pequeña. Sigue scans y lectores." : "La charca está tranquila."} />
+    <PostList posts={posts} viewer={viewer} empty={scope === "following" ? "Tu manada aún es pequeña. Sigue scans y lectores para llenar esta vista." : "La charca está tranquila."} />
 
-    <Fragment slot="aside">
-      {suggested.length > 0 && (
-        <div>
-          <h2 class="t-section mb-4">A quién seguir</h2>
-          <div class="space-y-3.5">
-            {suggested.map((s: any) => (
-              <div class="flex items-center gap-3">
-                <a href={`/@${s.handle}`} class="shrink-0">
-                  {s.avatarUrl
-                    ? <img src={s.avatarUrl} alt="" class={`w-10 h-10 object-cover ${s.type === 'user' ? 'rounded-full' : 'rounded-lg'}`} />
-                    : <span class={`grid place-items-center w-10 h-10 text-[13px] font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-lg'}`} style="background:#dbe8fb;color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
-                </a>
-                <a href={`/@${s.handle}`} class="min-w-0 flex-1">
-                  <span class="block text-[15px] font-medium truncate">{s.displayName || s.handle}</span>
-                  <span class="block t-caption truncate">{s.postsCount} publicaciones</span>
-                </a>
-                <FollowButton client:visible handle={s.handle} logged={!!viewer} followers={s.followersCount || 0} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+    {posts.length >= 25 && <FeedMore client:visible scope={scope} logged={!!viewer} startPage={1} />}
 
-      <div>
-        <h2 class="t-section mb-4">Haciendo olas</h2>
-        {trending.length > 0 ? (
-          <div class="space-y-3">{trending.map((t: any) => (
-            <a href={`/tag/${t.tag}`} class="block hover:opacity-70 transition">
-              <span class="block text-[15px] font-medium">#{t.tag}</span>
-              <span class="block t-caption">{Number(t.count).toLocaleString('es')} publicaciones</span>
-            </a>))}</div>
-        ) : active.length > 0 ? (
-          <div class="space-y-3">{active.map((a: any) => (
-            <a href={`/@${a.page.handle}`} class="flex items-center gap-3 hover:opacity-70 transition">
-              {a.page.avatarUrl
-                ? <img src={a.page.avatarUrl} alt="" width="36" height="36" class="rounded-xl object-cover shrink-0" style="width:36px;height:36px" />
-                : <span class="grid place-items-center rounded-xl text-[13px] font-semibold shrink-0" style="width:36px;height:36px;background:#dbe8fb;color:var(--blue)">{(a.page.displayName || a.page.handle)[0]?.toUpperCase()}</span>}
-              <span class="min-w-0">
-                <span class="block text-[14px] font-medium truncate">{a.page.displayName || a.page.handle}</span>
-                <span class="block t-caption">{Number(a.count).toLocaleString('es')} esta semana</span>
-              </span>
-            </a>))}</div>
-        ) : <p class="t-sub">Aguas tranquilas por ahora.</p>}
-      </div>
-
-      <p class="t-caption leading-relaxed">
-        La Charca · <a href="https://capibaratraductor.com" class="hover:opacity-70">CapibaraTraductor</a>
-      </p>
-    </Fragment>
   </Shell>
 </Layout>

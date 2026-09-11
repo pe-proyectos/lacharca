@@ -22,14 +22,14 @@ function tokenize(c) {
       return (
         <article class="row py-6" style="border-bottom:1px solid var(--line)">
           <div class="flex gap-3.5">
-            <a href={`/@${p.author?.handle}`} class="shrink-0">
+            <a href={`/@${p.author?.handle}`} data-hover-handle={p.author?.handle} class="shrink-0">
               {p.author?.avatarUrl
                 ? <img src={p.author.avatarUrl} alt="" class={`w-11 h-11 object-cover ${p.author.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} />
                 : <span class={`grid place-items-center w-11 h-11 font-semibold ${p.author?.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="background:#dbe8fb;color:var(--blue)">{(p.author?.displayName || p.author?.handle || '?')[0]?.toUpperCase()}</span>}
             </a>
             <div class="min-w-0 flex-1 max-w-[760px]">
               <div class="flex items-center gap-2 flex-wrap">
-                <a href={`/@${p.author?.handle}`} class="text-[16px] font-semibold hover:opacity-70 truncate">{p.author?.displayName || p.author?.handle}</a>
+                <a href={`/@${p.author?.handle}`} data-hover-handle={p.author?.handle} class="text-[16px] font-semibold hover:opacity-70 truncate">{p.author?.displayName || p.author?.handle}</a>
                 {p.author?.type === 'scan' && <span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded" style="background:#e8f4f6;color:var(--aqua)">scan</span>}
                 <a href={`/post/${p.id}`} class="t-caption hover:opacity-70">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>
               </div>
@@ -46,6 +46,30 @@ function tokenize(c) {
                 <a href={`/post/${p.id}`} class="media block mt-3"><img src={u} alt="" loading="lazy" class="max-h-[560px] w-full object-cover" /></a>
               ))}
               <PostActions client:visible postId={p.id} likes={p.likesCount || 0} comments={p.commentsCount || 0} liked={p.liked} saved={p.saved} logged={!!viewer} />
+
+              {p.recentComments && p.recentComments.length > 0 && (
+                <div class="mt-3 pl-3.5 space-y-2.5" style="border-left:2px solid var(--line)">
+                  {p.recentComments.map((c: any) => (
+                    <div class="flex items-start gap-2">
+                      <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle} class="shrink-0 mt-0.5">
+                        {c.author?.avatarUrl
+                          ? <img src={c.author.avatarUrl} alt="" width="22" height="22" class="rounded-full object-cover" style="width:22px;height:22px" />
+                          : <span class="grid place-items-center rounded-full text-[10px] font-semibold" style="width:22px;height:22px;background:#dbe8fb;color:var(--blue)">{(c.author?.displayName || c.author?.handle || '?')[0]?.toUpperCase()}</span>}
+                      </a>
+                      <p class="t-sub min-w-0 flex-1">
+                        <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle} class="font-medium hover:opacity-70" style="color:var(--ink)">{c.author?.displayName || c.author?.handle}</a>
+                        <span class="ink-2"> {c.content.length > 120 ? `${c.content.slice(0, 120)}…` : c.content}</span>
+                      </p>
+                    </div>
+                  ))}
+                  {p.commentsCount > p.recentComments.length && (
+                    <a href={`/post/${p.id}`} class="t-caption inline-flex items-center gap-1 hover:opacity-70 transition">
+                      Ver las {Number(p.commentsCount).toLocaleString('es')} respuestas
+                      <svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </article>

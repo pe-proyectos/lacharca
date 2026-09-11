@@ -3,6 +3,8 @@ import Layout from '../layouts/Layout.astro'
 import Shell from '../components/Shell.astro'
 import PostList from '../components/PostList.astro'
 import FollowButton from '../components/FollowButton'
+import ProfileEditor from '../components/ProfileEditor'
+import MessageButton from '../components/MessageButton'
 import { hilos } from '../lib/hilos'
 import { getViewer } from '../lib/session'
 
@@ -28,6 +30,9 @@ const desc = page.bio || `${kind} en La Charca. ${n(page.followersCount)} seguid
 <Layout title={`${name} (@${page.handle}) — La Charca`} description={desc} image={page.avatarUrl || '/logo.png'}>
   <Shell viewer={viewer}>
     <header class="pb-7 mb-2" style="border-bottom:1px solid var(--line)">
+      {page.bannerUrl
+        ? <img src={page.bannerUrl} alt="" class="w-full h-40 sm:h-52 object-cover rounded-2xl mb-5" />
+        : <div class="w-full h-28 sm:h-36 rounded-2xl mb-5" style="background:linear-gradient(120deg,#dbe8fb,#e8f4f6)"></div>}
       <div class="flex items-start gap-5">
         {page.avatarUrl
           ? <img src={page.avatarUrl} alt={name} width="88" height="88" class={`w-22 h-22 object-cover shrink-0 ${isScan ? 'rounded-2xl' : 'rounded-full'}`} style="width:88px;height:88px" />
@@ -52,11 +57,16 @@ const desc = page.bio || `${kind} en La Charca. ${n(page.followersCount)} seguid
             <span><b class="font-semibold tabular-nums">{n(page.postsCount)}</b> <span class="ink-2">publicaciones</span></span>
           </div>
 
-          {!isMe && (
-            <div class="mt-4">
-              <FollowButton client:load handle={page.handle} initialFollowing={page.viewerFollows} logged={!!viewer} followers={page.followersCount || 0} />
-            </div>
-          )}
+          <div class="mt-4 flex items-center gap-2.5 flex-wrap">
+            {isMe ? (
+              <ProfileEditor client:load handle={page.handle} displayName={page.displayName || ''} bio={page.bio || ''} avatarUrl={page.avatarUrl} bannerUrl={page.bannerUrl} />
+            ) : (
+              <>
+                <FollowButton client:load handle={page.handle} initialFollowing={page.viewerFollows} logged={!!viewer} followers={page.followersCount || 0} />
+                {viewer && <MessageButton client:load handle={page.handle} canMessage={!!page.viewerFollows} />}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </header>
