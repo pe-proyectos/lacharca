@@ -211,3 +211,26 @@ textarea, input { cursor: text; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Visor de imágenes */
+.lb-btn {
+  display: grid; place-items: center;
+  width: 38px; height: 38px; border-radius: 999px;
+  color: #fff; background: rgba(255,255,255,.08);
+  transition: background .16s ease, opacity .16s ease;
+  cursor: pointer;
+}
+.lb-btn:hover { background: rgba(255,255,255,.18); }
+.lb-btn:disabled { opacity: .3; cursor: default; }
+.lb-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  display: grid; place-items: center;
+  width: 44px; height: 44px; border-radius: 999px;
+  color: #fff; background: rgba(255,255,255,.1);
+  transition: background .16s ease; cursor: pointer;
+}
+.lb-nav:hover { background: rgba(255,255,255,.22); }
+
+/* Imágenes en el feed: presentes, pero sin secuestrar la pantalla. */
+.post-media img { max-height: 420px; width: 100%; object-fit: cover; cursor: zoom-in; }
+@media (max-width: 640px) { .post-media img { max-height: 340px; } }

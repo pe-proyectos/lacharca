@@ -4,6 +4,7 @@
 import ChatDock from './ChatDock'
 import NotifBadge from './NotifBadge'
 import NavProgress from './NavProgress'
+import Lightbox from './Lightbox'
 import UserHoverCard from './UserHoverCard'
 import SideDiscovery from './SideDiscovery.astro'
 
@@ -113,6 +114,7 @@ const items = [
   </nav>
 
   <NavProgress client:idle />
+  <Lightbox client:idle />
   {viewer && <ChatDock client:idle me={viewer.user.handle} />}
   <UserHoverCard client:idle me={viewer?.user?.handle ?? null} />
 </div>

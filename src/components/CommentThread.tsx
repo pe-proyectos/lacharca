@@ -134,7 +134,11 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
               <span className="ink-3"> · {ago(c.createdAt)}</span>
             </p>
             {body && <p className="t-body whitespace-pre-wrap break-words mt-0.5">{tokenize(body)}</p>}
-            {imgs.map((u, i) => <img key={i} src={u} alt="" loading="lazy" className="mt-2 rounded-xl max-h-80" style={{ border: "1px solid var(--line)" }} />)}
+            {imgs.map((u, i) => (
+              <img key={i} src={u} alt="Imagen del comentario" loading="lazy"
+                data-lightbox="" data-lightbox-group={`comment-${c.id}`} data-src={u}
+                className="mt-2 rounded-xl max-h-72 cursor-zoom-in" style={{ border: '1px solid var(--line)' }} />
+            ))}
             <button type="button"
               onClick={() => {
                 if (!logged) return needLogin()
