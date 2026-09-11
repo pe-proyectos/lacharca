@@ -23,7 +23,7 @@ const page = await hilos(`/pages/${encodeURIComponent(handle)}`, actingPage).cat
 if (!page) return Astro.redirect('/?perfil=no_encontrado')
 const SORTS = ['reciente', 'antiguo', 'popular', 'comentado', 'menos_popular', 'menos_comentado']
 const orden = SORTS.includes(Astro.url.searchParams.get('orden') || '') ? Astro.url.searchParams.get('orden')! : 'reciente'
-const wall = await hilos(`/pages/${encodeURIComponent(handle)}/posts?limit=25&sort=${orden}`, actingPage).catch(() => null)
+const wall = await hilos(`/pages/${encodeURIComponent(handle)}/posts?limit=25&sort=${orden}&replies=1`, actingPage).catch(() => null)
 const posts = wall?.items || []
 const isScan = page.type === 'scan' || page.type === 'manga'
 const isMe = viewer?.user?.handle === page.handle

@@ -73,7 +73,7 @@ function tokenize(c) {
 
               {p.recentComments && p.recentComments.length > 0 && (
                 <div class="mt-3 pl-3.5 space-y-2.5" style="border-left:2px solid var(--line)">
-                  {p.recentComments.map((c: any) => (
+                  {p.recentComments.slice(0, 4).map((c: any) => (
                     <div class="flex items-start gap-2">
                       <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle} class="shrink-0 mt-0.5">
                         {c.author?.avatarUrl
@@ -85,6 +85,12 @@ function tokenize(c) {
                         {splitComment(c.content).text && (
                           <span class="ink-2">
                             {splitComment(c.content).text.length > 120 ? `${splitComment(c.content).text.slice(0, 120)}…` : splitComment(c.content).text}
+                          </span>
+                        )}
+                        {c.likesCount > 0 && (
+                          <span class="t-caption ml-1.5 inline-flex items-center gap-0.5 align-middle" title={`${c.likesCount} me gusta`}>
+                            <svg width="11" height="11" viewBox="0 0 256 256" fill="currentColor"><path d="M178,40c-20.65,0-38.73,8.88-50,23.89C116.73,48.88,98.65,40,78,40a62.07,62.07,0,0,0-62,62c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,228.66,240,172,240,102A62.07,62.07,0,0,0,178,40Z"/></svg>
+                            {c.likesCount}
                           </span>
                         )}
                         {splitComment(c.content).imgs.slice(0, 3).map((u) => (

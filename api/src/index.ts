@@ -277,6 +277,7 @@ const app = new Elysia()
     qs.set('page', String(Math.max(0, Number(query.page) || 0)))
     qs.set('limit', String(Math.min(30, Number(query.limit) || 25)))
     if (query.sort) qs.set('sort', String(query.sort))
+    qs.set('replies', '1')
     const headers: Record<string, string> = { Authorization: `Bearer ${process.env.HILOS_SECRET_KEY || ''}` }
     if (user) headers['X-Hilos-Page'] = `external:lacharca:user:${user.id}`
     const res = await fetch(`${process.env.HILOS_BASE || 'https://hilos.rest'}/v1/pages/${encodeURIComponent(String(params.handle))}/posts?${qs}`, { headers })
