@@ -170,6 +170,19 @@ const app = new Elysia()
     return { status: true }
   })
 
+  // Admin: borra una cuenta de La Charca (y opcionalmente su Page en hilos).
+  // NO toca la cuenta de CapibaraTraductor. Protegido por ADMIN_TOKEN.
+  .post('/admin/delete-account', async ({ request, body }: any) => {
+    if (!process.env.ADMIN_TOKEN || request.headers.get('x-admin-token') !== process.env.ADMIN_TOKEN) return { status: false, message: 'forbidden' }
+    const handle = String(body.handle || '').toLowerCase()
+    const user = await prisma.user.findUnique({ where: { handle }, select: { id: true, handle: true } })
+    if (!user) return { status: false, message: 'not_found' }
+    await prisma.session.deleteMany({ where: { userId: user.id } })
+    await prisma.linkedIdentity.deleteMany({ where: { userId: user.id } })
+    await prisma.user.delete({ where: { id: user.id } })
+    return { status: true, data: { deleted: user.handle, note: 'La cuenta de CapibaraTraductor no fue modificada.' } }
+  }, { body: t.Object({ handle: t.String() }) })
+
   .onError(({ error, set }) => { set.status = 400; return { status: false, message: (error as any)?.message || 'error' } })
   .listen(Number(process.env.PORT) || 3200)
 
