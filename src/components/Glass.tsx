@@ -18,6 +18,7 @@ export const GlassButton: React.FC<{
     </span>
   )
   const glass = (
+    <span className="relative inline-flex isolate" style={{ position: 'relative' }}>
     <LiquidGlass
       cornerRadius={999}
       padding={pad}
@@ -29,10 +30,14 @@ export const GlassButton: React.FC<{
       mode="standard"
       onClick={onClick}
       className={className}
-      style={tint ? { boxShadow: '0 8px 32px -8px rgba(10,200,255,.45)' } : undefined}
+      style={{
+        position: 'relative', top: 'auto', left: 'auto', transform: 'none',
+        ...(tint ? { boxShadow: '0 8px 32px -8px rgba(10,200,255,.45)' } : {}),
+      }}
     >
       {inner}
     </LiquidGlass>
+    </span>
   )
   if (href) return <a href={href} className="inline-block no-underline">{glass}</a>
   return glass
