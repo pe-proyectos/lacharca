@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Cuenta propia de La Charca (independiente). Puede vincularse a una o varias
+// identidades externas (hoy: capibaratraductor).
+model User {
+  id           Int      @id @default(autoincrement())
+  handle       String   @unique @db.VarChar(40)
+  displayName  String?  @db.VarChar(120)
+  avatarUrl    String?
+  bannerUrl    String?
+  bio          String?  @db.VarChar(600)
+  email        String?  @db.VarChar(256)
+  hilosPageId  Int?
+  createdAt    DateTime @default(now()) @db.Timestamp(6)
+  updatedAt    DateTime @updatedAt
+  identities   LinkedIdentity[]
+  sessions     Session[]
+
+  @@map("user")
+}
+
+// Vinculacion con una cuenta externa (provider + id del usuario alla).
+model LinkedIdentity {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  provider       String   @db.VarChar(40)
+  externalUserId String   @db.VarChar(64)
+  externalHandle String?  @db.VarChar(120)
+  email          String?  @db.VarChar(256)
+  linkedAt       DateTime @default(now()) @db.Timestamp(6)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, externalUserId])
+  @@index([userId])
+  @@map("linked_identity")
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique @db.VarChar(128)
+  expiresAt DateTime @db.Timestamp(6)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}

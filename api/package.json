@@ -1,0 +1,6 @@
+{
+  "name": "lacharca-api", "type": "module", "version": "0.1.0",
+  "scripts": { "dev": "bun --watch src/index.ts", "start": "bunx prisma db push --skip-generate && bun src/index.ts", "generate": "bunx prisma generate" },
+  "dependencies": { "elysia": "^1.1.0", "@elysiajs/cors": "^1.1.0", "@prisma/client": "^5.20.0" },
+  "devDependencies": { "prisma": "^5.20.0", "@types/bun": "latest" }
+}
