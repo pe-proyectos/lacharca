@@ -38,17 +38,23 @@ export async function hilosFetch(path: string, init: RequestInit = {}, retry = t
   return json?.data
 }
 
-// Sube un archivo al almacenamiento de hilos (URL prefirmada) y devuelve la
-// URL publica. La clave nunca pasa por el navegador.
+// Sube un archivo y devuelve su URL pública. Va a través del motor: el bucket
+// no acepta PUT desde el navegador, y así tampoco expone URLs firmadas.
 export async function uploadToHilos(file: File): Promise<string> {
-  const pre = await hilosFetch('/uploads', {
+  const t = await getToken()
+  if (!t) throw new Error('unauthenticated')
+
+  const form = new FormData()
+  form.append('file', file, file.name)
+
+  const res = await fetch(`${base}/v1/uploads/direct`, {
     method: 'POST',
-    body: JSON.stringify({ filename: file.name, contentType: file.type || 'application/octet-stream' }),
+    headers: { Authorization: `Bearer ${t}` },
+    body: form,
   })
-  if (!pre?.uploadUrl) throw new Error('upload_failed')
-  const res = await fetch(pre.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' } })
-  if (!res.ok) throw new Error('upload_failed')
-  return pre.publicUrl
+  const json: any = await res.json().catch(() => ({}))
+  if (json?.error || !json?.data?.publicUrl) throw new Error(json?.error || 'upload_failed')
+  return json.data.publicUrl
 }
 
 export const hilosApi = {
