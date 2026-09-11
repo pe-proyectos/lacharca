@@ -2,6 +2,7 @@
 // Layout de 3 columnas sin navbar: nav izquierda (usuario abajo),
 // contenido central protagonista, sidebar derecha con descubrimiento.
 const { viewer, active = 'home', wide = false } = Astro.props
+const hasAside = Astro.slots.has('aside')
 // Iconos Phosphor (paths oficiales). r = regular, f = fill (estado activo).
 const items = [
   { href: '/', label: 'Inicio', key: 'home',
@@ -64,14 +65,18 @@ const items = [
   </nav>
 
   <!-- CENTRO -->
-  <main class={`flex-1 min-w-0 ${wide ? '' : 'max-w-[680px]'} mx-auto px-4 sm:px-8 py-8`} style="border-right:1px solid var(--line)">
-    <slot />
+  <main class="flex-1 min-w-0 px-5 sm:px-8 xl:px-10 py-8" style={hasAside ? 'border-right:1px solid var(--line)' : ''}>
+    <div class={wide ? '' : 'max-w-[1100px]'}>
+      <slot />
+    </div>
   </main>
 
-  <!-- SIDEBAR DERECHA -->
-  <aside class="hidden lg:block w-[340px] shrink-0 px-6 py-8">
-    <div class="sticky top-8 space-y-8"><slot name="aside" /></div>
-  </aside>
+  <!-- SIDEBAR DERECHA (solo si hay contenido) -->
+  {hasAside && (
+    <aside class="hidden xl:block w-[340px] shrink-0 px-7 py-8">
+      <div class="sticky top-8 space-y-9"><slot name="aside" /></div>
+    </aside>
+  )}
 
   <!-- NAV MOVIL (abajo) -->
   <div class="md:hidden fixed bottom-0 inset-x-0 z-50 flex items-center justify-around py-2.5" style="background:rgba(238,243,251,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line)">
