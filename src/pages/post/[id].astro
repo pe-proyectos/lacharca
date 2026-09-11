@@ -60,7 +60,7 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
       {imgs.length > 0 && (
         <div class={`mt-4 grid gap-2 ${imgs.length > 1 ? 'sm:grid-cols-2' : ''}`}>
           {imgs.map((src: string) => (
-            <span class="media post-media block">
+            <span class={`media post-media block ${imgs.length > 1 ? 'post-media--grid' : ''}`}>
               <img src={src} alt="Imagen de la publicación" loading="lazy"
                 data-lightbox data-lightbox-group={`post-${post.id}`} data-src={src} />
             </span>

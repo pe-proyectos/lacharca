@@ -231,6 +231,22 @@ textarea, input { cursor: text; }
 }
 .lb-nav:hover { background: rgba(255,255,255,.22); }
 
-/* Imágenes en el feed: presentes, pero sin secuestrar la pantalla. */
-.post-media img { max-height: 420px; width: 100%; object-fit: cover; cursor: zoom-in; }
-@media (max-width: 640px) { .post-media img { max-height: 340px; } }
+/* Imágenes en el feed: presentes, pero sin secuestrar la pantalla.
+   Una sola imagen se ve entera (nada de recortar por el centro, que en una
+   página de manga vertical deja un encuadre absurdo). Varias van en rejilla
+   como miniaturas, y el visor las muestra completas. */
+.post-media {
+  background: #f0f4fb;
+  display: flex; align-items: center; justify-content: center;
+}
+.post-media img {
+  max-height: 520px; max-width: 100%; width: auto;
+  object-fit: contain; cursor: zoom-in; display: block;
+}
+.post-media--grid img {
+  width: 100%; height: 200px; object-fit: cover;
+}
+@media (max-width: 640px) {
+  .post-media img { max-height: 400px; }
+  .post-media--grid img { height: 150px; }
+}
