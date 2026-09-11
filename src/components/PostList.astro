@@ -27,7 +27,7 @@ function tokenize(c) {
                 ? <img src={p.author.avatarUrl} alt="" class={`w-11 h-11 object-cover ${p.author.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} />
                 : <span class={`grid place-items-center w-11 h-11 font-semibold ${p.author?.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="background:#dbe8fb;color:var(--blue)">{(p.author?.displayName || p.author?.handle || '?')[0]?.toUpperCase()}</span>}
             </a>
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 max-w-[760px]">
               <div class="flex items-center gap-2 flex-wrap">
                 <a href={`/@${p.author?.handle}`} class="text-[16px] font-semibold hover:opacity-70 truncate">{p.author?.displayName || p.author?.handle}</a>
                 {p.author?.type === 'scan' && <span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded" style="background:#e8f4f6;color:var(--aqua)">scan</span>}

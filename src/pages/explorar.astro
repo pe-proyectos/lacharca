@@ -34,15 +34,15 @@ try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } cat
         <h2 class="t-section mb-4">Scans y lectores</h2>
         <div class="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
           {suggested.map((s: any) => (
-            <div class="flex items-center gap-3 p-3 rounded-2xl" style="border:1px solid var(--line);background:#fff">
-              <a href={`/@${s.handle}`} class="shrink-0">
+            <div class="flex flex-col items-center text-center gap-3 p-5 rounded-2xl transition" style="border:1px solid var(--line);background:#fff">
+              <a href={`/@${s.handle}`}>
                 {s.avatarUrl
-                  ? <img src={s.avatarUrl} alt="" class={`w-11 h-11 object-cover ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} />
-                  : <span class={`grid place-items-center w-11 h-11 font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="background:#dbe8fb;color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
+                  ? <img src={s.avatarUrl} alt="" class={`w-16 h-16 object-cover ${s.type === 'user' ? 'rounded-full' : 'rounded-2xl'}`} />
+                  : <span class={`grid place-items-center w-16 h-16 text-xl font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-2xl'}`} style="background:#dbe8fb;color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
               </a>
-              <a href={`/@${s.handle}`} class="min-w-0 flex-1">
-                <span class="block text-[15px] font-medium truncate">{s.displayName || s.handle}</span>
-                <span class="block t-caption truncate">{s.postsCount} publicaciones</span>
+              <a href={`/@${s.handle}`} class="min-w-0 w-full">
+                <span class="block text-[15px] font-semibold truncate">{s.displayName || s.handle}</span>
+                <span class="block t-caption">{Number(s.postsCount).toLocaleString('es')} publicaciones</span>
               </a>
               <FollowButton client:visible handle={s.handle} logged={!!viewer} followers={s.followersCount || 0} />
             </div>
