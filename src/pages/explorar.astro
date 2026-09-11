@@ -5,6 +5,7 @@ import PostList from '../components/PostList.astro'
 import { hilos } from '../lib/hilos'
 import { getViewer } from '../lib/session'
 import FollowButton from '../components/FollowButton'
+import PageList from '../components/PageList.astro'
 
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 const acting = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
@@ -31,7 +32,13 @@ try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } cat
 
     {!q && suggested.length > 0 && (
       <div class="mb-10">
-        <h2 class="t-section mb-4">Scans y lectores</h2>
+        <div class="flex items-baseline justify-between gap-4 mb-4">
+          <h2 class="t-section">Scans y lectores</h2>
+          <a href="/scans" class="t-caption inline-flex items-center gap-1.5 hover:opacity-70 transition">
+            Ver todos
+            <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
+          </a>
+        </div>
         <div class="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
           {suggested.map((s: any) => (
             <div class="flex flex-col items-center text-center gap-3 p-5 rounded-2xl transition" style="border:1px solid var(--line);background:#fff">
@@ -52,14 +59,9 @@ try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } cat
     )}
 
     {q && pages.length > 0 && (
-      <div class="mb-8">
-        <h2 class="t-section mb-3">Cuentas</h2>
-        {pages.map((u: any) => (
-          <a href={`/@${u.handle || u.slug}`} class="row flex items-center gap-3 py-3">
-            <span class="grid place-items-center w-10 h-10 rounded-full text-[13px] font-semibold" style="background:#dbe8fb;color:var(--blue)">{(u.displayName || u.username || u.handle || '?')[0]?.toUpperCase()}</span>
-            <span class="text-[15px] font-medium">{u.displayName || u.username || u.handle}</span>
-          </a>
-        ))}
+      <div class="mb-10">
+        <h2 class="t-section mb-1">Cuentas</h2>
+        <PageList pages={pages} viewer={viewer} />
       </div>
     )}
 

@@ -1,3 +1,4 @@
+import { PaperPlaneTilt } from '@phosphor-icons/react'
 import React, { useState } from 'react'
 import { hilosApi } from '../lib/hilosClient'
 
@@ -81,7 +82,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged }) => {
                   placeholder={`Responder a ${c.author?.displayName || c.author?.handle}`}
                   className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none" style={{ background: "#f5f8fd", border: "1px solid var(--line)" }} />
                 <button type="button" onClick={() => send(c.id)} disabled={busy || !replyText.trim()}
-                  className="btn disabled:opacity-35 cursor-pointer">→</button>
+                  className="btn disabled:opacity-35 cursor-pointer inline-flex items-center gap-1.5" aria-label="Responder"><PaperPlaneTilt size={16} weight="fill" />Responder</button>
               </div>
             )}
             {replies.length > 0 && (

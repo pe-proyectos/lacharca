@@ -1,10 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import { hilos, timeAgo } from '../lib/hilos'
-import { getViewer } from '../lib/session'
-import PostActions from '../components/PostActions'
 import Shell from '../components/Shell.astro'
+import PostList from '../components/PostList.astro'
 import FollowButton from '../components/FollowButton'
+import { hilos } from '../lib/hilos'
+import { getViewer } from '../lib/session'
 
 const raw = Astro.params.handle || ''
 // Solo tratamos como perfil las rutas que empiezan con @
@@ -20,52 +20,47 @@ const wall = await hilos(`/pages/${encodeURIComponent(handle)}/posts?limit=30`, 
 const posts = wall?.items || []
 const isScan = page.type === 'scan' || page.type === 'manga'
 const isMe = viewer?.user?.handle === page.handle
+const name = page.displayName || page.handle
+const n = (v: any) => Number(v || 0).toLocaleString('es')
+const kind = page.type === 'scan' ? 'Scan' : page.type === 'manga' ? 'Obra' : 'Lector'
+const desc = page.bio || `${kind} en La Charca. ${n(page.followersCount)} seguidores y ${n(page.postsCount)} publicaciones.`
 ---
-<Layout title={`${page.displayName || '@' + page.handle} — La Charca`}>
+<Layout title={`${name} (@${page.handle}) — La Charca`} description={desc} image={page.avatarUrl || '/logo.png'}>
   <Shell viewer={viewer}>
-  <div>
-    <div class="pb-8 mb-6" style="border-bottom:1px solid var(--line)">
-      <div class="flex items-start gap-4">
+    <header class="pb-7 mb-2" style="border-bottom:1px solid var(--line)">
+      <div class="flex items-start gap-5">
         {page.avatarUrl
-          ? <img src={page.avatarUrl} alt="" class={`w-20 h-20 object-cover  ${isScan ? 'rounded-2xl' : 'rounded-full'}`} />
-          : <div class={`w-20 h-20  flex items-center justify-center text-2xl font-black  ${isScan ? 'rounded-2xl' : 'rounded-full'}`}>{(page.displayName || page.handle)[0]?.toUpperCase()}</div>}
+          ? <img src={page.avatarUrl} alt={name} width="88" height="88" class={`w-22 h-22 object-cover shrink-0 ${isScan ? 'rounded-2xl' : 'rounded-full'}`} style="width:88px;height:88px" />
+          : <span class={`grid place-items-center shrink-0 text-3xl font-semibold ${isScan ? 'rounded-2xl' : 'rounded-full'}`} style="width:88px;height:88px;background:#dbe8fb;color:var(--blue)">{name[0]?.toUpperCase()}</span>}
+
         <div class="flex-1 min-w-0 pt-1">
-          <div class="flex items-center gap-2 flex-wrap">
-            <h2 class="text-xl font-extrabold truncate">{page.displayName || page.handle}</h2>
-            {page.type === 'scan' && <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-400/10 rounded-full px-2 py-0.5">Scan</span>}
-            {page.type === 'manga' && <span class="text-[10px] font-black uppercase tracking-wider text-teal-300 bg-teal-400/10 rounded-full px-2 py-0.5">Obra</span>}
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <h1 class="t-title truncate">{name}</h1>
+            {page.type === 'scan' && <span class="chip is-static">Scan</span>}
+            {page.type === 'manga' && <span class="chip is-static">Obra</span>}
           </div>
-          <p class=" text-sm">@{page.handle}</p>
-          {page.bio && <p class=" text-sm mt-2 whitespace-pre-wrap">{page.bio}</p>}
-          {!isMe && <div class="mt-3"><FollowButton client:load handle={page.handle} initialFollowing={page.viewerFollows} logged={!!viewer} followers={page.followersCount || 0} /></div>}
-          <div class="flex items-center gap-4 mt-3 text-sm">
-            <span class="ink-2"><b class=" font-black tabular-nums">{page.followersCount || 0}</b> <span class="">seguidores</span></span>
-            <span class="ink-2"><b class=" font-black tabular-nums">{page.followingCount || 0}</b> <span class="">siguiendo</span></span>
+          <p class="t-sub mt-0.5">@{page.handle}</p>
+          {page.bio && <p class="t-body ink-2 mt-3 whitespace-pre-wrap max-w-xl">{page.bio}</p>}
+
+          <div class="flex items-center gap-5 mt-4 text-[14px]">
+            <a href={`/@${page.handle}/seguidores`} class="hover:opacity-70 transition">
+              <b class="font-semibold tabular-nums">{n(page.followersCount)}</b> <span class="ink-2">seguidores</span>
+            </a>
+            <a href={`/@${page.handle}/siguiendo`} class="hover:opacity-70 transition">
+              <b class="font-semibold tabular-nums">{n(page.followingCount)}</b> <span class="ink-2">siguiendo</span>
+            </a>
+            <span><b class="font-semibold tabular-nums">{n(page.postsCount)}</b> <span class="ink-2">publicaciones</span></span>
           </div>
+
+          {!isMe && (
+            <div class="mt-4">
+              <FollowButton client:load handle={page.handle} initialFollowing={page.viewerFollows} logged={!!viewer} followers={page.followersCount || 0} />
+            </div>
+          )}
         </div>
       </div>
-      {isMe && <p class="mt-4 text-[12px] rounded-xl px-3 py-2 glass" style="color:var(--aqua)">Este es tu perfil. Tu historial de CapibaraTraductor aparece aquí.</p>}
-    </div>
+    </header>
 
-    {posts.length === 0 ? (
-      <div class=" text-center py-20 px-8">
-        <p class="text-5xl mb-3">🦫</p>
-        <p class="font-bold" class="ink-2">Sin publicaciones todavía.</p>
-      </div>
-    ) : (
-      <div class="">
-        {posts.map((p: any) => (
-          <article class=" card-hover p-4">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="text-[14px] font-bold ">{p.author?.displayName || p.author?.handle}</span>
-              <span class="text-[12px] /35">· {timeAgo(p.createdAt)}</span>
-            </div>
-            <p class="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{p.content}</p>
-            <PostActions client:visible postId={p.id} likes={p.likesCount || 0} comments={p.commentsCount || 0} liked={p.liked} logged={!!viewer} />
-          </article>
-        ))}
-      </div>
-    )}
-  </div>
+    <PostList posts={posts} viewer={viewer} empty={isMe ? 'Todavía no publicaste nada. Escribe algo desde Inicio.' : 'Sin publicaciones todavía.'} />
   </Shell>
 </Layout>

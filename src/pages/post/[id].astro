@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro'
-import { hilos, timeAgo } from '../../lib/hilos'
+import { hilos } from '../../lib/hilos'
 import { getViewer } from '../../lib/session'
 import PostActions from '../../components/PostActions'
 import CommentThread from '../../components/CommentThread'
@@ -15,29 +15,50 @@ const post = await hilos(`/posts/${id}`, acting).catch(() => null)
 if (!post) return Astro.redirect('/?post=no_encontrado')
 const comments = (await hilos(`/posts/${id}/comments`, acting).catch(() => [])) || []
 
+const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.includes('r2.hilos.rest')
+const imgs = (post.content || '').split(/\s+/).filter((w: string) => /^https?:\/\//.test(w) && isMedia(w))
+const body = (post.content || '').split('\n').filter((l: string) => !imgs.includes(l.trim())).join('\n')
+const authorName = post.author?.displayName || post.author?.handle || 'Alguien'
+const snippet = (body || 'Publicación').replace(/\s+/g, ' ').trim().slice(0, 150)
+const n = (v: any) => Number(v || 0).toLocaleString('es')
+
 ---
-<Layout title={`${(post.content || 'Publicación').slice(0, 60)} — La Charca`}>
+<Layout
+  title={`${authorName}: "${snippet.slice(0, 60)}" — La Charca`}
+  description={snippet || `Publicación de ${authorName} en La Charca.`}
+  image={imgs[0] || post.author?.avatarUrl || '/logo.png'}>
   <Shell viewer={viewer}>
-  <div>
-    <article class="pb-8 mb-6" style="border-bottom:1px solid var(--line)">
-      <div class="flex items-center gap-2 mb-2">
-        <a href={`/@${post.author?.handle}`} class="flex items-center gap-2 min-w-0">
+    <article class="pb-7 mb-1" style="border-bottom:1px solid var(--line)">
+      <div class="flex items-center gap-3 mb-4">
+        <a href={`/@${post.author?.handle}`} class="shrink-0">
           {post.author?.avatarUrl
-            ? <img src={post.author.avatarUrl} alt="" class="w-10 h-10 rounded-xl object-cover" />
-            : <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold ink-2">{(post.author?.displayName || post.author?.handle || '?')[0]?.toUpperCase()}</div>}
-          <div class="min-w-0">
-            <p class="text-[15px] font-black  truncate hover:underline">{post.author?.displayName || post.author?.handle}</p>
-            <p class="text-[12px] ">@{post.author?.handle} · {timeAgo(post.createdAt)}</p>
-          </div>
+            ? <img src={post.author.avatarUrl} alt={authorName} width="46" height="46" class="rounded-full object-cover" style="width:46px;height:46px" />
+            : <span class="grid place-items-center rounded-full text-[15px] font-semibold" style="width:46px;height:46px;background:#dbe8fb;color:var(--blue)">{authorName[0]?.toUpperCase()}</span>}
+        </a>
+        <a href={`/@${post.author?.handle}`} class="min-w-0">
+          <span class="block text-[15px] font-semibold truncate hover:underline">{authorName}</span>
+          <span class="block t-caption">@{post.author?.handle}</span>
         </a>
       </div>
-      <p class="text-[17px] leading-relaxed  whitespace-pre-wrap break-words">{post.content}</p>
-      <PostActions client:load postId={post.id} likes={post.likesCount || 0} comments={post.commentsCount || 0} liked={post.liked} logged={!!viewer} />
+
+      {body && <p class="text-[19px] leading-[1.55] whitespace-pre-wrap break-words">{body}</p>}
+
+      {imgs.length > 0 && (
+        <div class={`mt-4 grid gap-2 ${imgs.length > 1 ? 'sm:grid-cols-2' : ''}`}>
+          {imgs.map((src: string) => (
+            <a href={src} target="_blank" rel="noopener" class="media block"><img src={src} alt="" loading="lazy" class="w-full" /></a>
+          ))}
+        </div>
+      )}
+
+      <p class="t-caption mt-4">
+        <time datetime={post.createdAt}>{new Date(post.createdAt).toLocaleString('es', { dateStyle: 'long', timeStyle: 'short' })}</time>
+        {post.likesCount > 0 && <span> · {n(post.likesCount)} me gusta</span>}
+      </p>
+
+      <PostActions client:load postId={post.id} likes={post.likesCount || 0} comments={post.commentsCount || 0} liked={post.liked} saved={post.saved} logged={!!viewer} />
     </article>
 
-    <div class=" p-5">
-      <CommentThread client:load postId={post.id} initial={comments} logged={!!viewer} />
-    </div>
-  </div>
+    <CommentThread client:load postId={post.id} initial={comments} logged={!!viewer} />
   </Shell>
 </Layout>

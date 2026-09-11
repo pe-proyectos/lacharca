@@ -26,7 +26,10 @@ try { suggested = (await hilos('/pages/suggested?limit=5', actingPage)) || [] } 
         <p class="eyebrow mb-4">La comunidad de CapibaraTraductor</p>
         <h1 class="t-hero mb-5">Conversa sobre<br/>lo que lees.</h1>
         <p class="t-body ink-2 max-w-md">Sigue a tus scans, comenta capítulos y comparte lo que estás leyendo.</p>
-        <a href="/auth/login" class="btn mt-7">Continuar con CapibaraTraductor →</a>
+        <a href="/auth/login" class="btn mt-7 inline-flex items-center gap-2">
+          Continuar con CapibaraTraductor
+          <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg>
+        </a>
       </div>
     )}
 
@@ -68,7 +71,7 @@ try { suggested = (await hilos('/pages/suggested?limit=5', actingPage)) || [] } 
           : <div class="space-y-3">{trending.map((t: any) => (
               <a href={`/tag/${t.tag}`} class="block hover:opacity-70 transition">
                 <span class="block text-[15px] font-medium">#{t.tag}</span>
-                <span class="block t-caption">{t.count} publicaciones</span>
+                <span class="block t-caption">{Number(t.count).toLocaleString('es')} publicaciones</span>
               </a>))}</div>}
       </div>
 

@@ -1,7 +1,14 @@
 ---
 import '../styles/global.css'
 import { ClientRouter } from 'astro:transitions'
-const { title = 'La Charca' } = Astro.props
+const {
+  title = 'La Charca',
+  description = 'La Charca es la comunidad de lectores y scans de CapibaraTraductor: sigue scans, comenta capitulos y comparte lo que lees.',
+  image = '/logo.png',
+  noindex = false,
+} = Astro.props
+const canonical = new URL(Astro.url.pathname, 'https://lacharca.com').href
+const ogImage = new URL(image, 'https://lacharca.com').href
 ---
 <!doctype html>
 <html lang="es">
@@ -9,19 +16,26 @@ const { title = 'La Charca' } = Astro.props
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
-    <meta name="description" content="La Charca — la comunidad de lectores y scans de CapibaraTraductor." />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex,follow" />}
+    <meta property="og:site_name" content="La Charca" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:url" content={canonical} />
     <meta property="og:title" content={title} />
-    <meta property="og:description" content="La comunidad de lectores y scans." />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#eef3fb" />
-    <meta property="og:image" content="https://lacharca.com/logo.png" />
+    <meta property="og:image" content={ogImage} />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:image" content="https://lacharca.com/logo.png" />
+    <meta name="twitter:image" content={ogImage} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
