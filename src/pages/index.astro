@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro'
 import Shell from '../components/Shell.astro'
 import { hilos, timeAgo } from '../lib/hilos'
 import { getViewer } from '../lib/session'
-import Composer from '../components/Composer'
+import FeedComposer from '../components/FeedComposer'
 import PostList from '../components/PostList.astro'
 import FollowButton from '../components/FollowButton'
 
@@ -33,11 +33,7 @@ try { suggested = (await hilos('/pages/suggested?limit=5', actingPage)) || [] } 
       </div>
     )}
 
-    {viewer && (
-      <div class="pb-6 mb-2" style="border-bottom:1px solid var(--line)">
-        <Composer client:load user={viewer.user} />
-      </div>
-    )}
+    {viewer && <FeedComposer client:load user={viewer.user} />}
 
     <PostList posts={posts} viewer={viewer} empty={scope === "following" ? "Tu manada aún es pequeña. Sigue scans y lectores." : "La charca está tranquila."} />
 
