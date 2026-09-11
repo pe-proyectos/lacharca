@@ -1,42 +1,39 @@
 ---
-import { GlassButton } from './Glass'
 const { viewer, active = 'home' } = Astro.props
 ---
 <div class="min-h-screen">
-  <header class="sticky top-0 z-40">
-    <div class="max-w-[1200px] mx-auto px-5 pt-4">
-      <div class="glass rounded-full px-4 h-[60px] flex items-center gap-4">
-        <a href="/" class="flex items-center gap-2.5 shrink-0 no-underline">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color:var(--aqua)">
-            <path d="M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z" fill="currentColor" fill-opacity=".28" stroke="currentColor" stroke-width="1.6"/>
-          </svg>
-          <span class="text-[19px] font-semibold tracking-[-0.03em]">La Charca</span>
-        </a>
-        <nav class="hidden md:flex items-center gap-1 ml-3">
-          <a href="/" class={`px-4 py-2 rounded-full text-[15px] transition no-underline ${active === 'home' ? 'bg-white/[0.10] text-white font-medium' : 'hover:bg-white/[0.05]'}`} style={active === 'home' ? '' : 'color:var(--ink-2)'}>La corriente</a>
-          <a href="/?feed=following" class={`px-4 py-2 rounded-full text-[15px] transition no-underline ${active === 'following' ? 'bg-white/[0.10] text-white font-medium' : 'hover:bg-white/[0.05]'}`} style={active === 'following' ? '' : 'color:var(--ink-2)'}>Tu manada</a>
-        </nav>
-        <div class="ml-auto flex items-center gap-3">
-          {viewer ? (
-            <>
-              <a href={`/@${viewer.user.handle}`} class="flex items-center gap-2.5 no-underline group">
-                {viewer.user.avatarUrl
-                  ? <img src={viewer.user.avatarUrl} alt="" class="w-9 h-9 rounded-full object-cover ring-1 ring-white/15" />
-                  : <span class="grid place-items-center w-9 h-9 rounded-full text-[13px] font-medium" style="background:rgba(95,227,220,.16);color:var(--aqua)">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</span>}
-                <span class="text-[15px] hidden sm:block group-hover:opacity-80 transition">{viewer.user.displayName || viewer.user.handle}</span>
-              </a>
-              <a href="/auth/logout" class="text-[13px] no-underline hover:opacity-70 transition" style="color:var(--ink-3)">Salir</a>
-            </>
-          ) : (
-            <GlassButton client:load href="/auth/login" size="sm">Entrar</GlassButton>
-          )}
-        </div>
+  <header class="sticky top-0 z-40" style="background:rgba(238,243,251,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)">
+    <div class="max-w-[1200px] mx-auto px-6 h-[72px] flex items-center gap-8">
+      <a href="/" class="flex items-center gap-2.5 shrink-0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="color:var(--aqua)">
+          <path d="M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="1.7"/>
+        </svg>
+        <span class="text-[18px] font-semibold tracking-[-0.03em]">La Charca</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-7 text-[15px]">
+        <a href="/" class={active === 'home' ? 'font-semibold' : 'ink-2 hover:text-[color:var(--ink)] transition'}>La corriente</a>
+        <a href="/?feed=following" class={active === 'following' ? 'font-semibold' : 'ink-2 hover:text-[color:var(--ink)] transition'}>Tu manada</a>
+      </nav>
+      <div class="ml-auto flex items-center gap-4">
+        {viewer ? (
+          <>
+            <a href={`/@${viewer.user.handle}`} class="flex items-center gap-2.5 group">
+              {viewer.user.avatarUrl
+                ? <img src={viewer.user.avatarUrl} alt="" class="w-8 h-8 rounded-full object-cover" />
+                : <span class="grid place-items-center w-8 h-8 rounded-full text-[13px] font-semibold" style="background:#dbe8fb;color:var(--blue)">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</span>}
+              <span class="text-[15px] hidden sm:block group-hover:opacity-70 transition">{viewer.user.displayName || viewer.user.handle}</span>
+            </a>
+            <a href="/auth/logout" class="t-caption hover:opacity-70 transition">Salir</a>
+          </>
+        ) : (
+          <a href="/auth/login" class="btn">Entrar</a>
+        )}
       </div>
     </div>
   </header>
 
-  <div class="max-w-[1200px] mx-auto px-5 py-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+  <div class="max-w-[1200px] mx-auto px-6 py-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_300px]">
     <main class="min-w-0"><slot /></main>
-    <aside class="hidden lg:block"><div class="sticky top-28 space-y-4"><slot name="aside" /></div></aside>
+    <aside class="hidden lg:block"><div class="sticky top-28 space-y-6"><slot name="aside" /></div></aside>
   </div>
 </div>

@@ -45,10 +45,10 @@ const PostActions: React.FC<Props> = ({ postId, likes: likes0, comments: comment
   return (
     <div className="mt-4">
       <div className="flex items-center gap-7">
-        <button type="button" onClick={toggleComments} className="flex items-center gap-2 cursor-pointer transition text-[14px] hover:opacity-70" style={{ color: open ? "var(--aqua)" : "var(--ink-3)" }}>
+        <button type="button" onClick={toggleComments} className="flex items-center gap-2 cursor-pointer transition text-[14px] hover:opacity-70" style={{ color: open ? "var(--blue)" : "var(--ink-3)" }}>
           <span>💬</span> <span className="tabular-nums">{count || ''}</span>
         </button>
-        <button type="button" onClick={toggleLike} className="flex items-center gap-2 cursor-pointer transition text-[14px] hover:opacity-70" style={{ color: liked ? "var(--sun)" : "var(--ink-3)" }}>
+        <button type="button" onClick={toggleLike} className="flex items-center gap-2 cursor-pointer transition text-[14px] hover:opacity-70" style={{ color: liked ? "var(--blue)" : "var(--ink-3)" }}>
           <span>{liked ? '❤' : '♡'}</span> <span className="tabular-nums">{likes || ''}</span>
         </button>
       </div>
@@ -60,22 +60,22 @@ const PostActions: React.FC<Props> = ({ postId, likes: likes0, comments: comment
               <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1}
                 onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send() }}
                 placeholder="Súmate a la conversación"
-                className="flex-1 resize-none rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-teal-400/40" />
+                className="flex-1 resize-none rounded-xl px-3 py-2 text-sm focus:outline-none" style={{ background: "#f5f8fd", border: "1px solid var(--line)" }} />
               <button type="button" onClick={send} disabled={busy || !text.trim()}
-                className="px-3 py-2 rounded-xl bg-teal-500 text-zinc-950 text-sm font-black disabled:opacity-40 cursor-pointer">→</button>
+                className="btn disabled:opacity-35 cursor-pointer">→</button>
             </div>
           )}
-          {list === null ? <p className="text-xs text-white/35 py-2">Cargando…</p>
-            : list.length === 0 ? <p className="text-xs text-white/35 py-2">Sin comentarios todavía.</p>
+          {list === null ? <p className="t-caption py-2">Cargando…</p>
+            : list.length === 0 ? <p className="t-caption py-2">Sin comentarios todavía.</p>
             : <div className="space-y-2.5">
                 {list.map((c) => (
                   <div key={c.id} className="flex items-start gap-2">
                     {c.author?.avatarUrl
                       ? <img src={c.author.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
-                      : <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[11px] font-bold text-white/70">{(c.author?.displayName || c.author?.handle || '?')[0]?.toUpperCase()}</div>}
-                    <div className="rounded-2xl bg-white/[0.04] px-3 py-2 flex-1 min-w-0">
-                      <p className="text-[13px] font-bold text-white/90">{c.author?.displayName || c.author?.handle}</p>
-                      <p className="text-[13px] text-white/80 whitespace-pre-wrap break-words">{c.content}</p>
+                      : <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold" style={{ background: "#dbe8fb", color: "var(--blue)" }}>{(c.author?.displayName || c.author?.handle || '?')[0]?.toUpperCase()}</div>}
+                    <div className="rounded-2xl px-3.5 py-2.5 flex-1 min-w-0" style={{ background: "#f5f8fd" }}>
+                      <p className="text-[13px] font-semibold">{c.author?.displayName || c.author?.handle}</p>
+                      <p className="text-[14px] whitespace-pre-wrap break-words">{c.content}</p>
                     </div>
                   </div>
                 ))}

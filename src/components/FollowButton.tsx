@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { hilosApi } from '../lib/hilosClient'
-import { GlassButton } from './Glass'
 
 interface Props { handle: string; initialFollowing?: boolean; logged: boolean; followers?: number }
 
@@ -19,6 +18,14 @@ const FollowButton: React.FC<Props> = ({ handle, initialFollowing, logged, follo
     finally { setBusy(false) }
   }
 
-  return <GlassButton onClick={toggle} size="sm" tint={!following}>{following ? 'Siguiendo' : 'Seguir'}</GlassButton>
+  return (
+    <button type="button" onClick={toggle} disabled={busy}
+      className={following
+        ? 'inline-flex items-center px-5 py-2.5 rounded-xl text-[15px] font-semibold cursor-pointer transition border'
+        : 'btn cursor-pointer'}
+      style={following ? { borderColor: 'var(--line)', color: 'var(--ink-2)', background: '#fff' } : undefined}>
+      {following ? 'Siguiendo' : 'Seguir'}
+    </button>
+  )
 }
 export default FollowButton

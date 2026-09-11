@@ -19,14 +19,14 @@ const comments = (await hilos(`/posts/${id}/comments`, acting).catch(() => [])) 
 <Layout title={`${(post.content || 'Publicación').slice(0, 60)} — La Charca`}>
   <Shell viewer={viewer}>
   <div>
-    <article class="glass glass-lit rounded-[20px] p-5 mb-4">
+    <article class="card p-5 mb-4">
       <div class="flex items-center gap-2 mb-2">
         <a href={`/@${post.author?.handle}`} class="flex items-center gap-2 min-w-0">
           {post.author?.avatarUrl
             ? <img src={post.author.avatarUrl} alt="" class="w-10 h-10 rounded-xl object-cover" />
-            : <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold text-white/70">{(post.author?.displayName || post.author?.handle || '?')[0]?.toUpperCase()}</div>}
+            : <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold ink-2">{(post.author?.displayName || post.author?.handle || '?')[0]?.toUpperCase()}</div>}
           <div class="min-w-0">
-            <p class="text-[15px] font-black text-white truncate hover:underline">{post.author?.displayName || post.author?.handle}</p>
+            <p class="text-[15px] font-black  truncate hover:underline">{post.author?.displayName || post.author?.handle}</p>
             <p class="text-[12px] ">@{post.author?.handle} · {timeAgo(post.createdAt)}</p>
           </div>
         </a>
@@ -35,7 +35,7 @@ const comments = (await hilos(`/posts/${id}/comments`, acting).catch(() => [])) 
       <PostActions client:load postId={post.id} likes={post.likesCount || 0} comments={post.commentsCount || 0} liked={post.liked} logged={!!viewer} />
     </article>
 
-    <div class="glass glass-lit rounded-[20px] p-5">
+    <div class="card p-5">
       <CommentThread client:load postId={post.id} initial={comments} logged={!!viewer} />
     </div>
   </div>

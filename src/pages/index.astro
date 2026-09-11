@@ -5,7 +5,6 @@ import { hilos, timeAgo } from '../lib/hilos'
 import { getViewer } from '../lib/session'
 import Composer from '../components/Composer'
 import PostActions from '../components/PostActions'
-import { GlassButton } from '../components/Glass'
 
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 const actingPage = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
@@ -29,23 +28,22 @@ const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.in
 <Layout title="La Charca">
   <Shell viewer={viewer} active={scope === 'following' ? 'following' : 'home'}>
     {viewer && (
-      <div class="glass rounded-[28px] mb-5 overflow-hidden">
+      <div class="card mb-8 overflow-hidden">
         <Composer client:load user={viewer.user} />
       </div>
     )}
 
     {!viewer && (
-      <div class="glass rounded-[32px] p-10 mb-5 text-center">
-        <p class="t-title mb-2">Únete a la charca</p>
-        <p class="t-sub max-w-sm mx-auto">Tu cuenta propia de La Charca, vinculada a tu cuenta de CapibaraTraductor.</p>
-        <div class="mt-7 flex justify-center">
-          <GlassButton client:load href="/auth/login" size="lg" tint>Continuar con CapibaraTraductor</GlassButton>
-        </div>
+      <div class="mb-12">
+        <p class="eyebrow mb-4">La comunidad de CapibaraTraductor</p>
+        <h1 class="t-hero mb-5">Conversa sobre<br/>lo que lees.</h1>
+        <p class="t-body ink-2 max-w-md">Sigue a tus scans, comenta capítulos y comparte lo que estás leyendo. Tu cuenta de La Charca, vinculada a CapibaraTraductor.</p>
+        <a href="/auth/login" class="btn mt-7">Continuar con CapibaraTraductor →</a>
       </div>
     )}
 
     {posts.length === 0 ? (
-      <div class="glass rounded-[32px] py-24 text-center">
+      <div class="card py-24 text-center">
         <p class="text-5xl mb-3">🦫</p>
         <p class="t-body ink-2">
           {scope === 'following' ? 'Tu manada aún es pequeña. Sigue scans y lectores.' : 'La charca está tranquila.'}
@@ -57,30 +55,30 @@ const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.in
           const imgs = (p.content || '').split(/\s+/).filter((w: string) => /^https?:\/\//.test(w) && isMedia(w))
           const body = (p.content || '').split('\n').filter((l: string) => !imgs.includes(l.trim())).join('\n')
           return (
-            <article class="glass glass-hover rounded-[28px] p-5">
+            <article class="card card-hover p-6">
               <div class="flex gap-3">
                 <a href={`/@${p.author?.handle}`} class="shrink-0">
                   {p.author?.avatarUrl
-                    ? <img src={p.author.avatarUrl} alt="" class={`w-11 h-11 object-cover ring-1 ring-white/10 ${p.author.type === 'user' ? 'rounded-full' : 'rounded-[14px]'}`} />
-                    : <span class={`grid place-items-center w-11 h-11 font-bold ${p.author?.type === 'user' ? 'rounded-full' : 'rounded-[14px]'}`} style="background:rgba(56,224,216,.14);color:var(--aqua-400)">{(p.author?.displayName || p.author?.handle || '?')[0]?.toUpperCase()}</span>}
+                    ? <img src={p.author.avatarUrl} alt="" class={`w-11 h-11 object-cover  ${p.author.type === 'user' ? 'rounded-full' : 'rounded-[14px]'}`} />
+                    : <span class={`grid place-items-center w-11 h-11 font-bold ${p.author?.type === 'user' ? 'rounded-full' : 'rounded-[14px]'}`} style="background:#dbe8fb;color:var(--blue)">{(p.author?.displayName || p.author?.handle || '?')[0]?.toUpperCase()}</span>}
                 </a>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <a href={`/@${p.author?.handle}`} class="text-[16px] font-semibold hover:opacity-80 transition truncate no-underline">{p.author?.displayName || p.author?.handle}</a>
-                    {p.author?.type === 'scan' && <span class="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md" style="background:rgba(251,191,36,.14);color:var(--sun-400)">scan</span>}
+                    {p.author?.type === 'scan' && <span class="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md" style="background:#e8f4f6;color:var(--aqua)">scan</span>}
                     <a href={`/post/${p.id}`} class="t-caption hover:opacity-80 transition no-underline">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>
                   </div>
                   {body.trim() && (
                     <p class="mt-1.5 t-body whitespace-pre-wrap break-words">
                       {tokenize(body).map((w) =>
-                        w.t === 'tag' ? <span class="aqua">{w.v}</span>
-                        : w.t === 'at' ? <a href={`/${w.v}`} class="aqua no-underline hover:opacity-80">{w.v}</a>
-                        : w.t === 'url' ? <a href={w.v} target="_blank" rel="noopener" class="aqua break-all no-underline hover:opacity-80">{w.v}</a>
+                        w.t === 'tag' ? <span class="text-blue">{w.v}</span>
+                        : w.t === 'at' ? <a href={`/${w.v}`} class="text-blue hover:opacity-70">{w.v}</a>
+                        : w.t === 'url' ? <a href={w.v} target="_blank" rel="noopener" class="text-blue break-all hover:opacity-70">{w.v}</a>
                         : w.v)}
                     </p>
                   )}
                   {imgs.slice(0, 4).map((u: string) => (
-                    <img src={u} alt="" loading="lazy" class="mt-3 rounded-[16px] max-h-[420px] w-full object-cover ring-1 ring-white/10" />
+                    <img src={u} alt="" loading="lazy" class="mt-3 rounded-[16px] max-h-[420px] w-full object-cover " />
                   ))}
                   <PostActions client:visible postId={p.id} likes={p.likesCount || 0} comments={p.commentsCount || 0} liked={p.liked} logged={!!viewer} />
                 </div>
@@ -93,9 +91,9 @@ const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.in
     )}
 
     <Fragment slot="aside">
-      <div class="glass rounded-[28px] p-6">
+      <div class="card p-6">
         <h2 class="t-section mb-4 flex items-center gap-2">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="color:var(--aqua-400)"><path d="M3 17l6-6 4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="color:var(--aqua)"><path d="M3 17l6-6 4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           Haciendo olas
         </h2>
         {trending.length === 0
@@ -107,9 +105,9 @@ const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.in
               </a></li>))}</ul>}
       </div>
       {viewer && (
-        <div class="glass rounded-[28px] p-6">
+        <div class="card p-6">
           <p class="t-sub">Hola, <b style="color:var(--ink-1)">{viewer.user.displayName || viewer.user.handle}</b></p>
-          <a href={`/@${viewer.user.handle}`} class="aqua text-[15px] mt-2 inline-block no-underline hover:opacity-80 transition">Ver mi perfil →</a>
+          <a href={`/@${viewer.user.handle}`} class="btn-ghost mt-2 -ml-3.5">Ver mi perfil →</a>
         </div>
       )}
     </Fragment>
