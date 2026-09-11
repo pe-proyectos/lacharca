@@ -11,6 +11,16 @@ const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 const actingPage = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
 const scope = (Astro.url.searchParams.get('feed') === 'following' && viewer) ? 'following' : 'foryou'
 
+// Avisos de vuelta de otros flujos (login, perfiles que ya no existen...).
+const sp = Astro.url.searchParams
+const notice =
+  sp.get('bienvenido') === '1' ? { tone: 'ok', text: 'Tu cuenta está lista. Bienvenido a La Charca.' }
+  : sp.get('auth') === 'failed' ? { tone: 'err', text: 'No pudimos completar el inicio de sesión. Inténtalo de nuevo.' }
+  : sp.get('auth') === 'missing_code' ? { tone: 'err', text: 'El enlace de acceso expiró. Vuelve a entrar con CapibaraTraductor.' }
+  : sp.get('perfil') === 'no_encontrado' ? { tone: 'err', text: 'Ese perfil no existe o cambió de nombre.' }
+  : sp.get('post') === 'no_encontrado' ? { tone: 'err', text: 'Esa publicación ya no está disponible.' }
+  : null
+
 let posts: any[] = []
 try { const d = await hilos(`/feed?limit=30&scope=${scope}`, actingPage); posts = d?.items || [] } catch { posts = [] }
 let trending: any[] = []
@@ -24,6 +34,12 @@ try { suggested = (await hilos('/pages/suggested?limit=5', actingPage)) || [] } 
 ---
 <Layout title="La Charca">
   <Shell viewer={viewer} active={scope === 'following' ? 'following' : 'home'}>
+    {notice && (
+      <p class="mb-6 text-[14px] rounded-xl px-3.5 py-2.5"
+        style={notice.tone === 'ok'
+          ? 'color:#05603a;background:#ecfdf3;border:1px solid #abefc6'
+          : 'color:#b42318;background:#fef3f2;border:1px solid #fecdca'}>{notice.text}</p>
+    )}
     {!viewer && (
       <div class="mb-10 pb-10" style="border-bottom:1px solid var(--line)">
         <p class="eyebrow mb-4">La comunidad de CapibaraTraductor</p>

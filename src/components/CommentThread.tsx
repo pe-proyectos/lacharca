@@ -61,7 +61,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged }) => {
     const { text: body, imgs } = splitMedia(c.content)
     const replies = byParent.get(c.id) || []
     return (
-      <div className={nested ? '' : 'py-3 border-b border-white/[0.04]'}>
+      <div className={nested ? "" : "py-3"} style={nested ? undefined : { borderBottom: "1px solid var(--line)" }}>
         <div className="flex items-start gap-2.5">
           <a href={`/@${c.author?.handle}`}><Avatar c={c.author} size={nested ? 30 : 36} /></a>
           <div className="min-w-0 flex-1">
