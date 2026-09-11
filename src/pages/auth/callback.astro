@@ -2,19 +2,24 @@
 import { API } from '../../lib/session'
 const code = Astro.url.searchParams.get('code')
 if (!code) return Astro.redirect('/?auth=missing_code')
-let ok = false
+
+let target = '/?auth=failed'
 try {
   const res = await fetch(`${API}/auth/capibara/callback`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }),
   })
   const json: any = await res.json().catch(() => ({}))
-  if (json?.status && json?.data?.token) {
-    Astro.cookies.set('lc_session', json.data.token, {
-      path: '/', httpOnly: true, secure: true, sameSite: 'lax',
-      expires: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+  const d = json?.data
+  if (json?.status && d?.state === 'signed_in' && d.token) {
+    Astro.cookies.set('lc_session', d.token, { path: '/', httpOnly: true, secure: true, sameSite: 'lax', expires: new Date(Date.now() + 30 * 24 * 3600 * 1000) })
+    target = '/'
+  } else if (json?.status && d?.state === 'needs_signup') {
+    // Ticket temporal para confirmar el registro (5 min).
+    Astro.cookies.set('lc_signup', JSON.stringify({ ticket: d.ticket, suggested: d.suggested, linkedTo: d.linkedTo }), {
+      path: '/', httpOnly: true, secure: true, sameSite: 'lax', maxAge: 300,
     })
-    ok = true
+    target = '/auth/registro'
   }
-} catch { ok = false }
-return Astro.redirect(ok ? '/' : '/?auth=failed')
+} catch { /* target ya es failed */ }
+return Astro.redirect(target)
 ---

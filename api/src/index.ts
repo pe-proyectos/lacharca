@@ -21,6 +21,8 @@ async function uniqueHandle(base: string) {
   }
   return `${slugify(base)}_${Date.now().toString(36)}`
 }
+async function suggestHandle(base: string) { return uniqueHandle(base) }
+
 async function sessionUser(token?: string | null) {
   if (!token) return null
   const s = await prisma.session.findUnique({ where: { token }, include: { user: true } })
@@ -28,12 +30,29 @@ async function sessionUser(token?: string | null) {
   return s.user
 }
 
+// Registros pendientes de confirmar (memoria, 5 min).
+const pending = new Map<string, { ext: any; exp: number }>()
+function sweepPending() { const now = Date.now(); for (const [k, v] of pending) if (v.exp < now) pending.delete(k) }
+
+function publicUser(u: any) { return { id: u.id, handle: u.handle, displayName: u.displayName, avatarUrl: u.avatarUrl, bio: u.bio } }
+
+async function syncPage(user: any) {
+  try {
+    const page = await hilos.pages.upsert({
+      externalId: `lacharca:user:${user.id}`, handle: user.handle, type: 'user',
+      displayName: user.displayName || user.handle, avatarUrl: user.avatarUrl || undefined, bio: user.bio || undefined,
+      createdAt: new Date(user.createdAt).toISOString(),
+    })
+    if (page?.id && page.id !== user.hilosPageId) await prisma.user.update({ where: { id: user.id }, data: { hilosPageId: page.id } })
+  } catch { /* la sesion no depende de hilos */ }
+}
+
 const app = new Elysia()
   .use(cors({ origin: true, credentials: true }))
   .get('/health', () => ({ ok: true, service: 'lacharca-api' }))
 
-  // Canjea el codigo SSO de capibaratraductor: crea/vincula la cuenta PROPIA
-  // de La Charca, provisiona su Page en hilos.rest y abre sesion propia.
+  // Paso 1: canjea el codigo SSO. Si ya hay cuenta vinculada, abre sesion.
+  // Si no, NO crea nada: devuelve datos sugeridos + un ticket para registrar.
   .post('/auth/capibara/callback', async ({ body }: any) => {
     const code = String(body.code || '')
     if (!code) return { status: false, message: 'missing_code' }
@@ -46,38 +65,79 @@ const app = new Elysia()
     if (!json?.status || !json?.data?.user) return { status: false, message: json?.message || 'exchange_failed' }
     const ext = json.data.user
 
-    // ¿Ya vinculada?
-    let identity = await prisma.linkedIdentity.findUnique({
+    const identity = await prisma.linkedIdentity.findUnique({
       where: { provider_externalUserId: { provider: 'capibaratraductor', externalUserId: String(ext.id) } },
       include: { user: true },
     })
-    let user = identity?.user ?? null
 
-    if (!user) {
-      // Alta automatica (1 clic): cuenta propia de La Charca.
-      const handle = await uniqueHandle(ext.slug || ext.username || 'capi')
-      user = await prisma.user.create({
-        data: { handle, displayName: ext.username || handle, avatarUrl: ext.imageUrl || null, bannerUrl: ext.bannerUrl || null, bio: ext.description || null, email: ext.email || null },
-      })
-      await prisma.linkedIdentity.create({
-        data: { userId: user.id, provider: 'capibaratraductor', externalUserId: String(ext.id), externalHandle: ext.slug || ext.username || null, email: ext.email || null },
-      })
+    if (identity?.user) {
+      const user = identity.user
+      await syncPage(user)
+      const token = randomBytes(32).toString('hex')
+      await prisma.session.create({ data: { userId: user.id, token, expiresAt: new Date(Date.now() + SESSION_DAYS * 86400_000) } })
+      return { status: true, data: { state: 'signed_in', token, user: publicUser(user) } }
     }
 
-    // Provisiona/actualiza la Page en hilos.rest (la identidad social).
-    try {
-      const page = await hilos.pages.upsert({
-        externalId: `lacharca:user:${user.id}`, handle: user.handle, type: 'user',
-        displayName: user.displayName || user.handle, avatarUrl: user.avatarUrl || undefined, bio: user.bio || undefined,
-        createdAt: new Date(user.createdAt).toISOString(),
-      })
-      if (page?.id && page.id !== user.hilosPageId) await prisma.user.update({ where: { id: user.id }, data: { hilosPageId: page.id } })
-    } catch { /* la sesion no depende de hilos */ }
+    // Cuenta nueva: ticket temporal (5 min) para confirmar el registro.
+    const ticket = randomBytes(24).toString('hex')
+    pending.set(ticket, { ext, exp: Date.now() + 5 * 60_000 })
+    return {
+      status: true,
+      data: {
+        state: 'needs_signup',
+        ticket,
+        suggested: {
+          handle: await suggestHandle(ext.slug || ext.username || 'capi'),
+          displayName: ext.username || ext.slug || 'Capibara',
+          avatarUrl: ext.imageUrl || null,
+        },
+        linkedTo: { provider: 'CapibaraTraductor', username: ext.username, slug: ext.slug },
+      },
+    }
+  }, { body: t.Object({ code: t.String() }) })
 
+  // Paso 2: el usuario confirma y SE CREA su cuenta de La Charca vinculada.
+  .post('/auth/signup', async ({ body }: any) => {
+    sweepPending()
+    const entry = pending.get(String(body.ticket || ''))
+    if (!entry || entry.exp < Date.now()) return { status: false, message: 'ticket_expired' }
+    const ext = entry.ext
+    const wanted = slugify(String(body.handle || ''))
+    if (wanted.length < 3) return { status: false, message: 'handle_too_short' }
+    const taken = await prisma.user.findUnique({ where: { handle: wanted }, select: { id: true } })
+    if (taken) return { status: false, message: 'handle_taken' }
+
+    const already = await prisma.linkedIdentity.findUnique({
+      where: { provider_externalUserId: { provider: 'capibaratraductor', externalUserId: String(ext.id) } },
+      select: { id: true },
+    })
+    if (already) return { status: false, message: 'already_linked' }
+
+    const user = await prisma.user.create({
+      data: {
+        handle: wanted,
+        displayName: String(body.displayName || ext.username || wanted).slice(0, 120),
+        avatarUrl: ext.imageUrl || null, bannerUrl: ext.bannerUrl || null,
+        bio: ext.description || null, email: ext.email || null,
+      },
+    })
+    await prisma.linkedIdentity.create({
+      data: { userId: user.id, provider: 'capibaratraductor', externalUserId: String(ext.id), externalHandle: ext.slug || ext.username || null, email: ext.email || null },
+    })
+    pending.delete(String(body.ticket))
+    await syncPage(user)
     const token = randomBytes(32).toString('hex')
     await prisma.session.create({ data: { userId: user.id, token, expiresAt: new Date(Date.now() + SESSION_DAYS * 86400_000) } })
-    return { status: true, data: { token, user: { id: user.id, handle: user.handle, displayName: user.displayName, avatarUrl: user.avatarUrl } } }
-  }, { body: t.Object({ code: t.String() }) })
+    return { status: true, data: { state: 'signed_in', token, user: publicUser(user) } }
+  }, { body: t.Object({ ticket: t.String(), handle: t.String(), displayName: t.Optional(t.String()) }) })
+
+  // Comprueba disponibilidad del @handle (para la pantalla de registro).
+  .get('/auth/handle-available', async ({ query }: any) => {
+    const h = slugify(String(query.handle || ''))
+    if (h.length < 3) return { status: true, data: { available: false, handle: h, reason: 'too_short' } }
+    const taken = await prisma.user.findUnique({ where: { handle: h }, select: { id: true } })
+    return { status: true, data: { available: !taken, handle: h } }
+  })
 
   // Sesion actual (+ page token de hilos para acciones del cliente).
   .get('/auth/me', async ({ request }: any) => {

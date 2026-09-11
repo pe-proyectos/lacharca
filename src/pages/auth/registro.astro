@@ -1,0 +1,81 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import { API } from '../../lib/session'
+
+const raw = Astro.cookies.get('lc_signup')?.value
+if (!raw) return Astro.redirect('/auth/login')
+let data: any = null
+try { data = JSON.parse(raw) } catch { return Astro.redirect('/auth/login') }
+
+let error: string | null = null
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData()
+  const handle = String(form.get('handle') || '')
+  const displayName = String(form.get('displayName') || '')
+  try {
+    const res = await fetch(`${API}/auth/signup`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticket: data.ticket, handle, displayName }),
+    })
+    const json: any = await res.json().catch(() => ({}))
+    if (json?.status && json?.data?.token) {
+      Astro.cookies.set('lc_session', json.data.token, { path: '/', httpOnly: true, secure: true, sameSite: 'lax', expires: new Date(Date.now() + 30 * 24 * 3600 * 1000) })
+      Astro.cookies.delete('lc_signup', { path: '/' })
+      return Astro.redirect('/?bienvenido=1')
+    }
+    error = json?.message === 'handle_taken' ? 'Ese @usuario ya está tomado.'
+      : json?.message === 'handle_too_short' ? 'El @usuario debe tener al menos 3 caracteres.'
+      : json?.message === 'ticket_expired' ? 'La sesión de registro expiró. Vuelve a intentarlo.'
+      : 'No pudimos crear tu cuenta.'
+  } catch { error = 'No pudimos crear tu cuenta.' }
+}
+const s = data.suggested || {}
+const linked = data.linkedTo || {}
+---
+<Layout title="Crea tu cuenta — La Charca">
+  <main class="min-h-screen flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center gap-2 mb-3">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" class="text-teal-400"><path d="M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.6"/></svg>
+          <span class="text-2xl font-black text-white">La Charca</span>
+        </div>
+        <h1 class="text-xl font-black text-white">Crea tu cuenta</h1>
+        <p class="text-white/55 text-sm mt-1">Tu cuenta de La Charca es independiente, pero quedará vinculada a tu cuenta de CapibaraTraductor.</p>
+      </div>
+
+      <div class="rounded-2xl bg-gradient-to-br from-teal-500/10 to-cyan-500/5 border border-teal-400/20 p-4 mb-5 flex items-center gap-3">
+        {s.avatarUrl
+          ? <img src={s.avatarUrl} alt="" class="w-11 h-11 rounded-full object-cover ring-1 ring-white/10" />
+          : <div class="w-11 h-11 rounded-full bg-teal-500/20 flex items-center justify-center font-bold text-teal-200">{(s.displayName || 'C')[0]?.toUpperCase()}</div>}
+        <div class="min-w-0">
+          <p class="text-sm text-white/90 font-bold truncate">Se vinculará a <span class="text-teal-300">@{linked.slug || linked.username}</span></p>
+          <p class="text-[12px] text-white/50">Cuenta de CapibaraTraductor verificada</p>
+        </div>
+      </div>
+
+      {error && <p class="mb-4 text-sm text-rose-300 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2">{error}</p>}
+
+      <form method="POST" class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-black uppercase tracking-wider text-white/40 mb-1.5">Tu @usuario en La Charca</label>
+          <div class="flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 focus-within:border-teal-400/50">
+            <span class="text-white/40">@</span>
+            <input name="handle" value={s.handle} required minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]+"
+              class="flex-1 bg-transparent text-white focus:outline-none" />
+          </div>
+          <p class="text-[11px] text-white/35 mt-1">Solo letras, números y guion bajo.</p>
+        </div>
+        <div>
+          <label class="block text-[11px] font-black uppercase tracking-wider text-white/40 mb-1.5">Nombre visible</label>
+          <input name="displayName" value={s.displayName} maxlength="120"
+            class="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-white focus:outline-none focus:border-teal-400/50" />
+        </div>
+        <button type="submit" class="w-full py-3 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black hover:from-teal-300 hover:to-cyan-400 transition">
+          Crear mi cuenta
+        </button>
+        <a href="/" class="block text-center text-white/40 hover:text-white/70 text-sm">Cancelar</a>
+      </form>
+    </div>
+  </main>
+</Layout>
