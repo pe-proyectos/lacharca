@@ -35,10 +35,14 @@
   --radius: 20px;
 }
 
-html, body {
+html {
   background: var(--depth-abyss);
+}
+body {
+  background: transparent;   /* el fondo lo pintan las capas ::before/::after */
   color: var(--ink-1);
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
 /* Fondo: profundidad de agua con luz que entra desde arriba */
