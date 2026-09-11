@@ -69,9 +69,10 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean }> = ({ post: p, log
           {imgs.length > 0 && (
             <div className={`mt-3 grid gap-2 ${imgs.length > 1 ? 'grid-cols-2' : ''}`}>
               {imgs.slice(0, 4).map((u) => (
-                <span key={u} className={`media post-media block ${imgs.length > 1 ? 'post-media--grid' : ''}`}>
-                  <img src={u} alt="Imagen de la publicación" loading="lazy"
-                    data-lightbox="" data-lightbox-group={`post-${p.id}`} data-src={u} />
+                <span key={u} className={`media post-media ${imgs.length > 1 ? 'post-media--grid' : ''}`}
+                  style={{ ['--media-bg' as any]: `url('${u}')` }}
+                  data-lightbox="" data-lightbox-group={`post-${p.id}`} data-src={u}>
+                  <img src={u} alt="Imagen de la publicación" loading="lazy" />
                 </span>
               ))}
             </div>

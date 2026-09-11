@@ -1,6 +1,6 @@
-import { PaperPlaneTilt } from '@phosphor-icons/react'
+import { PaperPlaneTilt, ImageSquare, X } from '@phosphor-icons/react'
 import React, { useState } from 'react'
-import { hilosApi } from '../lib/hilosClient'
+import { hilosApi, uploadToHilos } from '../lib/hilosClient'
 
 interface C { id: number; content: string; parentCommentId: number | null; createdAt: string; author: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
 interface Props { postId: number; initial: C[]; logged: boolean; total?: number }
@@ -74,7 +74,27 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
   const [busy, setBusy] = useState(false)
   const [replyTo, setReplyTo] = useState<number | null>(null)
   const [replyText, setReplyText] = useState('')
+  const [image, setImage] = useState<{ preview: string; url: string | null; failed?: boolean } | null>(null)
+  const fileInput = React.useRef<HTMLInputElement>(null)
   const [sort, setSort] = useState<'reciente' | 'antiguo' | 'popular'>('reciente')
+
+  const pickImage = async (file?: File) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) return
+    if (file.size > 5 * 1024 * 1024) { setImage({ preview: '', url: null, failed: true }); return }
+    const preview = URL.createObjectURL(file)
+    setImage({ preview, url: null })
+    try {
+      const url = await uploadToHilos(file)
+      setImage({ preview, url })
+    } catch { setImage({ preview, url: null, failed: true }) }
+    if (fileInput.current) fileInput.current.value = ''
+  }
+
+  const clearImage = () => {
+    if (image?.preview) URL.revokeObjectURL(image.preview)
+    setImage(null)
+  }
   const [sorting, setSorting] = useState(false)
 
   const changeSort = async (next: typeof sort) => {
@@ -104,20 +124,24 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
 
   const send = async (parentId?: number) => {
     if (!logged) return needLogin()
-    const content = (parentId ? replyText : text).trim()
+    const typed = (parentId ? replyText : text).trim()
+    // La imagen solo acompaña al comentario principal, no a las respuestas.
+    const attached = !parentId && image?.url ? image.url : null
+    const content = [typed, attached].filter(Boolean).join('\n')
     if (!content || busy) return
+    if (!parentId && image && !image.url && !image.failed) return // aún subiendo
     // Optimista: mostramos el comentario al instante y reconciliamos al responder el API.
     const tempId = -Date.now()
     const optimistic: any = { id: tempId, content, parentCommentId: parentId ?? null, createdAt: new Date().toISOString(), author: { handle: 'tu', displayName: 'Tú', avatarUrl: null }, pending: true }
     setItems((l) => [...l, optimistic])
-    if (parentId) { setReplyText(''); setReplyTo(null) } else setText('')
+    if (parentId) { setReplyText(''); setReplyTo(null) } else { setText(''); clearImage() }
     setBusy(true)
     try {
       const c = await hilosApi.comment(postId, content, parentId)
       setItems((l) => l.map((x) => (x.id === tempId ? c : x)))
     } catch {
       setItems((l) => l.filter((x) => x.id !== tempId))   // revertir
-      if (parentId) setReplyText(content); else setText(content)
+      if (parentId) setReplyText(typed); else setText(typed)
     } finally { setBusy(false) }
   }
 
@@ -187,13 +211,36 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
         )}
       </div>
       {logged ? (
-        <div className="flex items-end gap-2 mb-4">
-          <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1}
-            onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send() }}
-            placeholder="Súmate a la conversación"
-            className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none" style={{ background: "#f5f8fd", border: "1px solid var(--line)" }} />
-          <button type="button" onClick={() => send()} disabled={busy || !text.trim()}
-            className="btn disabled:opacity-35 cursor-pointer">Enviar</button>
+        <div className="mb-4">
+          {image && (
+            <div className="relative inline-block mb-2 media" style={{ opacity: image.url ? 1 : 0.55 }}>
+              {image.preview
+                ? <img src={image.preview} alt="" className="max-h-40 rounded-xl" />
+                : <span className="block px-4 py-3 t-caption" style={{ color: '#b42318' }}>La imagen supera los 5 MB</span>}
+              {!image.url && !image.failed && <span className="absolute inset-0 skeleton rounded-xl" />}
+              <button type="button" onClick={clearImage} aria-label="Quitar imagen"
+                className="absolute top-1.5 right-1.5 grid place-items-center w-6 h-6 rounded-full cursor-pointer"
+                style={{ background: 'rgba(16,31,56,.65)', color: '#fff' }}>
+                <X size={12} weight="bold" />
+              </button>
+            </div>
+          )}
+          <div className="flex items-end gap-2">
+            <input ref={fileInput} type="file" accept="image/*" className="hidden"
+              onChange={(e) => pickImage(e.target.files?.[0])} />
+            <button type="button" onClick={() => fileInput.current?.click()} disabled={!!image}
+              aria-label="Adjuntar imagen" title={image ? 'Solo una imagen por comentario' : 'Adjuntar imagen'}
+              className="act shrink-0 disabled:opacity-35 disabled:cursor-default cursor-pointer">
+              <ImageSquare size={19} />
+            </button>
+            <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1}
+              onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send() }}
+              onPaste={(e) => { const f = e.clipboardData.files?.[0]; if (f) { e.preventDefault(); pickImage(f) } }}
+              placeholder="Súmate a la conversación"
+              className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none" style={{ background: "#f5f8fd", border: "1px solid var(--line)" }} />
+            <button type="button" onClick={() => send()} disabled={busy || (!text.trim() && !image?.url) || (!!image && !image.url && !image.failed)}
+              className="btn disabled:opacity-35 cursor-pointer shrink-0">Enviar</button>
+          </div>
         </div>
       ) : (
         <a href="/auth/login" className="btn-ghost w-full justify-center my-2">Únete a la charca para comentar</a>

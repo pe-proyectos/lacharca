@@ -236,17 +236,30 @@ textarea, input { cursor: text; }
    página de manga vertical deja un encuadre absurdo). Varias van en rejilla
    como miniaturas, y el visor las muestra completas. */
 .post-media {
-  background: #f0f4fb;
+  position: relative; overflow: hidden;
+  background: #eaf0f9;
   display: flex; align-items: center; justify-content: center;
+  cursor: zoom-in;
+}
+/* Las bandas que sobran se rellenan con la propia imagen, desenfocada y
+   oscurecida: deja de parecer un hueco y el encuadre se siente intencionado. */
+.post-media::before {
+  content: '';
+  position: absolute; inset: -8%;
+  background-image: var(--media-bg);
+  background-size: cover; background-position: center;
+  filter: blur(22px) brightness(.55) saturate(1.1);
+  transform: scale(1.06);
+  z-index: 0;
 }
 .post-media img {
-  max-height: 520px; max-width: 100%; width: auto;
-  object-fit: contain; cursor: zoom-in; display: block;
+  position: relative; z-index: 1;
+  max-height: 540px; max-width: 100%; width: auto;
+  object-fit: contain; display: block;
 }
-.post-media--grid img {
-  width: 100%; height: 200px; object-fit: cover;
-}
+.post-media--grid { aspect-ratio: 1 / 1; }
+.post-media--grid::before { display: none; }
+.post-media--grid img { width: 100%; height: 100%; max-height: none; object-fit: cover; }
 @media (max-width: 640px) {
-  .post-media img { max-height: 400px; }
-  .post-media--grid img { height: 150px; }
+  .post-media img { max-height: 420px; }
 }
