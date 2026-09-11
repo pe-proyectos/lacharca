@@ -1,5 +1,7 @@
 ---
 import { CAPI } from '../../lib/session'
-const back = `${Astro.url.origin}/auth/callback`
+// Detras del proxy el origin puede venir como http; forzamos https en prod.
+const origin = Astro.url.origin.replace(/^http:/, 'https:')
+const back = `${origin}/auth/callback`
 return Astro.redirect(`${CAPI}/sso/authorize?redirect=${encodeURIComponent(back)}`)
 ---
