@@ -29,8 +29,10 @@ function renderContent(c: string) {
             ? <img src={viewer.user.avatarUrl} alt="" class="w-9 h-9 rounded-full object-cover" />
             : <div class="w-9 h-9 rounded-full bg-teal-500/20 flex items-center justify-center font-bold text-teal-200">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</div>}
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-bold text-white truncate">{viewer.user.displayName || viewer.user.handle}</p>
-            <p class="text-[11px] text-white/40 truncate">@{viewer.user.handle}</p>
+            <a href={`/@${viewer.user.handle}`} class="block">
+              <p class="text-sm font-bold text-white truncate hover:underline">{viewer.user.displayName || viewer.user.handle}</p>
+              <p class="text-[11px] text-white/40 truncate">@{viewer.user.handle}</p>
+            </a>
           </div>
           <a href="/auth/logout" title="Salir" class="text-white/40 hover:text-rose-400 text-xs font-bold">Salir</a>
         </div>
@@ -63,12 +65,14 @@ function renderContent(c: string) {
           {posts.map((p: any) => (
             <article class="border-b border-white/[0.06] px-4 py-3.5 hover:bg-white/[0.015] transition-colors">
               <div class="flex gap-3">
-                {p.author?.avatarUrl
-                  ? <img src={p.author.avatarUrl} alt="" class={`w-11 h-11 object-cover ${p.author.type === 'scan' || p.author.type === 'manga' ? 'rounded-xl' : 'rounded-full'} ring-1 ring-white/10`} />
-                  : <div class={`w-11 h-11 flex items-center justify-center bg-white/10 text-white/70 font-bold ${p.author?.type === 'scan' || p.author?.type === 'manga' ? 'rounded-xl' : 'rounded-full'}`}>{(p.author?.displayName || p.author?.handle || '?')[0]?.toUpperCase()}</div>}
+                <a href={`/@${p.author?.handle}`} class="shrink-0">
+                  {p.author?.avatarUrl
+                    ? <img src={p.author.avatarUrl} alt="" class={`w-11 h-11 object-cover ${p.author.type === 'scan' || p.author.type === 'manga' ? 'rounded-xl' : 'rounded-full'} ring-1 ring-white/10`} />
+                    : <div class={`w-11 h-11 flex items-center justify-center bg-white/10 text-white/70 font-bold ${p.author?.type === 'scan' || p.author?.type === 'manga' ? 'rounded-xl' : 'rounded-full'}`}>{(p.author?.displayName || p.author?.handle || '?')[0]?.toUpperCase()}</div>}
+                </a>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="text-[15px] font-black text-white truncate">{p.author?.displayName || p.author?.handle}</span>
+                    <a href={`/@${p.author?.handle}`} class="text-[15px] font-black text-white truncate hover:underline">{p.author?.displayName || p.author?.handle}</a>
                     {(p.author?.type === 'scan') && <svg width="15" height="15" viewBox="0 0 24 24" class="text-amber-400"><path fill="currentColor" d="M9 16.2l-3.5-3.5L4 14.2 9 19l11-11-1.5-1.5z"/></svg>}
                     <span class="text-[13px] text-white/35">@{p.author?.handle} · {timeAgo(p.createdAt)}</span>
                   </div>

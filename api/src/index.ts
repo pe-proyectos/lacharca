@@ -36,6 +36,25 @@ function sweepPending() { const now = Date.now(); for (const [k, v] of pending) 
 
 function publicUser(u: any) { return { id: u.id, handle: u.handle, displayName: u.displayName, avatarUrl: u.avatarUrl, bio: u.bio } }
 
+// Si el usuario tenia una page migrada (comentarios historicos de
+// capibaratraductor), la reclama para conservar su historial.
+async function claimMigratedPage(user: any, capibaraUserId: string | number) {
+  try {
+    const claimed = await hilos.pages.claim({
+      fromExternalId: `capibara:user:${capibaraUserId}`,
+      toExternalId: `lacharca:user:${user.id}`,
+      handle: user.handle,
+      displayName: user.displayName || user.handle,
+      avatarUrl: user.avatarUrl || undefined,
+    })
+    if (claimed?.id) {
+      await prisma.user.update({ where: { id: user.id }, data: { hilosPageId: claimed.id } })
+      return true
+    }
+  } catch { /* no habia page migrada */ }
+  return false
+}
+
 async function syncPage(user: any) {
   try {
     const page = await hilos.pages.upsert({
@@ -125,7 +144,8 @@ const app = new Elysia()
       data: { userId: user.id, provider: 'capibaratraductor', externalUserId: String(ext.id), externalHandle: ext.slug || ext.username || null, email: ext.email || null },
     })
     pending.delete(String(body.ticket))
-    await syncPage(user)
+    const inherited = await claimMigratedPage(user, ext.id)
+    if (!inherited) await syncPage(user)
     const token = randomBytes(32).toString('hex')
     await prisma.session.create({ data: { userId: user.id, token, expiresAt: new Date(Date.now() + SESSION_DAYS * 86400_000) } })
     return { status: true, data: { state: 'signed_in', token, user: publicUser(user) } }
