@@ -5,6 +5,24 @@ import { hilosApi } from '../lib/hilosClient'
 interface C { id: number; content: string; parentCommentId: number | null; createdAt: string; author: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
 interface Props { postId: number; initial: C[]; logged: boolean }
 
+// Enlaces, menciones y etiquetas navegables. Las URLs largas se muestran
+// acortadas para que no rompan la columna de lectura.
+function tokenize(text: string) {
+  return (text || '').split(/(\s+)/).map((w, i) => {
+    if (/^#[\p{L}\p{N}_]+$/u.test(w)) return <a key={i} href={`/tag/${w.slice(1)}`} className="text-blue hover:opacity-70">{w}</a>
+    if (/^@[a-zA-Z0-9_]+$/.test(w)) return <a key={i} href={`/${w}`} data-hover-handle={w.slice(1)} className="text-blue hover:opacity-70">{w}</a>
+    if (/^https?:\/\/\S+$/.test(w)) {
+      let label = w
+      try {
+        const u = new URL(w)
+        label = u.hostname.replace(/^www\./, '') + (u.pathname.length > 1 ? '/…' : '')
+      } catch { label = w.slice(0, 40) + '…' }
+      return <a key={i} href={w} target="_blank" rel="noopener nofollow" title={w} className="text-blue hover:opacity-70 break-all">{label}</a>
+    }
+    return <React.Fragment key={i}>{w}</React.Fragment>
+  })
+}
+
 function splitMedia(content: string) {
   const lines = (content || '').split('\n')
   const imgs = lines.filter((l) => /^https?:\/\/\S+$/.test(l.trim()) && (/\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(l) || l.includes('r2.hilos.rest')))
@@ -63,14 +81,14 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged }) => {
     return (
       <div className={nested ? "" : "py-3"} style={nested ? undefined : { borderBottom: "1px solid var(--line)" }}>
         <div className="flex items-start gap-2.5">
-          <a href={`/@${c.author?.handle}`}><Avatar c={c.author} size={nested ? 30 : 36} /></a>
+          <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle}><Avatar c={c.author} size={nested ? 30 : 36} /></a>
           <div className="min-w-0 flex-1">
             <p className="text-[13px]">
-              <a href={`/@${c.author?.handle}`} className="font-semibold hover:opacity-70">{c.author?.displayName || c.author?.handle}</a>
+              <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle} className="font-semibold hover:opacity-70">{c.author?.displayName || c.author?.handle}</a>
               <span className="ink-3"> · {ago(c.createdAt)}</span>
             </p>
-            {body && <p className="t-body whitespace-pre-wrap break-words mt-0.5">{body}</p>}
-            {imgs.map((u, i) => <img key={i} src={u} alt="" loading="lazy" className="mt-2 rounded-xl max-h-80 ring-1 ring-white/10" />)}
+            {body && <p className="t-body whitespace-pre-wrap break-words mt-0.5">{tokenize(body)}</p>}
+            {imgs.map((u, i) => <img key={i} src={u} alt="" loading="lazy" className="mt-2 rounded-xl max-h-80" style={{ border: "1px solid var(--line)" }} />)}
             {!nested && (
               <button type="button" onClick={() => { if (!logged) return needLogin(); setReplyTo(replyTo === c.id ? null : c.id); setReplyText('') }}
                 className="mt-1.5 text-[13px] font-semibold cursor-pointer hover:opacity-70" style={{ color: "var(--blue)" }}>Responder</button>

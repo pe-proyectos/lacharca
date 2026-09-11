@@ -17,7 +17,8 @@
   --aqua:    #0ea5b7;   /* acento agua */
 }
 
-html, body { background: var(--paper); }
+html, body {
+  overflow-x: hidden; /* red de seguridad contra desbordes puntuales */ background: var(--paper); }
 
 body {
   color: var(--ink);
@@ -91,9 +92,14 @@ textarea, input { cursor: text; }
 /* Fila de post: realce completo al pasar el mouse */
 .row {
   transition: background .16s ease;
-  margin-inline: -1.25rem;
-  padding-inline: 1.25rem;
+  /* El sangrado tiene que coincidir con el margen del contenedor: si es mayor,
+     asoma por el borde y aparece scroll horizontal en móvil. */
+  margin-inline: -1rem;
+  padding-inline: 1rem;
   border-radius: 14px;
+}
+@media (min-width: 640px) {
+  .row { margin-inline: -1.25rem; padding-inline: 1.25rem; }
 }
 .row:hover { background: #e8eef9; }
 

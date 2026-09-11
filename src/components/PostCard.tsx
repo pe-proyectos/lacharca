@@ -2,6 +2,8 @@ import React from 'react'
 import PostActions from './PostActions'
 import { timeAgo } from '../lib/time'
 
+export interface WallPage { handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null }
+
 export interface PostShape {
   id: number
   content: string
@@ -12,6 +14,7 @@ export interface PostShape {
   saved?: boolean
   pending?: boolean
   author?: { handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null }
+  wall?: WallPage | null
 }
 
 const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.includes('r2.hilos.rest')
@@ -49,6 +52,20 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean }> = ({ post: p, log
               : <a href={`/post/${p.id}`} className="t-caption hover:opacity-70">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>}
           </div>
           {body.trim() && <p className="mt-1.5 t-body whitespace-pre-wrap break-words">{tokenize(body)}</p>}
+          {p.wall && p.wall.type === 'manga' && (
+            <a href={`/@${p.wall.handle}`} data-hover-handle={p.wall.handle}
+              className="mt-2.5 flex items-center gap-3 p-2.5 rounded-2xl transition hover:opacity-85"
+              style={{ border: '1px solid var(--line)', background: '#fff' }}>
+              {p.wall.avatarUrl
+                ? <img src={p.wall.avatarUrl} alt="" width={44} height={44} loading="lazy" className="rounded-xl object-cover shrink-0" style={{ width: 44, height: 44 }} />
+                : <span className="grid place-items-center rounded-xl text-[15px] font-semibold shrink-0" style={{ width: 44, height: 44, background: '#dbe8fb', color: 'var(--blue)' }}>{(p.wall.displayName || p.wall.handle)[0]?.toUpperCase()}</span>}
+              <span className="min-w-0">
+                <span className="block eyebrow">Obra</span>
+                <span className="block text-[14px] font-medium truncate">{p.wall.displayName || p.wall.handle}</span>
+              </span>
+            </a>
+          )}
+
           {imgs.slice(0, 4).map((u) => (
             <a key={u} href={p.pending ? undefined : `/post/${p.id}`} className="media block mt-3"><img src={u} alt="" loading="lazy" className="max-h-[560px] w-full object-cover" /></a>
           ))}

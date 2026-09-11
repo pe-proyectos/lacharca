@@ -7,6 +7,7 @@ import ProfileEditor from '../components/ProfileEditor'
 import MessageButton from '../components/MessageButton'
 import { hilos } from '../lib/hilos'
 import { getViewer } from '../lib/session'
+import { num, plural } from '../lib/format'
 
 const raw = Astro.params.handle || ''
 // Solo tratamos como perfil las rutas que empiezan con @
@@ -23,12 +24,12 @@ const posts = wall?.items || []
 const isScan = page.type === 'scan' || page.type === 'manga'
 const isMe = viewer?.user?.handle === page.handle
 const name = page.displayName || page.handle
-const n = (v: any) => Number(v || 0).toLocaleString('es')
+
 const kind = page.type === 'scan' ? 'Scan' : page.type === 'manga' ? 'Obra' : 'Lector'
-const desc = page.bio || `${kind} en La Charca. ${n(page.followersCount)} seguidores y ${n(page.postsCount)} publicaciones.`
+const desc = page.bio || `${kind} en La Charca. ${plural(page.followersCount, 'seguidor', 'seguidores')} y ${plural(page.postsCount, 'publicación', 'publicaciones')}.`
 ---
 <Layout title={`${name} (@${page.handle}) — La Charca`} description={desc} image={page.avatarUrl || '/logo.png'}>
-  <Shell viewer={viewer}>
+  <Shell viewer={viewer} active={isMe ? "me" : "none"}>
     <header class="pb-7 mb-2" style="border-bottom:1px solid var(--line)">
       {page.bannerUrl
         ? <img src={page.bannerUrl} alt="" class="w-full h-40 sm:h-52 object-cover rounded-2xl mb-5" />
@@ -49,12 +50,12 @@ const desc = page.bio || `${kind} en La Charca. ${n(page.followersCount)} seguid
 
           <div class="flex items-center flex-wrap gap-x-5 gap-y-1.5 mt-4 text-[14px]">
             <a href={`/@${page.handle}/seguidores`} class="hover:opacity-70 transition">
-              <b class="font-semibold tabular-nums">{n(page.followersCount)}</b> <span class="ink-2">seguidores</span>
+              <b class="font-semibold tabular-nums">{num(page.followersCount)}</b> <span class="ink-2">{Number(page.followersCount || 0) === 1 ? "seguidor" : "seguidores"}</span>
             </a>
             <a href={`/@${page.handle}/siguiendo`} class="hover:opacity-70 transition">
-              <b class="font-semibold tabular-nums">{n(page.followingCount)}</b> <span class="ink-2">siguiendo</span>
+              <b class="font-semibold tabular-nums">{num(page.followingCount)}</b> <span class="ink-2">siguiendo</span>
             </a>
-            <span><b class="font-semibold tabular-nums">{n(page.postsCount)}</b> <span class="ink-2">publicaciones</span></span>
+            <span><b class="font-semibold tabular-nums">{num(page.postsCount)}</b> <span class="ink-2">{Number(page.postsCount || 0) === 1 ? "publicación" : "publicaciones"}</span></span>
           </div>
 
           <div class="mt-4 flex items-center gap-2.5 flex-wrap">

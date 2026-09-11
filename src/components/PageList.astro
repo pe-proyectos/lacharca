@@ -1,8 +1,9 @@
 ---
 // Lista de pages (seguidores, siguiendo, resultados de busqueda).
 import FollowButton from './FollowButton'
+import { followers } from '../lib/format'
 const { pages = [], viewer, empty = 'No hay nadie por aquí todavía.' } = Astro.props
-const n = (v: any) => Number(v || 0).toLocaleString('es')
+
 ---
 {pages.length === 0 ? (
   <div class="py-24 text-center"><p class="t-body ink-2">{empty}</p></div>
@@ -17,10 +18,10 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
         </a>
         <a href={`/@${p.handle}`} data-hover-handle={p.handle} class="flex-1 min-w-0">
           <span class="block text-[15px] font-medium truncate">{p.displayName || p.handle}</span>
-          <span class="block t-caption truncate">@{p.handle} · {n(p.followersCount)} seguidores</span>
+          <span class="block t-caption truncate">@{p.handle} · {followers(p.followersCount)}</span>
         </a>
         {viewer?.user?.handle !== p.handle && (
-          <FollowButton client:visible handle={p.handle} initialFollowing={p.viewerFollows} logged={!!viewer} followers={p.followersCount || 0} />
+          <FollowButton client:visible handle={p.handle} initialFollowing={p.viewerFollows} logged={!!viewer} followers={p.followersCount || 0} compact />
         )}
       </div>
     ))}

@@ -3,6 +3,7 @@
 // vistas que no traen su propio contenido lateral.
 import { hilos } from '../lib/hilos'
 import FollowButton from './FollowButton'
+import { followers, num, posts } from '../lib/format'
 
 const { viewer } = Astro.props
 const acting = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
@@ -13,7 +14,7 @@ let trending: any[] = []
 try { trending = (await hilos('/socials/trending?limit=5')) || [] } catch {}
 let active: any[] = []
 if (!trending.length) { try { active = (await hilos('/socials/active?limit=5')) || [] } catch {} }
-const n = (v: any) => Number(v || 0).toLocaleString('es')
+
 ---
 {suggested.length > 0 && (
   <div>
@@ -28,7 +29,7 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
           </a>
           <a href={`/@${s.handle}`} data-hover-handle={s.handle} class="min-w-0 flex-1">
             <span class="block text-[14px] font-medium truncate">{s.displayName || s.handle}</span>
-            <span class="block t-caption truncate">{n(s.followersCount)} seguidores</span>
+            <span class="block t-caption truncate">{followers(s.followersCount)}</span>
           </a>
           <FollowButton client:visible handle={s.handle} initialFollowing={s.viewerFollows} logged={!!viewer} followers={s.followersCount || 0} compact />
         </div>
@@ -46,7 +47,7 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
         {trending.map((t: any) => (
           <a href={`/tag/${t.tag}`} class="block hover:opacity-70 transition">
             <span class="block text-[15px] font-medium">#{t.tag}</span>
-            <span class="block t-caption">{n(t.count)} publicaciones</span>
+            <span class="block t-caption">{posts(t.count)}</span>
           </a>
         ))}
       </div>
@@ -59,7 +60,7 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
               : <span class="grid place-items-center rounded-xl text-[13px] font-semibold shrink-0" style="width:36px;height:36px;background:#dbe8fb;color:var(--blue)">{(a.page.displayName || a.page.handle)[0]?.toUpperCase()}</span>}
             <span class="min-w-0">
               <span class="block text-[14px] font-medium truncate">{a.page.displayName || a.page.handle}</span>
-              <span class="block t-caption">{n(a.count)} esta semana</span>
+              <span class="block t-caption">{posts(a.count)} esta semana</span>
             </span>
           </a>
         ))}

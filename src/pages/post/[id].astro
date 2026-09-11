@@ -27,7 +27,7 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
   title={`${authorName}: "${snippet.slice(0, 60)}" — La Charca`}
   description={snippet || `Publicación de ${authorName} en La Charca.`}
   image={imgs[0] || post.author?.avatarUrl || '/logo.png'}>
-  <Shell viewer={viewer}>
+  <Shell viewer={viewer} active="none">
     <article class="pb-7 mb-1" style="border-bottom:1px solid var(--line)">
       <div class="flex items-center gap-3 mb-4">
         <a href={`/@${post.author?.handle}`} data-hover-handle={post.author?.handle} class="shrink-0">

@@ -42,6 +42,20 @@ function tokenize(c) {
                     : w.v)}
                 </p>
               )}
+              {p.wall && p.wall.type === 'manga' && (
+                <a href={`/@${p.wall.handle}`} data-hover-handle={p.wall.handle}
+                  class="mt-2.5 flex items-center gap-3 p-2.5 rounded-2xl transition hover:opacity-85"
+                  style="border:1px solid var(--line);background:#fff">
+                  {p.wall.avatarUrl
+                    ? <img src={p.wall.avatarUrl} alt="" width="44" height="44" loading="lazy" class="rounded-xl object-cover shrink-0" style="width:44px;height:44px" />
+                    : <span class="grid place-items-center rounded-xl text-[15px] font-semibold shrink-0" style="width:44px;height:44px;background:#dbe8fb;color:var(--blue)">{(p.wall.displayName || p.wall.handle)[0]?.toUpperCase()}</span>}
+                  <span class="min-w-0">
+                    <span class="block eyebrow">Obra</span>
+                    <span class="block text-[14px] font-medium truncate">{p.wall.displayName || p.wall.handle}</span>
+                  </span>
+                </a>
+              )}
+
               {imgs.slice(0, 4).map((u) => (
                 <a href={`/post/${p.id}`} class="media block mt-3"><img src={u} alt="" loading="lazy" class="max-h-[560px] w-full object-cover" /></a>
               ))}
@@ -57,8 +71,8 @@ function tokenize(c) {
                           : <span class="grid place-items-center rounded-full text-[10px] font-semibold" style="width:22px;height:22px;background:#dbe8fb;color:var(--blue)">{(c.author?.displayName || c.author?.handle || '?')[0]?.toUpperCase()}</span>}
                       </a>
                       <p class="t-sub min-w-0 flex-1">
-                        <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle} class="font-medium hover:opacity-70" style="color:var(--ink)">{c.author?.displayName || c.author?.handle}</a>
-                        <span class="ink-2"> {c.content.length > 120 ? `${c.content.slice(0, 120)}…` : c.content}</span>
+                        <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle} class="font-medium hover:opacity-70 mr-1.5" style="color:var(--ink)">{c.author?.displayName || c.author?.handle}</a>
+                        <span class="ink-2">{c.content.length > 120 ? `${c.content.slice(0, 120)}…` : c.content}</span>
                       </p>
                     </div>
                   ))}
