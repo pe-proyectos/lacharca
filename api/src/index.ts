@@ -256,6 +256,29 @@ const app = new Elysia()
     return { status: !json?.error, data: json?.data ?? { items: [], hasMore: false } }
   })
 
+  // Consulta interna: CapibaraTraductor necesita el correo de un usuario de La
+  // Charca para avisarle de respuestas. Protegido por secreto compartido.
+  .get('/internal/user/:id', async ({ request, params }: any) => {
+    const secret = process.env.INTERNAL_SECRET || ''
+    if (!secret || request.headers.get('x-internal-secret') !== secret) return { status: false, message: 'forbidden' }
+    const user = await prisma.user.findUnique({
+      where: { id: Number(params.id) },
+      include: { identities: { select: { provider: true, externalUserId: true, email: true } } },
+    })
+    if (!user) return { status: false, message: 'not_found' }
+    const capibara = user.identities.find((i: any) => i.provider === 'capibara')
+    return {
+      status: true,
+      data: {
+        id: user.id,
+        handle: user.handle,
+        displayName: user.displayName,
+        email: user.email || capibara?.email || null,
+        capibaraUserId: capibara ? Number(capibara.externalUserId) : null,
+      },
+    }
+  })
+
   // Avisos del usuario (la vista los pinta en el servidor).
   .get('/notifications', async ({ request, query }: any) => {
     const user = await sessionUser(sessionToken(request))
