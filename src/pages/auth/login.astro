@@ -1,0 +1,5 @@
+---
+import { CAPI } from '../../lib/session'
+const back = `${Astro.url.origin}/auth/callback`
+return Astro.redirect(`${CAPI}/sso/authorize?redirect=${encodeURIComponent(back)}`)
+---

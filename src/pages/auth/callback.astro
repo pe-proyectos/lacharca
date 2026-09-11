@@ -1,0 +1,20 @@
+---
+import { API } from '../../lib/session'
+const code = Astro.url.searchParams.get('code')
+if (!code) return Astro.redirect('/?auth=missing_code')
+let ok = false
+try {
+  const res = await fetch(`${API}/auth/capibara/callback`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }),
+  })
+  const json: any = await res.json().catch(() => ({}))
+  if (json?.status && json?.data?.token) {
+    Astro.cookies.set('lc_session', json.data.token, {
+      path: '/', httpOnly: true, secure: true, sameSite: 'lax',
+      expires: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+    })
+    ok = true
+  }
+} catch { ok = false }
+return Astro.redirect(ok ? '/' : '/?auth=failed')
+---

@@ -1,7 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import { hilos, timeAgo } from '../lib/hilos'
+import { getViewer } from '../lib/session'
 const CAPI = 'https://capibaratraductor.com'
+const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 let posts: any[] = []
 try { const d = await hilos('/feed?limit=25'); posts = d?.items || [] } catch (e) { posts = [] }
 function renderContent(c: string) {
@@ -18,7 +20,20 @@ function renderContent(c: string) {
       </div>
       <a href="/" class="flex items-center gap-3 px-4 py-2.5 rounded-full text-[17px] font-bold text-white/90 hover:bg-teal-400/10">Inicio</a>
       <a href={CAPI} class="flex items-center gap-3 px-4 py-2.5 rounded-full text-[17px] font-bold text-white/60 hover:bg-teal-400/10">CapibaraTraductor</a>
-      <a href={`${CAPI}/login`} class="mt-3 py-3 text-center rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black hover:from-teal-300 hover:to-cyan-400">Entrar</a>
+      {viewer ? (
+        <div class="mt-3 flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/[0.04] ring-1 ring-white/10">
+          {viewer.user.avatarUrl
+            ? <img src={viewer.user.avatarUrl} alt="" class="w-9 h-9 rounded-full object-cover" />
+            : <div class="w-9 h-9 rounded-full bg-teal-500/20 flex items-center justify-center font-bold text-teal-200">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</div>}
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold text-white truncate">{viewer.user.displayName || viewer.user.handle}</p>
+            <p class="text-[11px] text-white/40 truncate">@{viewer.user.handle}</p>
+          </div>
+          <a href="/auth/logout" title="Salir" class="text-white/40 hover:text-rose-400 text-xs font-bold">Salir</a>
+        </div>
+      ) : (
+        <a href="/auth/login" class="mt-3 py-3 text-center rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black hover:from-teal-300 hover:to-cyan-400">Continuar con CapibaraTraductor</a>
+      )}
     </nav>
 
     <!-- Feed -->
@@ -36,7 +51,7 @@ function renderContent(c: string) {
         <div class="flex flex-col items-center justify-center text-center py-24 px-8">
           <p class="text-5xl mb-3">🦫</p>
           <p class="text-white/70 font-bold">La charca está tranquila.</p>
-          <a href={`${CAPI}/login`} class="mt-4 inline-block px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Rompe el silencio</a>
+          <a href="/auth/login" class="mt-4 inline-block px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Rompe el silencio</a>
         </div>
       ) : (
         <div>
@@ -72,8 +87,8 @@ function renderContent(c: string) {
     <aside class="hidden xl:block w-72 shrink-0 py-5">
       <div class="rounded-2xl bg-gradient-to-br from-teal-500/10 to-cyan-500/5 border border-teal-400/20 p-5">
         <p class="text-white font-black text-lg">Únete a la charca</p>
-        <p class="text-white/60 text-sm mt-1">Sigue scans y lectores, comenta y comparte con tu cuenta de CapibaraTraductor.</p>
-        <a href={`${CAPI}/register`} class="inline-block mt-4 px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Crear cuenta</a>
+        <p class="text-white/60 text-sm mt-1">Tu cuenta de La Charca, vinculada a CapibaraTraductor. Un clic y listo.</p>
+        <a href="/auth/login" class="inline-block mt-4 px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Continuar con CapibaraTraductor</a>
       </div>
     </aside>
   </div>

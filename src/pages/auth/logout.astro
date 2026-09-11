@@ -1,0 +1,7 @@
+---
+import { API } from '../../lib/session'
+const token = Astro.cookies.get('lc_session')?.value
+if (token) { try { await fetch(`${API}/auth/logout`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }) } catch {} }
+Astro.cookies.delete('lc_session', { path: '/' })
+return Astro.redirect('/')
+---
