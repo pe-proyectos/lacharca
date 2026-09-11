@@ -1,0 +1,51 @@
+---
+// Cascarón compartido: nav de vidrio + contenido + sidebar.
+const { viewer, active = 'home' } = Astro.props
+const nav = [
+  { href: '/', label: 'La corriente', icon: 'M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z', key: 'home' },
+  { href: '/?feed=following', label: 'Tu manada', icon: 'M17 20h5v-2a3 3 0 00-5.36-1.86M17 20H7m10 0v-2c0-.66-.13-1.3-.36-1.86m0 0a5 5 0 00-9.28 0M7 20H2v-2a3 3 0 015.36-1.86M7 20v-2c0-.66.13-1.3.36-1.86m0 0a5 5 0 019.28 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', key: 'following' },
+]
+---
+<div class="min-h-screen">
+  <!-- Barra superior de vidrio (móvil + desktop) -->
+  <header class="sticky top-0 z-40 glass glass-lit border-x-0 border-t-0" style="border-radius:0">
+    <div class="max-w-[1180px] mx-auto flex items-center gap-3 px-4 h-16">
+      <a href="/" class="flex items-center gap-2.5 shrink-0">
+        <span class="grid place-items-center w-9 h-9 rounded-2xl glass glass-lit">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:var(--aqua-400)">
+            <path d="M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z" fill="currentColor" fill-opacity=".3" stroke="currentColor" stroke-width="1.7"/>
+          </svg>
+        </span>
+        <span class="text-[19px] font-extrabold tracking-tight">La Charca</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-1 ml-4">
+        {nav.map((n) => (
+          <a href={n.href} class={`px-3.5 py-2 rounded-full text-sm font-semibold transition ${active === n.key ? 'glass glass-lit' : 'hover:bg-white/[0.06]'}`}
+             style={active === n.key ? '' : 'color:var(--ink-2)'}>{n.label}</a>
+        ))}
+      </nav>
+      <div class="ml-auto flex items-center gap-2">
+        {viewer ? (
+          <>
+            <a href={`/@${viewer.user.handle}`} class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full glass glass-hover">
+              {viewer.user.avatarUrl
+                ? <img src={viewer.user.avatarUrl} alt="" class="w-8 h-8 rounded-full object-cover" />
+                : <span class="grid place-items-center w-8 h-8 rounded-full text-xs font-bold" style="background:rgba(56,224,216,.18);color:var(--aqua-400)">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</span>}
+              <span class="text-sm font-semibold hidden sm:block">{viewer.user.displayName || viewer.user.handle}</span>
+            </a>
+            <a href="/auth/logout" class="text-xs font-bold px-2 py-2 rounded-full hover:bg-white/[0.06]" style="color:var(--ink-3)">Salir</a>
+          </>
+        ) : (
+          <a href="/auth/login" class="btn-liquid px-4 py-2 rounded-full text-sm">Entrar</a>
+        )}
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-[1180px] mx-auto px-3 sm:px-4 py-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <main class="min-w-0"><slot /></main>
+    <aside class="hidden lg:block">
+      <div class="sticky top-24 space-y-4"><slot name="aside" /></div>
+    </aside>
+  </div>
+</div>

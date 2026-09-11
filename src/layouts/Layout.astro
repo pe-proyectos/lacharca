@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css'
+import { ClientRouter } from 'astro:transitions'
 const { title = 'La Charca' } = Astro.props
 ---
 <!doctype html>
@@ -11,8 +12,12 @@ const { title = 'La Charca' } = Astro.props
     <meta name="description" content="La Charca — la comunidad de lectores y scans de CapibaraTraductor." />
     <meta property="og:title" content={title} />
     <meta property="og:description" content="La comunidad de lectores y scans." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <ClientRouter />
   </head>
-  <body class="antialiased text-zinc-100 selection:bg-teal-400/25">
+  <body style="font-family:'Outfit',system-ui,sans-serif">
     <slot />
   </body>
 </html>

@@ -1,3 +1,115 @@
 @import "tailwindcss";
-:root { color-scheme: dark; }
-html, body { background: #0a1214; }
+
+/* ============================================================
+   LA CHARCA — Liquid Glass Design System
+   Superficies de vidrio sobre profundidad de agua.
+   ============================================================ */
+:root {
+  color-scheme: dark;
+
+  /* Profundidad del agua (fondo por capas) */
+  --depth-abyss: #04090f;
+  --depth-deep:  #071320;
+  --depth-mid:   #0a1b2c;
+
+  /* Acentos: agua clara y reflejo */
+  --aqua-400: #38e0d8;
+  --aqua-500: #14b8c4;
+  --ocean-400: #3b9df5;
+  --ocean-500: #1c7ed6;
+  --sun-400: #fbbf24;      /* reflejo cálido: likes, destacados */
+
+  /* Vidrio */
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-bg-strong: rgba(255, 255, 255, 0.075);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-border-lit: rgba(120, 220, 255, 0.28);
+  --glass-blur: 20px;
+
+  /* Texto */
+  --ink-1: rgba(255, 255, 255, 0.96);
+  --ink-2: rgba(255, 255, 255, 0.68);
+  --ink-3: rgba(255, 255, 255, 0.42);
+  --ink-4: rgba(255, 255, 255, 0.24);
+
+  --radius: 20px;
+}
+
+html, body {
+  background: var(--depth-abyss);
+  color: var(--ink-1);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Fondo: profundidad de agua con luz que entra desde arriba */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: -2;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(56, 224, 216, 0.16), transparent 60%),
+    radial-gradient(90% 60% at 15% 10%, rgba(59, 157, 245, 0.12), transparent 55%),
+    linear-gradient(180deg, var(--depth-mid) 0%, var(--depth-deep) 45%, var(--depth-abyss) 100%);
+}
+/* Cáusticas suaves (reflejos de agua) */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(45% 30% at 20% 25%, rgba(56,224,216,0.07), transparent 70%),
+    radial-gradient(40% 28% at 80% 60%, rgba(59,157,245,0.06), transparent 70%);
+  animation: drift 24s ease-in-out infinite alternate;
+}
+@keyframes drift {
+  from { transform: translate3d(0,0,0) scale(1); }
+  to   { transform: translate3d(0,-2%,0) scale(1.06); }
+}
+
+/* ---------- Utilidades de vidrio ---------- */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.10),
+    inset 0 -1px 0 rgba(0,0,0,0.25),
+    0 12px 40px -16px rgba(0,0,0,0.7);
+}
+.glass-strong { background: var(--glass-bg-strong); }
+.glass-hover { transition: background .22s ease, border-color .22s ease, transform .22s ease; }
+.glass-hover:hover { background: rgba(255,255,255,0.07); border-color: var(--glass-border-lit); }
+
+/* Borde superior luminoso (como el filo del agua) */
+.glass-lit { position: relative; }
+.glass-lit::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background: linear-gradient(160deg, rgba(120,220,255,.5), transparent 35%, transparent 65%, rgba(255,255,255,.08));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Botón líquido */
+.btn-liquid {
+  background: linear-gradient(135deg, var(--aqua-400), var(--ocean-500));
+  color: #02131a; font-weight: 900;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 8px 28px -10px rgba(56,224,216,.6);
+  transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s, filter .18s;
+}
+.btn-liquid:hover { filter: brightness(1.08); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 12px 34px -10px rgba(56,224,216,.75); }
+.btn-liquid:active { transform: scale(.975); }
+
+.link-aqua { color: var(--aqua-400); }
+.link-aqua:hover { color: #7af3ec; }
+
+::selection { background: rgba(56,224,216,.28); }
+
+/* Scrollbar sutil */
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.14) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 99px; }
+
+@media (prefers-reduced-motion: reduce) {
+  body::after { animation: none; }
+  * { transition-duration: .01ms !important; }
+}

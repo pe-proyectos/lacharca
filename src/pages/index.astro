@@ -1,116 +1,115 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import Shell from '../components/Shell.astro'
 import { hilos, timeAgo } from '../lib/hilos'
 import { getViewer } from '../lib/session'
 import Composer from '../components/Composer'
 import PostActions from '../components/PostActions'
-const CAPI = 'https://capibaratraductor.com'
+
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
-let posts: any[] = []
 const actingPage = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
 const scope = (Astro.url.searchParams.get('feed') === 'following' && viewer) ? 'following' : 'foryou'
-try { const d = await hilos(`/feed?limit=25&scope=${scope}`, actingPage); posts = d?.items || [] } catch (e) { posts = [] }
-function renderContent(c: string) {
-  return c.replace(/#([\p{L}\p{N}_]{1,80})/gu, '<span class="text-teal-400">#$1</span>').replace(/@([a-zA-Z0-9_]{1,30})/g, '<span class="text-teal-300">@$1</span>')
+
+let posts: any[] = []
+try { const d = await hilos(`/feed?limit=25&scope=${scope}`, actingPage); posts = d?.items || [] } catch { posts = [] }
+let trending: any[] = []
+try { trending = (await hilos('/socials/trending')) || [] } catch {}
+
+function tokenize(c: string) {
+  return (c || '').split(/(\s+)/).map((w) => {
+    if (/^#[\p{L}\p{N}_]+$/u.test(w)) return { t: 'tag', v: w }
+    if (/^@[a-zA-Z0-9_]+$/.test(w)) return { t: 'at', v: w }
+    if (/^https?:\/\/\S+$/.test(w)) return { t: 'url', v: w }
+    return { t: 'x', v: w }
+  })
 }
+const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.includes('r2.hilos.rest')
 ---
 <Layout title="La Charca">
-  <div class="max-w-[1000px] mx-auto flex gap-6 px-0 sm:px-4">
-    <!-- Nav izquierda -->
-    <nav class="hidden lg:flex flex-col w-[220px] shrink-0 sticky top-0 h-screen py-5 pr-2">
-      <div class="flex items-center gap-2 px-3 py-3 mb-2">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" class="text-teal-400"><path d="M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.6"/></svg>
-        <span class="text-xl font-black text-white">La Charca</span>
+  <Shell viewer={viewer} active={scope === 'following' ? 'following' : 'home'}>
+    {viewer && (
+      <div class="glass glass-lit rounded-[20px] mb-4 overflow-hidden">
+        <Composer client:load user={viewer.user} />
       </div>
-      <a href="/" class="flex items-center gap-3 px-4 py-2.5 rounded-full text-[17px] font-bold text-white/90 hover:bg-teal-400/10">Inicio</a>
-      <a href={CAPI} class="flex items-center gap-3 px-4 py-2.5 rounded-full text-[17px] font-bold text-white/60 hover:bg-teal-400/10">CapibaraTraductor</a>
-      {viewer ? (
-        <div class="mt-3 flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/[0.04] ring-1 ring-white/10">
-          {viewer.user.avatarUrl
-            ? <img src={viewer.user.avatarUrl} alt="" class="w-9 h-9 rounded-full object-cover" />
-            : <div class="w-9 h-9 rounded-full bg-teal-500/20 flex items-center justify-center font-bold text-teal-200">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</div>}
-          <div class="min-w-0 flex-1">
-            <a href={`/@${viewer.user.handle}`} class="block">
-              <p class="text-sm font-bold text-white truncate hover:underline">{viewer.user.displayName || viewer.user.handle}</p>
-              <p class="text-[11px] text-white/40 truncate">@{viewer.user.handle}</p>
-            </a>
-          </div>
-          <a href="/auth/logout" title="Salir" class="text-white/40 hover:text-rose-400 text-xs font-bold">Salir</a>
-        </div>
-      ) : (
-        <a href="/auth/login" class="mt-3 py-3 text-center rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black hover:from-teal-300 hover:to-cyan-400">Continuar con CapibaraTraductor</a>
-      )}
-    </nav>
+    )}
 
-    <!-- Feed -->
-    <div class="flex-1 min-w-0 max-w-[600px] mx-auto border-x border-white/[0.06] min-h-screen">
-      <div class="sticky top-0 z-10 backdrop-blur-xl bg-[#0a1214]/80 border-b border-white/[0.06] px-4 py-4">
-        <h1 class="text-xl font-black text-white flex items-center gap-2">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-teal-400"><path d="M12 2C8 8 6 11 6 15a6 6 0 0012 0c0-4-2-7-6-13z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.6"/></svg>
-          La Charca
-        </h1>
-        <p class="text-sm text-white/45 mt-0.5">La comunidad de lectores y scans</p>
+    {!viewer && (
+      <div class="glass glass-lit rounded-[20px] p-6 mb-4 text-center">
+        <p class="text-2xl mb-1">🦫</p>
+        <p class="font-extrabold text-lg">Únete a la charca</p>
+        <p class="text-sm mt-1" style="color:var(--ink-2)">Tu cuenta propia, vinculada a CapibaraTraductor.</p>
+        <a href="/auth/login" class="btn-liquid inline-block mt-4 px-5 py-2.5 rounded-full text-sm">Continuar con CapibaraTraductor</a>
       </div>
-      <div class="h-[2px] bg-gradient-to-r from-transparent via-teal-400/40 to-transparent"></div>
+    )}
 
-      {viewer && (
-        <div class="flex border-b border-white/[0.06]">
-          <a href="/" class={`flex-1 text-center py-3 text-sm font-bold transition ${scope === 'foryou' ? 'text-white border-b-2 border-teal-400' : 'text-white/45 hover:text-white'}`}>La corriente</a>
-          <a href="/?feed=following" class={`flex-1 text-center py-3 text-sm font-bold transition ${scope === 'following' ? 'text-white border-b-2 border-teal-400' : 'text-white/45 hover:text-white'}`}>Tu manada</a>
-        </div>
-      )}
-
-      {viewer && <Composer client:load user={viewer.user} />}
-
-      {posts.length === 0 ? (
-        <div class="flex flex-col items-center justify-center text-center py-24 px-8">
-          <p class="text-5xl mb-3">🦫</p>
-          <p class="text-white/70 font-bold">{scope === "following" ? "Tu manada aún es pequeña. Sigue scans y lectores." : "La charca está tranquila."}</p>
-          {!viewer && <a href="/auth/login" class="mt-4 inline-block px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Rompe el silencio</a>}
-        </div>
-      ) : (
-        <div>
-          {posts.map((p: any) => (
-            <article class="border-b border-white/[0.06] px-4 py-3.5 hover:bg-white/[0.015] transition-colors">
+    {posts.length === 0 ? (
+      <div class="glass rounded-[20px] py-20 text-center">
+        <p class="text-5xl mb-3">🦫</p>
+        <p class="font-bold" style="color:var(--ink-2)">
+          {scope === 'following' ? 'Tu manada aún es pequeña. Sigue scans y lectores.' : 'La charca está tranquila.'}
+        </p>
+      </div>
+    ) : (
+      <div class="space-y-3">
+        {posts.map((p: any) => {
+          const imgs = (p.content || '').split(/\s+/).filter((w: string) => /^https?:\/\//.test(w) && isMedia(w))
+          const body = (p.content || '').split('\n').filter((l: string) => !imgs.includes(l.trim())).join('\n')
+          return (
+            <article class="glass glass-hover glass-lit rounded-[20px] p-4">
               <div class="flex gap-3">
                 <a href={`/@${p.author?.handle}`} class="shrink-0">
                   {p.author?.avatarUrl
-                    ? <img src={p.author.avatarUrl} alt="" class={`w-11 h-11 object-cover ${p.author.type === 'scan' || p.author.type === 'manga' ? 'rounded-xl' : 'rounded-full'} ring-1 ring-white/10`} />
-                    : <div class={`w-11 h-11 flex items-center justify-center bg-white/10 text-white/70 font-bold ${p.author?.type === 'scan' || p.author?.type === 'manga' ? 'rounded-xl' : 'rounded-full'}`}>{(p.author?.displayName || p.author?.handle || '?')[0]?.toUpperCase()}</div>}
+                    ? <img src={p.author.avatarUrl} alt="" class={`w-11 h-11 object-cover ring-1 ring-white/10 ${p.author.type === 'user' ? 'rounded-full' : 'rounded-[14px]'}`} />
+                    : <span class={`grid place-items-center w-11 h-11 font-bold ${p.author?.type === 'user' ? 'rounded-full' : 'rounded-[14px]'}`} style="background:rgba(56,224,216,.14);color:var(--aqua-400)">{(p.author?.displayName || p.author?.handle || '?')[0]?.toUpperCase()}</span>}
                 </a>
-                <div class="flex-1 min-w-0">
+                <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <a href={`/@${p.author?.handle}`} class="text-[15px] font-black text-white truncate hover:underline">{p.author?.displayName || p.author?.handle}</a>
-                    {(p.author?.type === 'scan') && <svg width="15" height="15" viewBox="0 0 24 24" class="text-amber-400"><path fill="currentColor" d="M9 16.2l-3.5-3.5L4 14.2 9 19l11-11-1.5-1.5z"/></svg>}
-                    <span class="text-[13px] text-white/35">@{p.author?.handle} · <a href={`/post/${p.id}`} class="hover:underline">{timeAgo(p.createdAt)}</a></span>
+                    <a href={`/@${p.author?.handle}`} class="font-bold hover:underline truncate">{p.author?.displayName || p.author?.handle}</a>
+                    {p.author?.type === 'scan' && <span class="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md" style="background:rgba(251,191,36,.14);color:var(--sun-400)">scan</span>}
+                    <a href={`/post/${p.id}`} class="text-[13px] hover:underline" style="color:var(--ink-3)">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>
                   </div>
-                  <p class="mt-0.5 text-[15px] leading-relaxed text-white/90 whitespace-pre-wrap break-words" set:html={renderContent(p.content || '')}></p>
-                  {p.media?.[0] && <img src={p.media[0]} alt="" class="mt-3 rounded-2xl max-h-[420px] w-full object-cover ring-1 ring-white/[0.06]" />}
+                  {body.trim() && (
+                    <p class="mt-1 text-[15px] leading-relaxed whitespace-pre-wrap break-words">
+                      {tokenize(body).map((w) =>
+                        w.t === 'tag' ? <span class="link-aqua">{w.v}</span>
+                        : w.t === 'at' ? <a href={`/${w.v}`} class="link-aqua hover:underline">{w.v}</a>
+                        : w.t === 'url' ? <a href={w.v} target="_blank" rel="noopener" class="link-aqua break-all hover:underline">{w.v}</a>
+                        : w.v)}
+                    </p>
+                  )}
+                  {imgs.slice(0, 4).map((u: string) => (
+                    <img src={u} alt="" loading="lazy" class="mt-3 rounded-[16px] max-h-[420px] w-full object-cover ring-1 ring-white/10" />
+                  ))}
                   <PostActions client:visible postId={p.id} likes={p.likesCount || 0} comments={p.commentsCount || 0} liked={p.liked} logged={!!viewer} />
                 </div>
               </div>
             </article>
-          ))}
-          <div class="flex items-center justify-center gap-2 text-white/30 py-8 text-sm">Llegaste al fondo de la charca.</div>
-        </div>
-      )}
-    </div>
+          )
+        })}
+        <p class="text-center text-xs py-8" style="color:var(--ink-4)">Llegaste al fondo de la charca.</p>
+      </div>
+    )}
 
-    <!-- Sidebar -->
-    <aside class="hidden xl:block w-72 shrink-0 py-5">
-      {viewer ? (
-        <div class="rounded-2xl bg-white/[0.03] border border-white/10 p-5">
-          <p class="text-white font-black">Hola, {viewer.user.displayName || viewer.user.handle}</p>
-          <p class="text-white/55 text-sm mt-1">Estás en la charca. Comparte lo que estés leyendo.</p>
-          <a href={`/@${viewer.user.handle}`} class="inline-block mt-3 text-teal-400 text-sm font-bold hover:underline">Ver mi perfil →</a>
-        </div>
-      ) : (
-        <div class="rounded-2xl bg-gradient-to-br from-teal-500/10 to-cyan-500/5 border border-teal-400/20 p-5">
-          <p class="text-white font-black text-lg">Únete a la charca</p>
-          <p class="text-white/60 text-sm mt-1">Tu cuenta de La Charca, vinculada a CapibaraTraductor. Un clic y listo.</p>
-          <a href="/auth/login" class="inline-block mt-4 px-5 py-2 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-zinc-950 font-black text-sm">Continuar con CapibaraTraductor</a>
+    <Fragment slot="aside">
+      <div class="glass glass-lit rounded-[20px] p-5">
+        <h2 class="font-extrabold mb-3 flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="color:var(--aqua-400)"><path d="M3 17l6-6 4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Haciendo olas
+        </h2>
+        {trending.length === 0
+          ? <p class="text-sm" style="color:var(--ink-3)">Aguas tranquilas por ahora.</p>
+          : <ul class="space-y-2">{trending.map((t: any) => (
+              <li><a href={`/tag/${t.tag}`} class="block -mx-2 px-2 py-1.5 rounded-xl hover:bg-white/[0.05]">
+                <span class="font-semibold text-sm">#{t.tag}</span>
+                <span class="block text-[11px]" style="color:var(--ink-3)">{t.count} publicaciones</span>
+              </a></li>))}</ul>}
+      </div>
+      {viewer && (
+        <div class="glass rounded-[20px] p-5">
+          <p class="text-sm" style="color:var(--ink-2)">Hola, <b style="color:var(--ink-1)">{viewer.user.displayName || viewer.user.handle}</b></p>
+          <a href={`/@${viewer.user.handle}`} class="link-aqua text-sm font-bold mt-2 inline-block hover:underline">Ver mi perfil →</a>
         </div>
       )}
-    </aside>
-  </div>
+    </Fragment>
+  </Shell>
 </Layout>
