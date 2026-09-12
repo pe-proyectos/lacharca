@@ -17,6 +17,54 @@
   --blue:    #2563eb;   /* acción */
   --blue-dk: #1d4fd7;
   --aqua:    #0ea5b7;   /* acento agua */
+
+  /* Superficies derivadas, para que el tema oscuro no dependa de literales
+     repartidos por los componentes. */
+  --surface-2:  #f5f8fd;   /* campos de texto, fondos suaves */
+  --surface-3:  #eaf0f9;   /* marco de las imágenes */
+  --soft:       #dbe8fb;   /* avatares sin foto, acentos */
+  --soft-aqua:  #e8f4f6;   /* etiqueta de scan */
+  --hover:      #e8eef9;   /* hover de filas y navegación */
+  --active:     #e3ecfa;   /* elemento activo de la navegación */
+  --danger:     #b42318;
+  --danger-bg:  #fef3f2;
+  --danger-line:#fecdca;
+  --ok:         #05603a;
+  --ok-bg:      #ecfdf3;
+  --ok-line:    #abefc6;
+  --shadow:     rgba(16,31,56,.14);
+  --scrim:      rgba(16,31,56,.45);
+}
+
+/* Tema oscuro. No es el claro invertido: se bajan los blancos puros y se
+   levanta el azul para que siga leyéndose sobre fondo profundo. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --paper:   #0d1421;
+  --surface: #151d2e;
+  --ink:     #e8eef8;
+  --ink-2:   #a7b4c8;
+  --ink-3:   #73809a;
+  --line:    #24304a;
+  --blue:    #4d8bff;
+  --blue-dk: #3a76e8;
+  --aqua:    #22c3d6;
+
+  --surface-2:  #1b2438;
+  --surface-3:  #111a29;
+  --soft:       #23324f;
+  --soft-aqua:  #16303a;
+  --hover:      #1d2740;
+  --active:     #22304d;
+  --danger:     #ff8d85;
+  --danger-bg:  #2a1614;
+  --danger-line:#4d2622;
+  --ok:         #6ee7a8;
+  --ok-bg:      #10261c;
+  --ok-line:    #1f4936;
+  --shadow:     rgba(0,0,0,.5);
+  --scrim:      rgba(3,7,14,.66);
 }
 
 html, body {
@@ -105,11 +153,11 @@ textarea, input { cursor: text; }
 @media (min-width: 640px) {
   .row { margin-inline: -1.25rem; padding-inline: 1.25rem; }
 }
-.row:hover { background: #e8eef9; }
+.row:hover { background: var(--hover); }
 
 /* Item de navegación */
 .nav-item { transition: background .16s ease, color .16s ease; }
-.nav-item:hover { background: #e6edf8; }
+.nav-item:hover { background: var(--hover); }
 
 /* Botones de acción (like, comentar, compartir) */
 .act {
@@ -140,14 +188,14 @@ textarea, input { cursor: text; }
 .chip {
   display: inline-flex; align-items: center; gap: .4rem;
   font-size: 13px; font-weight: 500; color: var(--ink-2);
-  background: #fff; border: 1px solid var(--line);
+  background: var(--surface); border: 1px solid var(--line);
   padding: 7px 14px; border-radius: 999px;
   transition: border-color .16s, background .16s, color .16s;
 }
-.chip:hover { border-color: #b9cdee; color: var(--ink); }
+.chip:hover { border-color: color-mix(in srgb, var(--blue) 35%, var(--line)); color: var(--ink); }
 .chip.is-on { background: var(--blue); border-color: var(--blue); color: #fff; }
 /* Etiqueta informativa (no clicable): mismo lenguaje visual, sin hover */
-.chip.is-static { padding: 4px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--blue); background: #dbe8fb; border-color: transparent; cursor: default; }
+.chip.is-static { padding: 4px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--blue); background: var(--soft); border-color: transparent; cursor: default; }
 .chip.is-static:hover { border-color: transparent; color: var(--blue); }
 
 /* Imágenes: leve zoom al hover */
@@ -250,7 +298,7 @@ textarea, input { cursor: text; }
    como miniaturas, y el visor las muestra completas. */
 .post-media {
   position: relative; overflow: hidden;
-  background: #eaf0f9;
+  background: var(--surface-3);
   display: flex; align-items: center; justify-content: center;
   cursor: zoom-in;
 }

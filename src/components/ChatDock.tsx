@@ -18,7 +18,7 @@ const POLL_IDLE = 30000    // cerrado: solo para el contador
 const Avatar = ({ p, size = 40 }: { p: Page; size?: number }) =>
   p?.avatarUrl
     ? <img src={p.avatarUrl} alt="" style={{ width: size, height: size }} className={`object-cover shrink-0 ${p.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} />
-    : <span style={{ width: size, height: size, background: '#dbe8fb', color: 'var(--blue)' }}
+    : <span style={{ width: size, height: size, background: 'var(--soft)', color: 'var(--blue)' }}
         className={`grid place-items-center shrink-0 text-[14px] font-semibold ${p.type === 'user' ? 'rounded-full' : 'rounded-xl'}`}>
         {(p?.displayName || p?.handle || '?')[0]?.toUpperCase()}
       </span>
@@ -164,7 +164,7 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
           <span className="text-[14px] font-medium hidden sm:block">Mensajes</span>
           {unread > 0 && (
             <span className="grid place-items-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold tabular-nums"
-              style={{ background: '#fff', color: 'var(--blue)' }}>{unread > 99 ? '99+' : unread}</span>
+              style={{ background: 'var(--surface)', color: 'var(--blue)' }}>{unread > 99 ? '99+' : unread}</span>
           )}
         </button>
       )}
@@ -172,7 +172,7 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
       {open && (
         <div className="fixed z-[55] inset-x-0 bottom-0 md:inset-x-auto md:bottom-6 md:right-5 w-full md:w-[380px] flex flex-col rounded-t-3xl md:rounded-3xl overflow-hidden"
           style={{
-            background: '#fff', border: '1px solid var(--line)', boxShadow: '0 16px 48px rgba(16,31,56,.18)',
+            background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: '0 16px 48px var(--shadow)',
             height: 'min(86dvh, 560px)',
             paddingBottom: 'env(safe-area-inset-bottom)',
           }}>
@@ -200,7 +200,7 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
           {!active ? (
             <>
               <div className="px-4 py-2.5 shrink-0" style={{ borderBottom: '1px solid var(--line)' }}>
-                <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: '#f5f8fd' }}>
+                <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'var(--surface-2)' }}>
                   <MagnifyingGlass size={16} className="ink-3" />
                   <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar conversación"
                     className="flex-1 bg-transparent text-[14px] focus:outline-none" />
@@ -255,7 +255,7 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
                 ) : !active.canRead ? (
                   <div className="py-2">
                     {/* Resumen del perfil: lo justo para decidir si seguir. */}
-                    <div className="rounded-2xl p-4 text-center" style={{ border: '1px solid var(--line)', background: '#fff' }}>
+                    <div className="rounded-2xl p-4 text-center" style={{ border: '1px solid var(--line)', background: 'var(--surface)' }}>
                       <a href={`/@${active.page.handle}`} className="inline-block">
                         <Avatar p={lockedPage || active.page} size={64} />
                       </a>
@@ -300,7 +300,7 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
                   <div key={m.id} className={`max-w-[78%] px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${m.mine ? 'ml-auto' : ''}`}
                     style={m.mine
                       ? { background: 'var(--blue)', color: '#fff', opacity: m.pending ? 0.6 : 1 }
-                      : { background: '#f0f4fb', color: 'var(--ink)' }}>
+                      : { background: 'var(--surface-3)', color: 'var(--ink)' }}>
                     {m.content}
                   </div>
                 ))}
@@ -314,7 +314,7 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
                         placeholder="Escribe un mensaje"
                         className="flex-1 resize-none rounded-2xl px-3.5 py-2.5 text-[15px] focus:outline-none"
-                        style={{ background: '#f5f8fd', border: '1px solid var(--line)', maxHeight: 96 }} />
+                        style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', maxHeight: 96 }} />
                       <button type="button" onClick={send} disabled={!text.trim()} aria-label="Enviar"
                         className="grid place-items-center w-10 h-10 rounded-full shrink-0 disabled:opacity-35 cursor-pointer"
                         style={{ background: 'var(--blue)', color: '#fff' }}>

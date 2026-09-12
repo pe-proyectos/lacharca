@@ -56,11 +56,11 @@ const ProfileEditor: React.FC<Props> = (props) => {
   }
 
   return (
-    <div className="fixed inset-0 z-[55] flex items-end sm:items-center justify-center sm:p-4" style={{ background: 'rgba(16,31,56,.45)' }}
+    <div className="fixed inset-0 z-[55] flex items-end sm:items-center justify-center sm:p-4" style={{ background: 'var(--scrim)' }}
       onClick={(e) => { if (e.target === e.currentTarget && !busy) setOpen(false) }}>
       {/* En móvil es una hoja que sube desde abajo, como en una app nativa. */}
       <div className="w-full sm:max-w-[520px] rounded-t-3xl sm:rounded-3xl overflow-hidden rise"
-        style={{ background: '#fff', border: '1px solid var(--line)', maxHeight: '92dvh', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        style={{ background: 'var(--surface)', border: '1px solid var(--line)', maxHeight: '92dvh', paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--line)' }}>
           <h2 className="t-section">Editar perfil</h2>
           <button type="button" onClick={() => !busy && setOpen(false)} className="act" aria-label="Cerrar"><X size={18} /></button>
@@ -69,7 +69,7 @@ const ProfileEditor: React.FC<Props> = (props) => {
         <div className="overflow-y-auto" style={{ maxHeight: "68dvh" }}>
           <button type="button" onClick={() => bannerInput.current?.click()}
             className="relative block w-full h-32 cursor-pointer group"
-            style={{ background: banner ? `center/cover url(${banner})` : '#dbe8fb' }}>
+            style={{ background: banner ? `center/cover url(${banner})` : 'var(--soft)' }}>
             <span className="absolute inset-0 grid place-items-center transition" style={{ background: 'rgba(16,31,56,.35)' }}>
               <Camera size={22} color="#fff" weight="fill" />
             </span>
@@ -79,7 +79,7 @@ const ProfileEditor: React.FC<Props> = (props) => {
           <div className="px-5 pb-5">
             <button type="button" onClick={() => avatarInput.current?.click()}
               className="relative -mt-10 mb-4 block rounded-full overflow-hidden cursor-pointer"
-              style={{ width: 84, height: 84, border: '3px solid #fff', background: '#dbe8fb' }}>
+              style={{ width: 84, height: 84, border: '3px solid var(--surface)', background: 'var(--soft)' }}>
               {avatar
                 ? <img src={avatar} alt="" className="w-full h-full object-cover" />
                 : <span className="grid place-items-center w-full h-full text-2xl font-semibold" style={{ color: 'var(--blue)' }}>{(name || props.handle)[0]?.toUpperCase()}</span>}
@@ -95,16 +95,16 @@ const ProfileEditor: React.FC<Props> = (props) => {
             <label className="eyebrow block mb-2">Nombre visible</label>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={200}
               className="w-full rounded-xl px-3.5 py-3 text-[16px] focus:outline-none mb-4"
-              style={{ background: '#fff', border: '1px solid var(--line)' }} />
+              style={{ background: 'var(--surface)', border: '1px solid var(--line)' }} />
 
             <label className="eyebrow block mb-2">Biografía</label>
             <textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={600} rows={4}
               placeholder="Cuenta algo sobre ti, qué lees, qué traduces..."
               className="w-full rounded-xl px-3.5 py-3 text-[16px] resize-none focus:outline-none"
-              style={{ background: '#fff', border: '1px solid var(--line)' }} />
+              style={{ background: 'var(--surface)', border: '1px solid var(--line)' }} />
             <p className="t-caption mt-1.5 text-right tabular-nums">{600 - bio.length}</p>
 
-            {err && <p className="t-caption mt-2" style={{ color: '#b42318' }}>{err}</p>}
+            {err && <p className="t-caption mt-2" style={{ color: 'var(--danger)' }}>{err}</p>}
           </div>
         </div>
 

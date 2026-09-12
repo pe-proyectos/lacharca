@@ -94,7 +94,7 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
     <div className="flex gap-3.5">
       {user.avatarUrl
         ? <img src={user.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
-        : <span className="grid place-items-center w-11 h-11 rounded-full text-[15px] font-semibold shrink-0" style={{ background: '#dbe8fb', color: 'var(--blue)' }}>{(user.displayName || user.handle)[0]?.toUpperCase()}</span>}
+        : <span className="grid place-items-center w-11 h-11 rounded-full text-[15px] font-semibold shrink-0" style={{ background: 'var(--soft)', color: 'var(--blue)' }}>{(user.displayName || user.handle)[0]?.toUpperCase()}</span>}
 
       <div className="flex-1 min-w-0">
         <textarea
@@ -122,7 +122,7 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
                 <img src={img.preview} alt="" style={{ maxHeight: images.length > 1 ? undefined : 360 }} />
                 {!img.url && !img.failed && <span className="absolute inset-0 skeleton" />}
                 {img.failed && (
-                  <span className="absolute inset-0 grid place-items-center text-[12px] font-medium" style={{ background: 'rgba(180,35,24,.12)', color: '#b42318' }}>
+                  <span className="absolute inset-0 grid place-items-center text-[12px] font-medium" style={{ background: 'rgba(180,35,24,.12)', color: 'var(--danger)' }}>
                     No se pudo subir
                   </span>
                 )}
@@ -136,7 +136,7 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
           </div>
         )}
 
-        {err && <p className="t-caption mb-2" style={{ color: '#b42318' }}>{err}</p>}
+        {err && <p className="t-caption mb-2" style={{ color: 'var(--danger)' }}>{err}</p>}
 
         <div className="flex items-center justify-between gap-3 mt-1">
           <input ref={fileInput} type="file" accept="image/*" multiple className="hidden"
@@ -153,7 +153,7 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
 
           <div className="flex items-center gap-3">
             {content.length > LIMIT - 500 && (
-              <span className="text-[12px] tabular-nums" style={{ color: over ? '#b42318' : 'var(--ink-3)' }}>{left}</span>
+              <span className="text-[12px] tabular-nums" style={{ color: over ? 'var(--danger)' : 'var(--ink-3)' }}>{left}</span>
             )}
             <button type="button" onClick={submit} disabled={!canPost}
               className="btn disabled:opacity-35 disabled:cursor-default cursor-pointer">

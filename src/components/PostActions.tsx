@@ -134,7 +134,7 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
                 onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send() }}
                 placeholder="Súmate a la conversación"
                 className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none"
-                style={{ background: '#f5f8fd', border: '1px solid var(--line)' }} />
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--line)' }} />
               <button type="button" onClick={send} disabled={busy || !text.trim()} className="btn disabled:opacity-35">
                 {busy ? '···' : 'Enviar'}
               </button>
@@ -161,7 +161,7 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
                   <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle} className="shrink-0">
                     {c.author?.avatarUrl
                       ? <img src={c.author.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
-                      : <span className="grid place-items-center w-8 h-8 rounded-full text-[12px] font-semibold" style={{ background: '#dbe8fb', color: 'var(--blue)' }}>{(c.author?.displayName || c.author?.handle || '?')[0]?.toUpperCase()}</span>}
+                      : <span className="grid place-items-center w-8 h-8 rounded-full text-[12px] font-semibold" style={{ background: 'var(--soft)', color: 'var(--blue)' }}>{(c.author?.displayName || c.author?.handle || '?')[0]?.toUpperCase()}</span>}
                   </a>
                   <div className="min-w-0 flex-1">
                     <p className="text-[13px]">

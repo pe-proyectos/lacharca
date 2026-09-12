@@ -59,9 +59,9 @@ const FollowButton: React.FC<Props> = ({ handle, initialFollowing, logged, follo
       style={
         compact
           ? (following
-              ? { borderColor: 'var(--line)', color: 'var(--ink-2)', background: '#fff' }
+              ? { borderColor: 'var(--line)', color: 'var(--ink-2)', background: 'var(--surface)' }
               : { borderColor: 'var(--blue)', background: 'var(--blue)', color: '#fff' })
-          : (following ? { borderColor: 'var(--line)', color: 'var(--ink-2)', background: '#fff' } : undefined)
+          : (following ? { borderColor: 'var(--line)', color: 'var(--ink-2)', background: 'var(--surface)' } : undefined)
       }>
       {busy ? '…' : following ? 'Siguiendo' : 'Seguir'}
     </button>

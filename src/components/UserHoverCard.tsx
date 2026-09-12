@@ -75,7 +75,7 @@ const UserHoverCard: React.FC<{ me?: string | null }> = ({ me = null }) => {
       style={{
         left: pos.x, top: pos.y, transform: pos.above ? 'translateY(-100%)' : undefined,
         width: 'min(300px, calc(100vw - 24px))',
-        background: '#fff', border: '1px solid var(--line)', boxShadow: '0 12px 36px rgba(16,31,56,.14)',
+        background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: '0 12px 36px var(--shadow)',
       }}>
       {loading || !page ? (
         <div className="space-y-3">
@@ -95,7 +95,7 @@ const UserHoverCard: React.FC<{ me?: string | null }> = ({ me = null }) => {
             <a href={`/@${page.handle}`} className="shrink-0">
               {page.avatarUrl
                 ? <img src={page.avatarUrl} alt="" style={{ width: 48, height: 48 }} className={`object-cover ${page.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} />
-                : <span style={{ width: 48, height: 48, background: '#dbe8fb', color: 'var(--blue)' }}
+                : <span style={{ width: 48, height: 48, background: 'var(--soft)', color: 'var(--blue)' }}
                     className={`grid place-items-center text-lg font-semibold ${page.type === 'user' ? 'rounded-full' : 'rounded-xl'}`}>
                     {(page.displayName || page.handle)[0]?.toUpperCase()}
                   </span>}

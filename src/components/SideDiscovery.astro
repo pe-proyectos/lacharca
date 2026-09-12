@@ -25,7 +25,7 @@ if (!trending.length) { try { active = (await hilos('/socials/active?limit=5')) 
           <a href={`/@${s.handle}`} data-hover-handle={s.handle} class="shrink-0">
             {s.avatarUrl
               ? <img src={s.avatarUrl} alt="" width="40" height="40" class={`object-cover ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:40px;height:40px" />
-              : <span class={`grid place-items-center text-[14px] font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:40px;height:40px;background:#dbe8fb;color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
+              : <span class={`grid place-items-center text-[14px] font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:40px;height:40px;background:var(--soft);color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
           </a>
           <a href={`/@${s.handle}`} data-hover-handle={s.handle} class="min-w-0 flex-1">
             <span class="block text-[14px] font-medium truncate">{s.displayName || s.handle}</span>
@@ -57,7 +57,7 @@ if (!trending.length) { try { active = (await hilos('/socials/active?limit=5')) 
           <a href={`/@${a.page.handle}`} data-hover-handle={a.page.handle} class="flex items-center gap-3 hover:opacity-70 transition">
             {a.page.avatarUrl
               ? <img src={a.page.avatarUrl} alt="" width="36" height="36" class="rounded-xl object-cover shrink-0" style="width:36px;height:36px" />
-              : <span class="grid place-items-center rounded-xl text-[13px] font-semibold shrink-0" style="width:36px;height:36px;background:#dbe8fb;color:var(--blue)">{(a.page.displayName || a.page.handle)[0]?.toUpperCase()}</span>}
+              : <span class="grid place-items-center rounded-xl text-[13px] font-semibold shrink-0" style="width:36px;height:36px;background:var(--soft);color:var(--blue)">{(a.page.displayName || a.page.handle)[0]?.toUpperCase()}</span>}
             <span class="min-w-0">
               <span class="block text-[14px] font-medium truncate">{a.page.displayName || a.page.handle}</span>
               <span class="block t-caption">{posts(a.count)} esta semana</span>

@@ -3,6 +3,7 @@
 // contenido central protagonista, sidebar derecha con descubrimiento.
 import ChatDock from './ChatDock'
 import NotifBadge from './NotifBadge'
+import ThemeToggle from './ThemeToggle'
 import NavProgress from './NavProgress'
 import Lightbox from './Lightbox'
 import UserHoverCard from './UserHoverCard'
@@ -43,7 +44,7 @@ const items = [
     <div class="flex flex-col gap-1">
       {items.map((it) => (
         <a href={it.href} class={`nav-item flex items-center gap-4 px-3 py-2.5 rounded-xl ${active === it.key ? 'font-semibold' : 'ink-2'}`}
-           style={active === it.key ? 'background:#e3ecfa' : ''}>
+           style={active === it.key ? 'background:var(--active)' : ''}>
           <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" class="shrink-0"><path d={active === it.key ? it.f : it.r}/></svg>
           <span class="hidden xl:block text-[16px] flex-1">{it.label}</span>
           {it.key === 'alerts' && viewer && <NotifBadge client:idle />}
@@ -62,16 +63,20 @@ const items = [
           <a href={`/@${viewer.user.handle}`} class="flex items-center gap-3 min-w-0 flex-1">
             {viewer.user.avatarUrl
               ? <img src={viewer.user.avatarUrl} alt="" class="w-9 h-9 rounded-full object-cover shrink-0" />
-              : <span class="grid place-items-center w-9 h-9 rounded-full text-[14px] font-semibold shrink-0" style="background:#dbe8fb;color:var(--blue)">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</span>}
+              : <span class="grid place-items-center w-9 h-9 rounded-full text-[14px] font-semibold shrink-0" style="background:var(--soft);color:var(--blue)">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</span>}
             <span class="hidden xl:block min-w-0">
               <span class="block text-[15px] font-medium truncate">{viewer.user.displayName || viewer.user.handle}</span>
               <span class="block t-caption truncate">@{viewer.user.handle}</span>
             </span>
           </a>
+          <ThemeToggle client:idle compact />
           <a href="/auth/logout" class="hidden xl:block t-caption hover:opacity-70 shrink-0">Salir</a>
         </div>
       ) : (
-        <a href="/auth/login" class="btn w-full justify-center">Entrar</a>
+        <div class="flex items-center gap-2">
+          <a href="/auth/login" class="btn flex-1 justify-center">Entrar</a>
+          <ThemeToggle client:idle compact />
+        </div>
       )}
     </div>
   </nav>
@@ -95,7 +100,7 @@ const items = [
 
   <!-- NAV MOVIL (abajo) -->
   <nav aria-label="Navegación" class="md:hidden fixed bottom-0 inset-x-0 z-50 flex items-stretch justify-around"
-    style="background:rgba(238,243,251,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)">
+    style="background:color-mix(in srgb, var(--paper) 94%, transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)">
     {items.map((it) => (
       <a href={it.href} aria-label={it.label} aria-current={active === it.key ? 'page' : undefined}
         class={`flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] tap ${active === it.key ? '' : 'ink-3'}`}>

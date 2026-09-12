@@ -37,11 +37,11 @@ const desc = page.bio || `${kind} en La Charca. ${plural(page.followersCount, 's
     <header class="pb-7 mb-2" style="border-bottom:1px solid var(--line)">
       {page.bannerUrl
         ? <img src={page.bannerUrl} alt="" class="w-full h-32 sm:h-52 object-cover rounded-2xl mb-5" />
-        : <div class="w-full h-20 sm:h-32 rounded-2xl mb-5" style="background:linear-gradient(120deg,#dbe8fb,#e8f4f6)"></div>}
+        : <div class="w-full h-20 sm:h-32 rounded-2xl mb-5" style="background:linear-gradient(120deg,var(--soft),var(--soft-aqua))"></div>}
       <div class="flex items-start gap-4 sm:gap-5">
         {page.avatarUrl
           ? <img src={page.avatarUrl} alt={name} width="88" height="88" class={`avatar-xl object-cover shrink-0 ${isScan ? 'rounded-2xl' : 'rounded-full'}`} />
-          : <span class={`avatar-xl grid place-items-center shrink-0 text-2xl sm:text-3xl font-semibold ${isScan ? 'rounded-2xl' : 'rounded-full'}`} style="background:#dbe8fb;color:var(--blue)">{name[0]?.toUpperCase()}</span>}
+          : <span class={`avatar-xl grid place-items-center shrink-0 text-2xl sm:text-3xl font-semibold ${isScan ? 'rounded-2xl' : 'rounded-full'}`} style="background:var(--soft);color:var(--blue)">{name[0]?.toUpperCase()}</span>}
 
         <div class="flex-1 min-w-0 pt-1">
           <div class="flex items-center gap-2.5 flex-wrap">

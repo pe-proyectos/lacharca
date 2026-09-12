@@ -33,7 +33,7 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
         <a href={`/@${post.author?.handle}`} data-hover-handle={post.author?.handle} class="shrink-0">
           {post.author?.avatarUrl
             ? <img src={post.author.avatarUrl} alt={authorName} width="46" height="46" class="rounded-full object-cover" style="width:46px;height:46px" />
-            : <span class="grid place-items-center rounded-full text-[15px] font-semibold" style="width:46px;height:46px;background:#dbe8fb;color:var(--blue)">{authorName[0]?.toUpperCase()}</span>}
+            : <span class="grid place-items-center rounded-full text-[15px] font-semibold" style="width:46px;height:46px;background:var(--soft);color:var(--blue)">{authorName[0]?.toUpperCase()}</span>}
         </a>
         <a href={`/@${post.author?.handle}`} data-hover-handle={post.author?.handle} class="min-w-0">
           <span class="block text-[15px] font-semibold truncate hover:underline">{authorName}</span>
@@ -46,10 +46,10 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
       {post.wall && post.wall.type === 'manga' && (
         <a href={`/@${post.wall.handle}`} data-hover-handle={post.wall.handle}
           class="mt-4 flex items-center gap-3 p-3 rounded-2xl transition hover:opacity-85 max-w-md"
-          style="border:1px solid var(--line);background:#fff">
+          style="border:1px solid var(--line);background:var(--surface)">
           {post.wall.avatarUrl
             ? <img src={post.wall.avatarUrl} alt="" width="52" height="52" loading="lazy" class="rounded-xl object-cover shrink-0" style="width:52px;height:52px" />
-            : <span class="grid place-items-center rounded-xl text-[17px] font-semibold shrink-0" style="width:52px;height:52px;background:#dbe8fb;color:var(--blue)">{(post.wall.displayName || post.wall.handle)[0]?.toUpperCase()}</span>}
+            : <span class="grid place-items-center rounded-xl text-[17px] font-semibold shrink-0" style="width:52px;height:52px;background:var(--soft);color:var(--blue)">{(post.wall.displayName || post.wall.handle)[0]?.toUpperCase()}</span>}
           <span class="min-w-0">
             <span class="block eyebrow">Obra</span>
             <span class="block text-[15px] font-medium truncate">{post.wall.displayName || post.wall.handle}</span>

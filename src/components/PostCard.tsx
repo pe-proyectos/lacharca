@@ -41,12 +41,12 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean }> = ({ post: p, log
         <a href={`/@${p.author?.handle}`} data-hover-handle={p.author?.handle} className="shrink-0">
           {p.author?.avatarUrl
             ? <img src={p.author.avatarUrl} alt="" className={`w-11 h-11 object-cover ${p.author.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} />
-            : <span className={`grid place-items-center w-11 h-11 font-semibold ${p.author?.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style={{ background: '#dbe8fb', color: 'var(--blue)' }}>{(name || '?')[0]?.toUpperCase()}</span>}
+            : <span className={`grid place-items-center w-11 h-11 font-semibold ${p.author?.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style={{ background: 'var(--soft)', color: 'var(--blue)' }}>{(name || '?')[0]?.toUpperCase()}</span>}
         </a>
         <div className="min-w-0 flex-1 max-w-[760px]">
           <div className="flex items-center gap-2 flex-wrap">
             <a href={`/@${p.author?.handle}`} data-hover-handle={p.author?.handle} className="text-[16px] font-semibold hover:opacity-70 truncate">{name}</a>
-            {p.author?.type === 'scan' && <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ background: '#e8f4f6', color: 'var(--aqua)' }}>scan</span>}
+            {p.author?.type === 'scan' && <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ background: 'var(--soft-aqua)', color: 'var(--aqua)' }}>scan</span>}
             {p.pending
               ? <span className="t-caption">@{p.author?.handle} · publicando…</span>
               : <a href={`/post/${p.id}`} className="t-caption hover:opacity-70">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>}
@@ -55,10 +55,10 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean }> = ({ post: p, log
           {p.wall && p.wall.type === 'manga' && (
             <a href={`/@${p.wall.handle}`} data-hover-handle={p.wall.handle}
               className="mt-2.5 flex items-center gap-3 p-2.5 rounded-2xl transition hover:opacity-85"
-              style={{ border: '1px solid var(--line)', background: '#fff' }}>
+              style={{ border: '1px solid var(--line)', background: 'var(--surface)' }}>
               {p.wall.avatarUrl
                 ? <img src={p.wall.avatarUrl} alt="" width={44} height={44} loading="lazy" className="rounded-xl object-cover shrink-0" style={{ width: 44, height: 44 }} />
-                : <span className="grid place-items-center rounded-xl text-[15px] font-semibold shrink-0" style={{ width: 44, height: 44, background: '#dbe8fb', color: 'var(--blue)' }}>{(p.wall.displayName || p.wall.handle)[0]?.toUpperCase()}</span>}
+                : <span className="grid place-items-center rounded-xl text-[15px] font-semibold shrink-0" style={{ width: 44, height: 44, background: 'var(--soft)', color: 'var(--blue)' }}>{(p.wall.displayName || p.wall.handle)[0]?.toUpperCase()}</span>}
               <span className="min-w-0">
                 <span className="block eyebrow">Obra</span>
                 <span className="block text-[14px] font-medium truncate">{p.wall.displayName || p.wall.handle}</span>

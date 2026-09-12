@@ -41,10 +41,10 @@ const linked = data.linkedTo || {}
         <p class="t-body ink-2 mt-2">Tu cuenta de La Charca es independiente, pero quedará vinculada a la de CapibaraTraductor.</p>
       </div>
 
-      <div class="rounded-2xl p-4 mb-6 flex items-center gap-3" style="background:#fff;border:1px solid var(--line)">
+      <div class="rounded-2xl p-4 mb-6 flex items-center gap-3" style="background: var(--surface);border:1px solid var(--line)">
         {s.avatarUrl
           ? <img src={s.avatarUrl} alt="" width="44" height="44" class="rounded-full object-cover shrink-0" style="width:44px;height:44px" />
-          : <span class="grid place-items-center rounded-full font-semibold shrink-0" style="width:44px;height:44px;background:#dbe8fb;color:var(--blue)">{(s.displayName || 'C')[0]?.toUpperCase()}</span>}
+          : <span class="grid place-items-center rounded-full font-semibold shrink-0" style="width:44px;height:44px;background:var(--soft);color:var(--blue)">{(s.displayName || 'C')[0]?.toUpperCase()}</span>}
         <div class="min-w-0">
           <p class="text-[15px] font-medium truncate">Se vinculará a <span class="text-blue">@{linked.slug || linked.username}</span></p>
           <p class="t-caption">Cuenta de CapibaraTraductor verificada</p>
@@ -52,13 +52,13 @@ const linked = data.linkedTo || {}
       </div>
 
       {error && (
-        <p class="mb-5 text-[14px] rounded-xl px-3.5 py-2.5" style="color:#b42318;background:#fef3f2;border:1px solid #fecdca">{error}</p>
+        <p class="mb-5 text-[14px] rounded-xl px-3.5 py-2.5" style="color:var(--danger);background:var(--danger-bg);border:1px solid var(--danger-line)">{error}</p>
       )}
 
       <form method="POST" class="space-y-5">
         <div>
           <label for="handle" class="eyebrow block mb-2">Tu @usuario en La Charca</label>
-          <div class="flex items-center gap-1 rounded-xl px-3.5 py-3" style="background:#fff;border:1px solid var(--line)">
+          <div class="flex items-center gap-1 rounded-xl px-3.5 py-3" style="background: var(--surface);border:1px solid var(--line)">
             <span class="ink-3">@</span>
             <input id="handle" name="handle" value={s.handle} required minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]+"
               autocomplete="username" class="flex-1 bg-transparent text-[16px] focus:outline-none" />
@@ -69,7 +69,7 @@ const linked = data.linkedTo || {}
         <div>
           <label for="displayName" class="eyebrow block mb-2">Nombre visible</label>
           <input id="displayName" name="displayName" value={s.displayName} maxlength="120" autocomplete="nickname"
-            class="w-full rounded-xl px-3.5 py-3 text-[16px] focus:outline-none" style="background:#fff;border:1px solid var(--line)" />
+            class="w-full rounded-xl px-3.5 py-3 text-[16px] focus:outline-none" style="background: var(--surface);border:1px solid var(--line)" />
         </div>
 
         <button type="submit" class="btn w-full justify-center">Crear mi cuenta</button>

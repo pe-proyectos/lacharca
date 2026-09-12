@@ -67,7 +67,7 @@ const NotificationList: React.FC<{ initial: N[]; hasMore: boolean }> = ({ initia
               {n.actor?.avatarUrl
                 ? <img src={n.actor.avatarUrl} alt="" className={`object-cover ${n.actor.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style={{ width: 44, height: 44 }} />
                 : <span className={`grid place-items-center text-[15px] font-semibold ${n.actor?.type === 'user' ? 'rounded-full' : 'rounded-xl'}`}
-                    style={{ width: 44, height: 44, background: '#dbe8fb', color: 'var(--blue)' }}>{name[0]?.toUpperCase()}</span>}
+                    style={{ width: 44, height: 44, background: 'var(--soft)', color: 'var(--blue)' }}>{name[0]?.toUpperCase()}</span>}
               <span className="absolute -bottom-1 -right-1 grid place-items-center rounded-full"
                 style={{ width: 20, height: 20, background: 'var(--blue)', color: '#fff', border: '2px solid var(--paper)' }}>
                 <Icon size={11} weight="fill" />

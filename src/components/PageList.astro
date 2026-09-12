@@ -14,7 +14,7 @@ const { pages = [], viewer, empty = 'No hay nadie por aquí todavía.' } = Astro
         <a href={`/@${p.handle}`} data-hover-handle={p.handle} class="shrink-0">
           {p.avatarUrl
             ? <img src={p.avatarUrl} alt={p.displayName || p.handle} width="46" height="46" class={`object-cover ${p.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:46px;height:46px" />
-            : <span class={`grid place-items-center text-[15px] font-semibold ${p.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:46px;height:46px;background:#dbe8fb;color:var(--blue)">{(p.displayName || p.handle)[0]?.toUpperCase()}</span>}
+            : <span class={`grid place-items-center text-[15px] font-semibold ${p.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:46px;height:46px;background:var(--soft);color:var(--blue)">{(p.displayName || p.handle)[0]?.toUpperCase()}</span>}
         </a>
         <a href={`/@${p.handle}`} data-hover-handle={p.handle} class="flex-1 min-w-0">
           <span class="block text-[15px] font-medium truncate">{p.displayName || p.handle}</span>

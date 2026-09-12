@@ -40,7 +40,7 @@ function ago(iso: string) {
 const Avatar = ({ c, size = 36 }: any) => (
   c?.avatarUrl
     ? <img src={c.avatarUrl} alt="" style={{ width: size, height: size }} className="rounded-full object-cover shrink-0" />
-    : <div style={{ width: size, height: size, background: '#dbe8fb', color: 'var(--blue)' }} className="rounded-full flex items-center justify-center text-xs font-semibold shrink-0">{(c?.displayName || c?.handle || '?')[0]?.toUpperCase()}</div>
+    : <div style={{ width: size, height: size, background: 'var(--soft)', color: 'var(--blue)' }} className="rounded-full flex items-center justify-center text-xs font-semibold shrink-0">{(c?.displayName || c?.handle || '?')[0]?.toUpperCase()}</div>
 )
 
 // Esqueleto con la silueta real de un comentario: avatar, nombre y dos lineas.
@@ -179,7 +179,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
                 <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={1} autoFocus
                   onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send(c.id) }}
                   placeholder={`Responder a ${c.author?.displayName || c.author?.handle}`}
-                  className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none" style={{ background: "#f5f8fd", border: "1px solid var(--line)" }} />
+                  className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none" style={{ background: "var(--surface-2)", border: "1px solid var(--line)" }} />
                 <button type="button" onClick={() => send(c.id)} disabled={busy || !replyText.trim()}
                   className="btn disabled:opacity-35 cursor-pointer inline-flex items-center gap-1.5" aria-label="Responder"><PaperPlaneTilt size={16} weight="fill" />Responder</button>
               </div>
@@ -216,7 +216,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
             <div className="relative inline-block mb-2 media post-media" style={{ opacity: image.url ? 1 : 0.55, cursor: 'default', ['--media-bg' as any]: `url('${image.preview}')` }}>
               {image.preview
                 ? <img src={image.preview} alt="" style={{ maxHeight: 220 }} />
-                : <span className="block px-4 py-3 t-caption" style={{ color: '#b42318' }}>La imagen supera los 5 MB</span>}
+                : <span className="block px-4 py-3 t-caption" style={{ color: 'var(--danger)' }}>La imagen supera los 5 MB</span>}
               {!image.url && !image.failed && <span className="absolute inset-0 skeleton rounded-xl" />}
               <button type="button" onClick={clearImage} aria-label="Quitar imagen"
                 className="absolute top-1.5 right-1.5 grid place-items-center w-6 h-6 rounded-full cursor-pointer"
@@ -237,7 +237,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
               onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send() }}
               onPaste={(e) => { const f = e.clipboardData.files?.[0]; if (f) { e.preventDefault(); pickImage(f) } }}
               placeholder="Súmate a la conversación"
-              className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none" style={{ background: "#f5f8fd", border: "1px solid var(--line)" }} />
+              className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none" style={{ background: "var(--surface-2)", border: "1px solid var(--line)" }} />
             <button type="button" onClick={() => send()} disabled={busy || (!text.trim() && !image?.url) || (!!image && !image.url && !image.failed)}
               className="btn disabled:opacity-35 cursor-pointer shrink-0">Enviar</button>
           </div>

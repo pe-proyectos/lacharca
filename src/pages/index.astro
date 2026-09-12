@@ -42,8 +42,8 @@ try {
     {notice && (
       <p class="mb-6 text-[14px] rounded-xl px-3.5 py-2.5"
         style={notice.tone === 'ok'
-          ? 'color:#05603a;background:#ecfdf3;border:1px solid #abefc6'
-          : 'color:#b42318;background:#fef3f2;border:1px solid #fecdca'}>{notice.text}</p>
+          ? 'color:var(--ok);background:var(--ok-bg);border:1px solid var(--ok-line)'
+          : 'color:var(--danger);background:var(--danger-bg);border:1px solid var(--danger-line)'}>{notice.text}</p>
     )}
     {!viewer && (
       <div class="mb-10 pb-10" style="border-bottom:1px solid var(--line)">

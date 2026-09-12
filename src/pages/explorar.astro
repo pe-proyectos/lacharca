@@ -27,7 +27,7 @@ try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } cat
 <Layout title="Explorar — La Charca">
   <Shell viewer={viewer} active="explore">
     <h1 class="t-title mb-6">Explorar</h1>
-    <form method="GET" class="flex items-center gap-2 mb-8 px-4 py-3 rounded-2xl max-w-2xl" style="background:#fff;border:1px solid var(--line)">
+    <form method="GET" class="flex items-center gap-2 mb-8 px-4 py-3 rounded-2xl max-w-2xl" style="background: var(--surface);border:1px solid var(--line)">
       <svg width="19" height="19" viewBox="0 0 256 256" fill="currentColor" class="ink-3 shrink-0"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
       <input name="q" value={q} placeholder="Buscar publicaciones, scans o lectores" autocomplete="off"
         class="flex-1 bg-transparent text-[16px] focus:outline-none" />
@@ -51,7 +51,7 @@ try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } cat
                 <a href={`/@${s.handle}`} data-hover-handle={s.handle} class="shrink-0">
                   {s.avatarUrl
                     ? <img src={s.avatarUrl} alt="" width="46" height="46" loading="lazy" class={`object-cover ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:46px;height:46px" />
-                    : <span class={`grid place-items-center text-[15px] font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:46px;height:46px;background:#dbe8fb;color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
+                    : <span class={`grid place-items-center text-[15px] font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} style="width:46px;height:46px;background:var(--soft);color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
                 </a>
                 <a href={`/@${s.handle}`} data-hover-handle={s.handle} class="min-w-0 flex-1">
                   <span class="block text-[15px] font-medium truncate">{s.displayName || s.handle}</span>
@@ -60,11 +60,11 @@ try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } cat
                 <FollowButton client:visible handle={s.handle} initialFollowing={s.viewerFollows} logged={!!viewer} followers={s.followersCount || 0} compact />
               </div>
 
-              <div class="hidden sm:flex flex-col items-center text-center gap-3 p-5 rounded-2xl transition" style="border:1px solid var(--line);background:#fff">
+              <div class="hidden sm:flex flex-col items-center text-center gap-3 p-5 rounded-2xl transition" style="border:1px solid var(--line);background:var(--surface)">
                 <a href={`/@${s.handle}`} data-hover-handle={s.handle}>
                   {s.avatarUrl
                     ? <img src={s.avatarUrl} alt="" loading="lazy" class={`w-16 h-16 object-cover ${s.type === 'user' ? 'rounded-full' : 'rounded-2xl'}`} />
-                    : <span class={`grid place-items-center w-16 h-16 text-xl font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-2xl'}`} style="background:#dbe8fb;color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
+                    : <span class={`grid place-items-center w-16 h-16 text-xl font-semibold ${s.type === 'user' ? 'rounded-full' : 'rounded-2xl'}`} style="background:var(--soft);color:var(--blue)">{(s.displayName || s.handle)[0]?.toUpperCase()}</span>}
                 </a>
                 <a href={`/@${s.handle}`} data-hover-handle={s.handle} class="min-w-0 w-full">
                   <span class="block text-[15px] font-semibold truncate">{s.displayName || s.handle}</span>
