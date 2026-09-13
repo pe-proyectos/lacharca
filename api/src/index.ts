@@ -314,6 +314,20 @@ const app = new Elysia()
     } catch (e: any) { return { status: false, message: e?.code || e?.message || 'error' } }
   })
 
+  // Obras que cuelgan de un scan.
+  .get('/pages/:handle/subpages', async ({ request, params, query }: any) => {
+    const user = await sessionUser(sessionToken(request))
+    const qs = new URLSearchParams()
+    qs.set('page', String(Math.max(0, Number(query.page) || 0)))
+    qs.set('limit', String(Math.min(60, Number(query.limit) || 30)))
+    if (query.q) qs.set('q', String(query.q))
+    const headers: Record<string, string> = { Authorization: `Bearer ${process.env.HILOS_SECRET_KEY || ''}` }
+    if (user) headers['X-Hilos-Page'] = `external:lacharca:user:${user.id}`
+    const res = await fetch(`${process.env.HILOS_BASE || 'https://hilos.rest'}/v1/pages/${encodeURIComponent(String(params.handle))}/subpages?${qs}`, { headers })
+    const json: any = await res.json().catch(() => ({}))
+    return { status: !json?.error, data: json?.data ?? { items: [], hasMore: false, total: 0 } }
+  })
+
   // Identidades con las que puedes actuar: tú y los scans de tu equipo.
   .get('/me/identities', async ({ request }: any) => {
     const user = await sessionUser(sessionToken(request))

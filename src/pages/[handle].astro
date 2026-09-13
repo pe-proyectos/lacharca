@@ -32,6 +32,14 @@ if (page.type === 'manga' && page.parentHandle) {
 
 const isScan = page.type === 'scan' || page.type === 'manga'
 const isMe = viewer?.user?.handle === page.handle
+// Si soy del equipo de este scan, enseño los accesos de administración.
+let miRolAqui: string | null = null
+if (viewer && page.type === 'scan') {
+  const equipo = (await hilos(`/pages/${encodeURIComponent(handle)}/members`, actingPage).catch(() => null)) || []
+  if (Array.isArray(equipo)) {
+    miRolAqui = equipo.find((m: any) => m.page?.handle === viewer.user.handle)?.role ?? null
+  }
+}
 const name = page.displayName || page.handle
 
 const kind = page.type === 'scan' ? 'Scan' : page.type === 'manga' ? 'Obra' : 'Lector'
@@ -74,6 +82,12 @@ const desc = page.bio || `${kind} en La Charca. ${plural(page.followersCount, 's
               <>
                 <FollowButton client:load handle={page.handle} initialFollowing={page.viewerFollows} logged={!!viewer} followers={page.followersCount || 0} />
                 {viewer && <MessageButton client:load handle={page.handle} canMessage={!!page.viewerFollows} />}
+                {miRolAqui && (
+                  <>
+                    <a href={`/@${page.handle}/equipo`} class="chip">Equipo</a>
+                    <a href={`/@${page.handle}/obras`} class="chip">Obras</a>
+                  </>
+                )}
               </>
             )}
           </div>

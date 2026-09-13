@@ -1,0 +1,16 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import Shell from '../../components/Shell.astro'
+import Inbox from '../../components/Inbox'
+import { getViewer } from '../../lib/session'
+
+const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
+if (!viewer) return Astro.redirect('/auth/login')
+---
+<Layout title="Mensajes — La Charca" noindex>
+  <Shell viewer={viewer} active="messages" wide aside="none">
+    <h1 class="t-title mb-1">Mensajes</h1>
+    <p class="t-sub mb-5">Conversaciones directas. Comparte el enlace para que otro miembro del equipo abra la misma.</p>
+    <Inbox client:load me={viewer.user.handle} />
+  </Shell>
+</Layout>

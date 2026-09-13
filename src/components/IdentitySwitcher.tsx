@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { CaretUpDown, Check, Users, ArrowSquareOut } from '@phosphor-icons/react'
+import { CaretUpDown, Check, Users, ArrowSquareOut, BookOpen, ChatCircleDots } from '@phosphor-icons/react'
 import { hilosApi, getIdentity, setIdentity } from '../lib/hilosClient'
 
 interface Page {
@@ -107,9 +107,18 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
           ))}
 
           {activo && (
-            <a href={`/@${activo}/equipo`} className="row flex items-center gap-2.5 px-4 py-2.5 t-caption border-t" style={{ borderColor: 'var(--line)' }}>
-              <Users size={15} /> Gestionar el equipo
-            </a>
+            <div className="border-t" style={{ borderColor: 'var(--line)' }}>
+              <p className="eyebrow px-4 pt-3 pb-1.5">Administrar el scan</p>
+              <a href={`/@${activo}/equipo`} className="row flex items-center gap-2.5 px-4 py-2.5 t-caption">
+                <Users size={15} /> Equipo
+              </a>
+              <a href={`/@${activo}/obras`} className="row flex items-center gap-2.5 px-4 py-2.5 t-caption">
+                <BookOpen size={15} /> Obras
+              </a>
+              <a href="/mensajes" className="row flex items-center gap-2.5 px-4 py-2.5 t-caption">
+                <ChatCircleDots size={15} /> Bandeja del scan
+              </a>
+            </div>
           )}
         </div>
       )}

@@ -96,7 +96,13 @@ export const hilosApi = {
   page: (handle: string) => hilosFetch(`/pages/${encodeURIComponent(handle)}`),
   updateProfile: (handle: string, patch: Record<string, any>) =>
     hilosFetch(`/pages/${encodeURIComponent(handle)}`, { method: 'PATCH', body: JSON.stringify(patch) }),
-  conversations: (page = 0) => hilosFetch(`/conversations?page=${page}&limit=20`),
+  conversations: (page = 0, archived = false) =>
+    hilosFetch(`/conversations?page=${page}&limit=30${archived ? '&archived=1' : ''}`),
+  archive: (id: number, archived = true) =>
+    hilosFetch(`/conversations/${id}/archive`, { method: 'POST', body: JSON.stringify({ archived }) }),
+  subpages: (handle: string, page = 0, q = '') =>
+    hilosFetch(`/pages/${encodeURIComponent(handle)}/subpages?page=${page}&limit=30${q ? `&q=${encodeURIComponent(q)}` : ''}`),
+  buscarPages: (q: string) => hilosFetch(`/pages/directory?q=${encodeURIComponent(q)}&limit=8&type=user`),
   messages: (id: number, page = 0) => hilosFetch(`/conversations/${id}/messages?page=${page}&limit=40`),
   send: (handle: string, content: string) => hilosFetch('/messages', { method: 'POST', body: JSON.stringify({ handle, content }) }),
   unread: () => hilosFetch('/messages/unread'),
