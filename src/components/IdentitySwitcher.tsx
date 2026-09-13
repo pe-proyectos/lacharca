@@ -63,8 +63,8 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
     hilosApi.identities().then((d: Identidad[]) => setScans(d || [])).catch(() => setScans([]))
   }, [])
 
-  const elegir = (handle: string | null) => {
-    setIdentity(handle)
+  const elegir = (handle: string | null, page?: Page) => {
+    setIdentity(handle, page)
     setActivo(handle)
     setAbierto(false)
     window.location.reload() // el servidor pinta el feed con la identidad activa
@@ -128,7 +128,7 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
             })
             .map((s) => (
             <div key={s.page.handle} className="row flex items-center gap-1 px-2">
-              <button type="button" onClick={() => elegir(s.page.handle)} className="flex items-center gap-3 px-2 py-2.5 flex-1 min-w-0 text-left cursor-pointer">
+              <button type="button" onClick={() => elegir(s.page.handle, s.page)} className="flex items-center gap-3 px-2 py-2.5 flex-1 min-w-0 text-left cursor-pointer">
                 <Avatar p={s.page} size={32} />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[14px] font-medium truncate">{s.page.displayName || s.page.handle}</span>

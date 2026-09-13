@@ -5,6 +5,7 @@ import ChatDock from './ChatDock'
 import NotifBadge from './NotifBadge'
 import ThemeToggle from './ThemeToggle'
 import IdentitySwitcher from './IdentitySwitcher'
+import ScanNav from './ScanNav'
 import NavProgress from './NavProgress'
 import Lightbox from './Lightbox'
 import UserHoverCard from './UserHoverCard'
@@ -57,7 +58,10 @@ const items = [
     </div>
 
     {viewer && (
-      <a href="/?compose=1" class="btn justify-center mt-5 hidden xl:flex">Publicar</a>
+      <Fragment>
+        <a href="/?compose=1" class="btn justify-center mt-5 hidden xl:flex">Publicar</a>
+        <ScanNav client:idle />
+      </Fragment>
     )}
 
     <!-- USUARIO ABAJO -->

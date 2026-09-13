@@ -1,6 +1,6 @@
 import { PaperPlaneTilt, ImageSquare, X } from '@phosphor-icons/react'
 import React, { useState } from 'react'
-import { hilosApi, uploadToHilos } from '../lib/hilosClient'
+import { hilosApi, uploadToHilos, getIdentity, getIdentityPage } from '../lib/hilosClient'
 
 interface C { id: number; content: string; parentCommentId: number | null; createdAt: string; author: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
 interface Props { postId: number; initial: C[]; logged: boolean; total?: number }
@@ -74,6 +74,13 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
   const [busy, setBusy] = useState(false)
   const [replyTo, setReplyTo] = useState<number | null>(null)
   const [replyText, setReplyText] = useState('')
+  const [identidadScan, setIdentidadScan] = useState<any>(null)
+  React.useEffect(() => {
+    const leer = () => setIdentidadScan(getIdentity() ? getIdentityPage() : null)
+    leer()
+    window.addEventListener('lc:identity', leer)
+    return () => window.removeEventListener('lc:identity', leer)
+  }, [])
   const [image, setImage] = useState<{ preview: string; url: string | null; failed?: boolean } | null>(null)
   const fileInput = React.useRef<HTMLInputElement>(null)
   const [sort, setSort] = useState<'reciente' | 'antiguo' | 'popular'>('reciente')
@@ -132,7 +139,12 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
     if (!parentId && image && !image.url && !image.failed) return // aún subiendo
     // Optimista: mostramos el comentario al instante y reconciliamos al responder el API.
     const tempId = -Date.now()
-    const optimistic: any = { id: tempId, content, parentCommentId: parentId ?? null, createdAt: new Date().toISOString(), author: { handle: 'tu', displayName: 'Tú', avatarUrl: null }, pending: true }
+    // El comentario aparece con la cara de quien lo firma: tú o el scan.
+    const comoScan = getIdentity() ? getIdentityPage() : null
+    const autor = comoScan
+      ? { handle: comoScan.handle, displayName: comoScan.displayName || comoScan.handle, avatarUrl: comoScan.avatarUrl || null }
+      : { handle: 'tu', displayName: 'Tú', avatarUrl: null }
+    const optimistic: any = { id: tempId, content, parentCommentId: parentId ?? null, createdAt: new Date().toISOString(), author: autor, pending: true }
     setItems((l) => [...l, optimistic])
     if (parentId) { setReplyText(''); setReplyTo(null) } else { setText(''); clearImage() }
     setBusy(true)
@@ -212,6 +224,11 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
       </div>
       {logged ? (
         <div className="mb-4">
+          {identidadScan && (
+            <p className="t-caption mb-2">
+              Respondiendo como <b style={{ color: 'var(--ink)' }}>{identidadScan.displayName || `@${identidadScan.handle}`}</b>
+            </p>
+          )}
           {image && (
             <div className="relative inline-block mb-2 media post-media" style={{ opacity: image.url ? 1 : 0.55, cursor: 'default', ['--media-bg' as any]: `url('${image.preview}')` }}>
               {image.preview

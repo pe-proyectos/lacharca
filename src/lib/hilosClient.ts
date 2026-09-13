@@ -16,14 +16,29 @@ export function getIdentity(): string | null {
   return identidad
 }
 
-export function setIdentity(handle: string | null) {
+export interface IdentityPage { handle: string; displayName?: string | null; avatarUrl?: string | null; type?: string }
+
+export function getIdentityPage(): IdentityPage | null {
+  if (typeof localStorage === 'undefined') return null
+  try {
+    const raw = localStorage.getItem('lc-identity-page')
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+export function setIdentity(handle: string | null, page?: IdentityPage) {
   identidad = handle
   try {
-    if (handle) localStorage.setItem('lc-identity', handle)
-    else localStorage.removeItem('lc-identity')
+    if (handle) {
+      localStorage.setItem('lc-identity', handle)
+      if (page) localStorage.setItem('lc-identity-page', JSON.stringify(page))
+    } else {
+      localStorage.removeItem('lc-identity')
+      localStorage.removeItem('lc-identity-page')
+    }
   } catch {}
   clearToken() // el token viejo era de la identidad anterior
-  window.dispatchEvent(new CustomEvent('lc:identity', { detail: { handle } }))
+  window.dispatchEvent(new CustomEvent('lc:identity', { detail: { handle, page } }))
 }
 
 async function fetchToken(): Promise<string | null> {
