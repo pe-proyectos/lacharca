@@ -1,6 +1,7 @@
 import { PaperPlaneTilt, ImageSquare, X } from '@phosphor-icons/react'
 import React, { useState } from 'react'
 import { hilosApi, uploadToHilos, getIdentity, getIdentityPage } from '../lib/hilosClient'
+import MentionAutocomplete from './MentionAutocomplete'
 
 interface C { id: number; content: string; parentCommentId: number | null; createdAt: string; author: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
 interface Props { postId: number; initial: C[]; logged: boolean; total?: number }
@@ -83,6 +84,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
   }, [])
   const [image, setImage] = useState<{ preview: string; url: string | null; failed?: boolean } | null>(null)
   const fileInput = React.useRef<HTMLInputElement>(null)
+  const cajaTexto = React.useRef<HTMLTextAreaElement>(null)
   const [sort, setSort] = useState<'reciente' | 'antiguo' | 'popular'>('reciente')
 
   const pickImage = async (file?: File) => {
@@ -242,7 +244,18 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
               </button>
             </div>
           )}
-          <div className="flex items-end gap-2">
+          <div className="flex items-end gap-2 relative">
+            <MentionAutocomplete
+              inputRef={cajaTexto}
+              value={text}
+              onPick={(nuevo, cursor) => {
+                setText(nuevo)
+                requestAnimationFrame(() => {
+                  cajaTexto.current?.focus()
+                  cajaTexto.current?.setSelectionRange(cursor, cursor)
+                })
+              }}
+            />
             <input ref={fileInput} type="file" accept="image/*" className="hidden"
               onChange={(e) => pickImage(e.target.files?.[0])} />
             <button type="button" onClick={() => fileInput.current?.click()} disabled={!!image}

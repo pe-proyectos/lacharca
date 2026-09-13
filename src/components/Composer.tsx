@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react'
 import { ImageSquare, X } from '@phosphor-icons/react'
 import { hilosApi, uploadToHilos } from '../lib/hilosClient'
+import MentionAutocomplete from './MentionAutocomplete'
+import PostTools, { type Encuesta, type Programado, type Cuenta } from './PostTools'
 
 interface Props {
   user: { handle: string; displayName?: string | null; avatarUrl?: string | null }
@@ -21,11 +23,17 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
   const [err, setErr] = useState<string | null>(null)
   const [images, setImages] = useState<Attachment[]>([])
   const fileInput = useRef<HTMLInputElement>(null)
+  const textarea = useRef<HTMLTextAreaElement>(null)
+  const [encuesta, setEncuesta] = useState<Encuesta | null>(null)
+  const [programado, setProgramado] = useState<Programado | null>(null)
+  const [cuenta, setCuenta] = useState<Cuenta | null>(null)
 
   const left = LIMIT - content.length
   const over = left < 0
   const uploading = images.some((i) => !i.url && !i.failed)
-  const canPost = (content.trim() || images.some((i) => i.url)) && !over && !uploading && !busy
+  const opcionesValidas = (encuesta?.options || []).map((o) => o.trim()).filter(Boolean)
+  const encuestaLista = !encuesta || opcionesValidas.length >= 2
+  const canPost = (content.trim() || images.some((i) => i.url)) && !over && !uploading && !busy && encuestaLista
 
   const pick = async (files: FileList | null) => {
     if (!files?.length) return
@@ -76,10 +84,21 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
     if (onOptimistic) {
       onOptimistic(tempId, body)
       setContent(''); images.forEach((i) => URL.revokeObjectURL(i.preview)); setImages([])
+      setEncuesta(null); setProgramado(null); setCuenta(null)
     } else setBusy(true)
 
     try {
-      const post = await hilosApi.createPost(body)
+      const post = await hilosApi.createPost(body, {
+        ...(encuesta && opcionesValidas.length >= 2
+          ? { poll: { options: opcionesValidas, ...(encuesta.endsAt ? { endsAt: new Date(encuesta.endsAt).toISOString() } : {}) } }
+          : {}),
+        ...(programado?.at
+          ? { revealAt: new Date(programado.at).toISOString(), revealPlaceholder: programado.placeholder || undefined }
+          : {}),
+        ...(cuenta?.at
+          ? { countdownAt: new Date(cuenta.at).toISOString(), countdownLabel: cuenta.label || undefined }
+          : {}),
+      })
       if (onPosted) onPosted(tempId, post)
       else window.location.reload()
     } catch (e: any) {
@@ -96,8 +115,20 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
         ? <img src={user.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
         : <span className="grid place-items-center w-11 h-11 rounded-full text-[15px] font-semibold shrink-0" style={{ background: 'var(--soft)', color: 'var(--blue)' }}>{(user.displayName || user.handle)[0]?.toUpperCase()}</span>}
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 relative">
+        <MentionAutocomplete
+          inputRef={textarea}
+          value={content}
+          onPick={(nuevo, cursor) => {
+            setContent(nuevo)
+            requestAnimationFrame(() => {
+              textarea.current?.focus()
+              textarea.current?.setSelectionRange(cursor, cursor)
+            })
+          }}
+        />
         <textarea
+          ref={textarea}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') submit() }}
@@ -141,6 +172,7 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
         <div className="flex items-center justify-between gap-3 mt-1">
           <input ref={fileInput} type="file" accept="image/*" multiple className="hidden"
             onChange={(e) => pick(e.target.files)} />
+          <div className="flex items-center gap-1">
           <button type="button" onClick={() => fileInput.current?.click()}
             disabled={images.length >= MAX_IMAGES}
             title={images.length >= MAX_IMAGES ? `Máximo ${MAX_IMAGES} imágenes` : 'Añadir imágenes'}
@@ -150,6 +182,12 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
             <ImageSquare size={20} />
             {images.length > 0 && <span className="tabular-nums text-[13px]">{images.length}/{MAX_IMAGES}</span>}
           </button>
+          <PostTools
+            encuesta={encuesta} setEncuesta={setEncuesta}
+            programado={programado} setProgramado={setProgramado}
+            cuenta={cuenta} setCuenta={setCuenta}
+          />
+          </div>
 
           <div className="flex items-center gap-3">
             {content.length > LIMIT - 500 && (

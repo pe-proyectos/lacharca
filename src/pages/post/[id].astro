@@ -4,6 +4,7 @@ import { hilos } from '../../lib/hilos'
 import { getViewer } from '../../lib/session'
 import PostActions from '../../components/PostActions'
 import CommentThread from '../../components/CommentThread'
+import { Poll, Reveal, Countdown } from '../../components/PostExtras'
 import Shell from '../../components/Shell.astro'
 
 const id = Number(Astro.params.id)
@@ -42,6 +43,10 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
       </div>
 
       {body && <p class="text-[19px] leading-[1.55] whitespace-pre-wrap break-words">{body}</p>}
+
+      {post.reveal?.locked && <Reveal client:load data={post.reveal} />}
+      {post.poll && <Poll client:load postId={post.id} data={post.poll} logged={!!viewer} />}
+      {post.countdown && <Countdown client:load data={post.countdown} />}
 
       {post.wall && post.wall.type === 'manga' && (
         <a href={post.wall.parentHandle ? `/@${post.wall.parentHandle}/${post.wall.handle}` : `/@${post.wall.handle}`} data-hover-handle={post.wall.handle}

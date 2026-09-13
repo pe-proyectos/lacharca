@@ -99,7 +99,10 @@ export async function uploadToHilos(file: File): Promise<string> {
 }
 
 export const hilosApi = {
-  createPost: (content: string) => hilosFetch('/posts', { method: 'POST', body: JSON.stringify({ content }) }),
+  createPost: (content: string, extra: Record<string, any> = {}) =>
+    hilosFetch('/posts', { method: 'POST', body: JSON.stringify({ content, ...extra }) }),
+  vote: (postId: number, optionIndex: number) =>
+    hilosFetch(`/posts/${postId}/vote`, { method: 'POST', body: JSON.stringify({ optionIndex }) }),
   like: (id: number) => hilosFetch(`/posts/${id}/like`, { method: 'POST' }),
   comments: (id: number) => hilosFetch(`/posts/${id}/comments`),
   commentsSorted: (id: number, sort: string, page = 0) =>

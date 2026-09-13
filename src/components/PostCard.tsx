@@ -1,5 +1,6 @@
 import React from 'react'
 import PostActions from './PostActions'
+import { Poll, Reveal, Countdown, type PollData, type RevealData, type CountdownData } from './PostExtras'
 import { timeAgo } from '../lib/time'
 
 export interface WallPage { handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null; parentHandle?: string | null }
@@ -15,6 +16,9 @@ export interface PostShape {
   pending?: boolean
   author?: { handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null }
   wall?: WallPage | null
+  poll?: PollData | null
+  reveal?: RevealData | null
+  countdown?: CountdownData | null
 }
 
 const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.includes('r2.hilos.rest')
@@ -52,6 +56,10 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean }> = ({ post: p, log
               : <a href={`/post/${p.id}`} className="t-caption hover:opacity-70">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>}
           </div>
           {body.trim() && <p className="mt-1.5 t-body whitespace-pre-wrap break-words">{tokenize(body)}</p>}
+          {p.reveal?.locked && <Reveal data={p.reveal} />}
+          {p.poll && <Poll postId={p.id} data={p.poll} logged={logged} />}
+          {p.countdown && <Countdown data={p.countdown} />}
+
           {p.wall && p.wall.type === 'manga' && (
             <a href={p.wall.parentHandle ? `/@${p.wall.parentHandle}/${p.wall.handle}` : `/@${p.wall.handle}`} data-hover-handle={p.wall.handle}
               className="mt-2.5 flex items-center gap-3 p-2.5 rounded-2xl transition hover:opacity-85"

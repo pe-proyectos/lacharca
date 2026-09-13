@@ -1,5 +1,6 @@
 ---
 import PostActions from './PostActions'
+import { Poll, Reveal, Countdown } from './PostExtras'
 import { timeAgo } from '../lib/hilos'
 const { posts = [], viewer, empty = 'Aún no hay nada por aquí.' } = Astro.props
 const isMedia = (u) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.includes('r2.hilos.rest')
@@ -52,6 +53,10 @@ function tokenize(c) {
                     : w.v)}
                 </p>
               )}
+              {p.reveal?.locked && <Reveal client:visible data={p.reveal} />}
+              {p.poll && <Poll client:visible postId={p.id} data={p.poll} logged={!!viewer} />}
+              {p.countdown && <Countdown client:visible data={p.countdown} />}
+
               {p.wall && p.wall.type === 'manga' && (
                 <a href={p.wall.parentHandle ? `/@${p.wall.parentHandle}/${p.wall.handle}` : `/@${p.wall.handle}`} data-hover-handle={p.wall.handle}
                   class="mt-2.5 flex items-center gap-3 p-2.5 rounded-2xl transition hover:opacity-85"
