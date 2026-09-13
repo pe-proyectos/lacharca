@@ -154,6 +154,12 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
         <button type="button" onClick={copyLink} className="act" title="Copiar enlace" aria-label="Copiar enlace">
           <LinkSimple size={19} />
         </button>
+
+        {esMio && (
+          <button type="button" onClick={borrarPost} className="act" title="Eliminar publicación" aria-label="Eliminar publicación">
+            <Trash size={19} />
+          </button>
+        )}
       </div>
 
       {open && (
