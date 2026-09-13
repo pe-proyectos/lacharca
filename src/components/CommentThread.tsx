@@ -1,10 +1,10 @@
-import { PaperPlaneTilt, ImageSquare, X } from '@phosphor-icons/react'
+import { PaperPlaneTilt, ImageSquare, X, Trash } from '@phosphor-icons/react'
 import React, { useState } from 'react'
 import { hilosApi, uploadToHilos, getIdentity, getIdentityPage } from '../lib/hilosClient'
 import MentionAutocomplete from './MentionAutocomplete'
 
 interface C { id: number; content: string; parentCommentId: number | null; createdAt: string; author: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
-interface Props { postId: number; initial: C[]; logged: boolean; total?: number }
+interface Props { postId: number; initial: C[]; logged: boolean; total?: number; me?: string | null }
 
 // Enlaces, menciones y etiquetas navegables. Las URLs largas se muestran
 // acortadas para que no rompan la columna de lectura.
@@ -58,8 +58,41 @@ const CommentSkeleton = ({ nested = false }: { nested?: boolean }) => (
   </div>
 )
 
-const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) => {
+const VENTANA_BORRADO_MS = 24 * 3600 * 1000
+
+const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me = null }) => {
   const [items, setItems] = useState<C[]>(initial || [])
+  const [miHandle, setMiHandle] = useState<string | null>(null)
+
+  React.useEffect(() => {
+    // Con identidad de scan firmas como el scan; si no, como tú.
+    const leer = () => setMiHandle(getIdentity() || me)
+    leer()
+    window.addEventListener('lc:identity', leer)
+    return () => window.removeEventListener('lc:identity', leer)
+  }, [me])
+
+  // Un comentario se puede retirar si es tuyo y no ha cumplido 24 horas.
+  const puedoBorrar = (c: C) =>
+    logged &&
+    !!miHandle &&
+    c.author?.handle === miHandle &&
+    c.id > 0 &&
+    Date.now() - new Date(c.createdAt).getTime() < VENTANA_BORRADO_MS
+
+  const borrar = async (c: C) => {
+    if (!confirm('¿Eliminar tu comentario?')) return
+    const antes = items
+    setItems((l) => l.filter((x) => x.id !== c.id && x.parentCommentId !== c.id))
+    try {
+      await hilosApi.removeComment(c.id)
+    } catch (e: any) {
+      setItems(antes)
+      alert(e?.message === 'too_old'
+        ? 'Ya pasaron 24 horas: pídele a un moderador que lo retire.'
+        : 'No se pudo eliminar el comentario.')
+    }
+  }
   const [loading, setLoading] = useState((initial || []).length === 0 && total > 0)
 
   React.useEffect(() => {
@@ -188,6 +221,15 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0 }) 
                 setReplyText(nested && c.author?.handle ? `@${c.author.handle} ` : '')
               }}
               className="mt-1.5 text-[13px] font-semibold cursor-pointer hover:opacity-70" style={{ color: "var(--blue)" }}>Responder</button>
+
+            {puedoBorrar(c) && (
+              <button type="button" onClick={() => borrar(c)}
+                title="Puedes retirarlo durante 24 horas"
+                className="mt-1.5 ml-3 text-[13px] font-semibold cursor-pointer hover:opacity-70 inline-flex items-center gap-1"
+                style={{ color: 'var(--ink-3)' }}>
+                <Trash size={13} /> Eliminar
+              </button>
+            )}
             {replyTo === c.id && (
               <div className="mt-2 flex items-end gap-2">
                 <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={1} autoFocus
