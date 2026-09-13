@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import { ChatCircle, Heart, BookmarkSimple, ShareNetwork, LinkSimple, Check } from '@phosphor-icons/react'
-import { hilosApi } from '../lib/hilosClient'
+import React, { useEffect, useState } from 'react'
+import { ChatCircle, Heart, BookmarkSimple, ShareNetwork, LinkSimple, Check, Trash } from '@phosphor-icons/react'
+import { hilosApi, getIdentity } from '../lib/hilosClient'
 
 interface C { id: number; content: string; parentCommentId: number | null; createdAt: string; author: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
 interface Props {
@@ -9,6 +9,9 @@ interface Props {
   /** En el permalink el hilo ya está debajo: el botón lleva hasta él en vez de
    *  abrir una segunda caja de comentarios. */
   commentsAnchor?: string
+  /** Quién firma la publicación y quién eres tú: define si puedes retirarla. */
+  authorHandle?: string
+  me?: string | null
 }
 
 function ago(iso: string) {
@@ -19,7 +22,7 @@ function ago(iso: string) {
   return `${Math.floor(s / 86400)}d`
 }
 
-const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: liked0, saved: saved0, logged, commentsAnchor }) => {
+const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: liked0, saved: saved0, logged, commentsAnchor, authorHandle, me = null }) => {
   const [liked, setLiked] = useState(!!liked0)
   const [likes, setLikes] = useState(l0)
   const [saved, setSaved] = useState(!!saved0)
@@ -28,6 +31,29 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
   const [list, setList] = useState<C[] | null>(null)
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
+  const [borrado, setBorrado] = useState(false)
+
+  // Firmas como tu cuenta o como el scan activo: puedes retirar lo que lleve
+  // tu firma actual.
+  const [firmo, setFirmo] = useState<string | null>(null)
+  useEffect(() => {
+    const leer = () => setFirmo(getIdentity() || me)
+    leer()
+    window.addEventListener('lc:identity', leer)
+    return () => window.removeEventListener('lc:identity', leer)
+  }, [me])
+  const esMio = !!authorHandle && !!firmo && authorHandle === firmo
+
+  const borrarPost = async () => {
+    if (!confirm('¿Eliminar esta publicación? Dejará de verse en La Charca.')) return
+    setBorrado(true)
+    try {
+      await hilosApi.removePost(postId)
+    } catch {
+      setBorrado(false)
+      flash('No se pudo eliminar la publicación')
+    }
+  }
   const [toast, setToast] = useState<string | null>(null)
 
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2000) }
@@ -97,6 +123,10 @@ const PostActions: React.FC<Props> = ({ postId, likes: l0, comments: c0, liked: 
     setSaved(next); flash(next ? 'Guardado' : 'Quitado de guardados')   // optimista
     try { const r = await hilosApi.save(postId); setSaved(!!r.saved) }   // reconciliar
     catch { setSaved(!next); flash('No se pudo guardar') }               // revertir
+  }
+
+  if (borrado) {
+    return <p className="mt-3 t-caption">Publicación eliminada.</p>
   }
 
   return (

@@ -34,7 +34,7 @@ function tokenize(c: string) {
 
 // Mismo diseño que PostList.astro, pero en React: lo usa el feed para los
 // posts recien publicados (optimistas) sin recargar la pagina.
-const PostCard: React.FC<{ post: PostShape; logged: boolean }> = ({ post: p, logged }) => {
+const PostCard: React.FC<{ post: PostShape; logged: boolean; me?: string | null }> = ({ post: p, logged, me = null }) => {
   const imgs = (p.content || '').split(/\s+/).filter((w) => /^https?:\/\//.test(w) && isMedia(w))
   const body = (p.content || '').split('\n').filter((l) => !imgs.includes(l.trim())).join('\n')
   const name = p.author?.displayName || p.author?.handle || ''
@@ -86,7 +86,7 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean }> = ({ post: p, log
             </div>
           )}
           {!p.pending && (
-            <PostActions postId={p.id} likes={p.likesCount || 0} comments={p.commentsCount || 0} liked={p.liked} saved={p.saved} logged={logged} />
+            <PostActions postId={p.id} likes={p.likesCount || 0} comments={p.commentsCount || 0} liked={p.liked} saved={p.saved} logged={logged} authorHandle={p.author?.handle} me={me} />
           )}
         </div>
       </div>

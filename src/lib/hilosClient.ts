@@ -101,6 +101,7 @@ export async function uploadToHilos(file: File): Promise<string> {
 export const hilosApi = {
   createPost: (content: string, extra: Record<string, any> = {}) =>
     hilosFetch('/posts', { method: 'POST', body: JSON.stringify({ content, ...extra }) }),
+  removePost: (id: number) => hilosFetch(`/posts/${id}`, { method: 'DELETE' }),
   vote: (postId: number, optionIndex: number) =>
     hilosFetch(`/posts/${postId}/vote`, { method: 'POST', body: JSON.stringify({ optionIndex }) }),
   like: (id: number) => hilosFetch(`/posts/${id}/like`, { method: 'POST' }),
