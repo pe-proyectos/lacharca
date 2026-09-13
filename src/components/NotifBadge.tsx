@@ -12,9 +12,17 @@ const NotifBadge: React.FC = () => {
       .catch(() => {})
     tick()
     const id = setInterval(tick, 60000)
+    // Cambiar de identidad cambia la bandeja: hay que volver a contar.
+    const onIdentity = () => { setN(0); tick() }
+    window.addEventListener('lc:identity', onIdentity)
     const clear = () => setN(0)
     window.addEventListener('lc:notifs-read', clear)
-    return () => { alive = false; clearInterval(id); window.removeEventListener('lc:notifs-read', clear) }
+    return () => {
+      alive = false
+      clearInterval(id)
+      window.removeEventListener('lc:notifs-read', clear)
+      window.removeEventListener('lc:identity', onIdentity)
+    }
   }, [])
 
   if (!n) return null

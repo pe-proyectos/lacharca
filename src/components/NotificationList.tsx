@@ -23,6 +23,23 @@ const NotificationList: React.FC<{ initial: N[]; hasMore: boolean }> = ({ initia
   const [hasMore, setHasMore] = useState(more0)
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(false)
+  // El servidor no sabe con qué identidad estás actuando: si es un scan, sus
+  // avisos son otros. Recargamos desde el cliente, que sí lo sabe.
+  const [cargandoIdentidad, setCargandoIdentidad] = useState(true)
+
+  useEffect(() => {
+    let vivo = true
+    hilosApi.notifications(0)
+      .then((d: any) => {
+        if (!vivo) return
+        setItems(d?.items || [])
+        setHasMore(!!d?.hasMore)
+        setPage(0)
+      })
+      .catch(() => {})
+      .finally(() => { if (vivo) setCargandoIdentidad(false) })
+    return () => { vivo = false }
+  }, [])
 
   // Al abrir la vista se dan por vistos: el contador deja de insistir.
   useEffect(() => {
@@ -45,6 +62,22 @@ const NotificationList: React.FC<{ initial: N[]; hasMore: boolean }> = ({ initia
     n.type === 'follow' ? `/@${n.actor?.handle}`
     : n.type === 'message' ? '/?chat=1'
     : n.postId ? `/post/${n.postId}` : '/'
+
+  if (cargandoIdentidad && !items.length) {
+    return (
+      <div className="space-y-4 py-2" aria-hidden>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="flex items-center gap-3.5">
+            <div className="skeleton rounded-full" style={{ width: 44, height: 44 }} />
+            <div className="flex-1 space-y-2">
+              <div className="skeleton h-3.5 rounded" style={{ width: '54%' }} />
+              <div className="skeleton h-3 rounded" style={{ width: '32%' }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   if (!items.length) {
     return (
