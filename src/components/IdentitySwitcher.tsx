@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { CaretUpDown, Check, Users, ArrowSquareOut, BookOpen, ChatCircleDots } from '@phosphor-icons/react'
+import {
+  CaretUpDown, Check, Users, ArrowSquareOut, BookOpen, ChatCircleDots,
+  MagnifyingGlass, SignOut, Sun, Moon, Desktop,
+} from '@phosphor-icons/react'
 import { hilosApi, getIdentity, setIdentity } from '../lib/hilosClient'
 
 interface Page {
@@ -21,7 +24,23 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
   const [abierto, setAbierto] = useState(false)
   const [scans, setScans] = useState<Identidad[] | null>(null)
   const [activo, setActivo] = useState<string | null>(null)
+  const [busca, setBusca] = useState('')
+  const [tema, setTema] = useState<'light' | 'dark' | 'system'>('system')
   const caja = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { setTema(((localStorage.getItem('lc-theme') as any) || 'system')) }, [])
+
+  const cambiarTema = () => {
+    const orden = ['light', 'dark', 'system'] as const
+    const siguiente = orden[(orden.indexOf(tema) + 1) % orden.length]
+    setTema(siguiente)
+    localStorage.setItem('lc-theme', siguiente)
+    const oscuro = siguiente === 'dark' || (siguiente === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = oscuro ? 'dark' : 'light'
+  }
+
+  const IconoTema = tema === 'dark' ? Moon : tema === 'light' ? Sun : Desktop
+  const NOMBRE_TEMA = { light: 'Claro', dark: 'Oscuro', system: 'Automático' }[tema]
 
   useEffect(() => { setActivo(getIdentity()) }, [])
 
@@ -59,10 +78,10 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
     <div ref={caja} className="relative flex-1 min-w-0">
       <button
         type="button"
-        onClick={() => hayScans && setAbierto((o) => !o)}
-        className={`flex items-center gap-3 min-w-0 w-full text-left ${hayScans ? 'cursor-pointer' : 'cursor-default'}`}
-        title={hayScans ? 'Cambiar de identidad' : undefined}
-        aria-haspopup={hayScans ? 'menu' : undefined}
+        onClick={() => setAbierto((o) => !o)}
+        className="flex items-center gap-3 min-w-0 w-full text-left cursor-pointer"
+        title={hayScans ? 'Cambiar de identidad' : 'Opciones de tu cuenta'}
+        aria-haspopup="menu"
         aria-expanded={abierto}
       >
         <Avatar p={mostrado} />
@@ -72,7 +91,7 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
             {actual ? `actuando como @${actual.handle}` : `@${user.handle}`}
           </span>
         </span>
-        {hayScans && <CaretUpDown size={16} className="ink-3 shrink-0 hidden xl:block" />}
+        <CaretUpDown size={16} className="ink-3 shrink-0 hidden xl:block" />
       </button>
 
       {abierto && (
@@ -80,6 +99,18 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
           style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: '0 14px 40px var(--shadow)' }}>
           <p className="eyebrow px-4 pt-3 pb-2">Publicar como</p>
 
+          {(scans?.length || 0) > 5 && (
+            <div className="px-3 pb-2">
+              <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'var(--surface-2)' }}>
+                <MagnifyingGlass size={15} className="ink-3" />
+                <input value={busca} onChange={(e) => setBusca(e.target.value)} autoFocus
+                  placeholder="Buscar scan"
+                  className="flex-1 bg-transparent text-[14px] focus:outline-none" />
+              </div>
+            </div>
+          )}
+
+          <div className="overflow-y-auto" style={{ maxHeight: 'min(46vh, 340px)' }}>
           <button type="button" onClick={() => elegir(null)} className="row w-full flex items-center gap-3 px-4 py-2.5 text-left cursor-pointer">
             <Avatar p={user} size={32} />
             <span className="min-w-0 flex-1">
@@ -89,7 +120,13 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
             {!activo && <Check size={16} weight="bold" style={{ color: 'var(--blue)' }} />}
           </button>
 
-          {(scans || []).map((s) => (
+          {(scans || [])
+            .filter((s) => {
+              const q = busca.trim().toLowerCase()
+              if (!q) return true
+              return `${s.page.displayName || ''} ${s.page.handle}`.toLowerCase().includes(q)
+            })
+            .map((s) => (
             <div key={s.page.handle} className="row flex items-center gap-1 px-2">
               <button type="button" onClick={() => elegir(s.page.handle)} className="flex items-center gap-3 px-2 py-2.5 flex-1 min-w-0 text-left cursor-pointer">
                 <Avatar p={s.page} size={32} />
@@ -105,6 +142,7 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
               </a>
             </div>
           ))}
+          </div>
 
           {activo && (
             <div className="border-t" style={{ borderColor: 'var(--line)' }}>
@@ -120,6 +158,16 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
               </a>
             </div>
           )}
+
+          <div className="border-t" style={{ borderColor: 'var(--line)' }}>
+            <button type="button" onClick={cambiarTema}
+              className="row w-full flex items-center gap-2.5 px-4 py-2.5 t-caption text-left cursor-pointer">
+              <IconoTema size={15} weight={tema === 'system' ? 'regular' : 'fill'} /> Tema: {NOMBRE_TEMA}
+            </button>
+            <a href="/auth/logout" className="row flex items-center gap-2.5 px-4 py-2.5 t-caption">
+              <SignOut size={15} /> Cerrar sesión
+            </a>
+          </div>
         </div>
       )}
     </div>

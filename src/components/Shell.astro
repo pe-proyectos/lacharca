@@ -65,8 +65,6 @@ const items = [
       {viewer ? (
         <div class="nav-item flex items-center gap-3 p-2 rounded-xl">
           <IdentitySwitcher client:load user={{ handle: viewer.user.handle, displayName: viewer.user.displayName, avatarUrl: viewer.user.avatarUrl, type: 'user' }} />
-          <ThemeToggle client:idle compact />
-          <a href="/auth/logout" class="hidden xl:block t-caption hover:opacity-70 shrink-0">Salir</a>
         </div>
       ) : (
         <div class="flex items-center gap-2">
