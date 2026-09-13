@@ -6,7 +6,13 @@ interface Page {
   handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null
   bio?: string | null; followersCount?: number; followingCount?: number; postsCount?: number
   viewerFollows?: boolean
+  /** Si es una obra, el scan del que cuelga: define su ruta. */
+  parentHandle?: string | null
 }
+
+// Una obra vive dentro de su scan; el resto de perfiles, en la raíz.
+const rutaDe = (p: { handle: string; type?: string; parentHandle?: string | null }) =>
+  p.type === 'manga' && p.parentHandle ? `/@${p.parentHandle}/${p.handle}` : `/@${p.handle}`
 
 // Cache entre montajes: pasar el raton por el mismo perfil no repite la llamada.
 const cache = new Map<string, Page | null>()
@@ -92,7 +98,7 @@ const UserHoverCard: React.FC<{ me?: string | null }> = ({ me = null }) => {
       ) : (
         <>
           <div className="flex items-start gap-3">
-            <a href={`/@${page.handle}`} className="shrink-0">
+            <a href={rutaDe(page)} className="shrink-0">
               {page.avatarUrl
                 ? <img src={page.avatarUrl} alt="" style={{ width: 48, height: 48 }} className={`object-cover ${page.type === 'user' ? 'rounded-full' : 'rounded-xl'}`} />
                 : <span style={{ width: 48, height: 48, background: 'var(--soft)', color: 'var(--blue)' }}
@@ -101,7 +107,7 @@ const UserHoverCard: React.FC<{ me?: string | null }> = ({ me = null }) => {
                   </span>}
             </a>
             <div className="min-w-0">
-              <a href={`/@${page.handle}`} className="block text-[15px] font-semibold truncate hover:opacity-70">{page.displayName || page.handle}</a>
+              <a href={rutaDe(page)} className="block text-[15px] font-semibold truncate hover:opacity-70">{page.displayName || page.handle}</a>
               <span className="block t-caption truncate">@{page.handle}</span>
               {page.type === 'scan' && <span className="chip is-static mt-1.5">Scan</span>}
               {page.type === 'manga' && <span className="chip is-static mt-1.5">Obra</span>}

@@ -1,0 +1,88 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import Shell from '../../components/Shell.astro'
+import PostList from '../../components/PostList.astro'
+import FollowButton from '../../components/FollowButton'
+import SortBar from '../../components/SortBar.astro'
+import { hilos } from '../../lib/hilos'
+import { getViewer } from '../../lib/session'
+import { num } from '../../lib/format'
+
+const raw = Astro.params.handle || ''
+if (!raw.startsWith('@')) return Astro.redirect('/')
+const scanHandle = raw.slice(1).toLowerCase()
+const workHandle = (Astro.params.work || '').toLowerCase()
+
+const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
+const acting = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
+
+const page = await hilos(`/pages/${encodeURIComponent(workHandle)}`, acting).catch(() => null)
+if (!page) return Astro.redirect(`/@${scanHandle}`)
+
+// La obra cuelga de su scan: si la ruta no coincide, mandamos a la buena.
+if (page.parentHandle && page.parentHandle !== scanHandle) {
+  return Astro.redirect(`/@${page.parentHandle}/${page.handle}`, 301)
+}
+
+const SORTS = ['reciente', 'antiguo', 'popular', 'comentado', 'menos_popular', 'menos_comentado']
+const orden = SORTS.includes(Astro.url.searchParams.get('orden') || '') ? Astro.url.searchParams.get('orden')! : 'reciente'
+const wall = await hilos(`/pages/${encodeURIComponent(workHandle)}/posts?limit=25&sort=${orden}&replies=1`, acting).catch(() => null)
+const posts = wall?.items || []
+
+// Enlace de vuelta al lector, resuelto por CapibaraTraductor.
+let readerUrl: string | null = null
+if (page.externalId?.startsWith('manga:')) {
+  try {
+    const res = await fetch(`https://capibaratraductor.com/api/hilos/work-url?ref=${encodeURIComponent(page.externalId)}`, {
+      signal: AbortSignal.timeout(4000),
+    })
+    const json: any = await res.json()
+    readerUrl = json?.data?.url || null
+  } catch {}
+}
+
+const name = page.displayName || page.handle
+const desc = page.bio || `Capítulos y comentarios de ${name} en La Charca.`
+---
+<Layout title={`${name} — La Charca`} description={desc} image={page.avatarUrl || '/logo.png'}>
+  <Shell viewer={viewer} active="none">
+    <header class="pb-7 mb-2" style="border-bottom:1px solid var(--line)">
+      <a href={`/@${scanHandle}`} class="t-caption inline-flex items-center gap-1.5 hover:opacity-70 transition mb-4">
+        <svg width="15" height="15" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
+        {page.parentDisplayName || `@${scanHandle}`}
+      </a>
+
+      <div class="flex items-start gap-4 sm:gap-5">
+        {page.avatarUrl
+          ? <img src={page.avatarUrl} alt={name} width="88" height="88" class="avatar-xl object-cover shrink-0 rounded-2xl" />
+          : <span class="avatar-xl grid place-items-center shrink-0 text-2xl font-semibold rounded-2xl" style="background:var(--soft);color:var(--blue)">{name[0]?.toUpperCase()}</span>}
+
+        <div class="flex-1 min-w-0 pt-1">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <h1 class="t-title break-words min-w-0">{name}</h1>
+            <span class="chip is-static">Obra</span>
+          </div>
+          {page.bio && <p class="t-body ink-2 mt-3 whitespace-pre-wrap max-w-xl">{page.bio}</p>}
+
+          <div class="flex items-center flex-wrap gap-x-5 gap-y-1.5 mt-4 text-[14px]">
+            <span><b class="font-semibold tabular-nums">{num(page.postsCount)}</b> <span class="ink-2">{Number(page.postsCount || 0) === 1 ? 'capítulo' : 'capítulos'}</span></span>
+            <span><b class="font-semibold tabular-nums">{num(page.followersCount)}</b> <span class="ink-2">{Number(page.followersCount || 0) === 1 ? 'seguidor' : 'seguidores'}</span></span>
+          </div>
+
+          <div class="mt-4 flex items-center gap-2.5 flex-wrap">
+            <FollowButton client:load handle={page.handle} initialFollowing={page.viewerFollows} logged={!!viewer} followers={page.followersCount || 0} />
+            {readerUrl && (
+              <a href={readerUrl} target="_blank" rel="noopener" class="chip inline-flex items-center gap-2">
+                <svg width="15" height="15" viewBox="0 0 256 256" fill="currentColor"><path d="M208,32H80A16,16,0,0,0,64,48V64H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V192h16a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM176,208H48V80H176Zm32-32H192V80a16,16,0,0,0-16-16H80V48H208Z"/></svg>
+                Leer en CapibaraTraductor
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    {posts.length > 1 && <SortBar current={orden} />}
+    <PostList posts={posts} viewer={viewer} empty="Todavía no hay capítulos publicados aquí." />
+  </Shell>
+</Layout>

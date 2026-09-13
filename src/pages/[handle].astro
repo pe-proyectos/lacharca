@@ -25,6 +25,11 @@ const SORTS = ['reciente', 'antiguo', 'popular', 'comentado', 'menos_popular', '
 const orden = SORTS.includes(Astro.url.searchParams.get('orden') || '') ? Astro.url.searchParams.get('orden')! : 'reciente'
 const wall = await hilos(`/pages/${encodeURIComponent(handle)}/posts?limit=25&sort=${orden}&replies=1`, actingPage).catch(() => null)
 const posts = wall?.items || []
+// Una obra no tiene perfil suelto: vive dentro de su scan.
+if (page.type === 'manga' && page.parentHandle) {
+  return Astro.redirect(`/@${page.parentHandle}/${page.handle}`, 301)
+}
+
 const isScan = page.type === 'scan' || page.type === 'manga'
 const isMe = viewer?.user?.handle === page.handle
 const name = page.displayName || page.handle

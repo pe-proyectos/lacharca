@@ -193,18 +193,20 @@ const app = new Elysia()
 
   // BFF: emite un page token de CORTA VIDA para que el navegador hable directo
   // con hilos.rest. Requiere sesion valida (cookie httpOnly -> Authorization).
-  .post('/auth/token', async ({ request }: any) => {
+  .post('/auth/token', async ({ request, body }: any) => {
     const user = await sessionUser(sessionToken(request))
     if (!user) return { status: false, message: 'unauthenticated' }
+    const comoPage = body?.as ? String(body.as).toLowerCase() : null
     try {
       const r = await hilos.pageTokens.create({
         externalId: `lacharca:user:${user.id}`,
         ttl: 900,
         scopes: ['read', 'post:write', 'comment:write', 'react', 'follow'],
         origin: process.env.PUBLIC_ORIGIN || 'https://lacharca.com',
+        ...(comoPage ? { onBehalfOf: comoPage } : {}),
       } as any)
       if (!r?.token) return { status: false, message: 'token_failed' }
-      return { status: true, data: { token: r.token, expiresIn: r.expiresIn, hilosBase: process.env.HILOS_BASE || 'https://hilos.rest' } }
+      return { status: true, data: { token: r.token, expiresIn: r.expiresIn, hilosBase: process.env.HILOS_BASE || 'https://hilos.rest', as: comoPage } }
     } catch (e: any) { return { status: false, message: e?.code || 'token_failed' } }
   })
 
@@ -277,6 +279,49 @@ const app = new Elysia()
         capibaraUserId: capibara ? Number(capibara.externalUserId) : null,
       },
     }
+  })
+
+  // Equipo de un scan: listar, añadir y quitar. Las reglas (solo un owner
+  // reparte papeles, nunca sin owner) las impone el motor.
+  .get('/pages/:handle/members', async ({ request, params }: any) => {
+    const user = await sessionUser(sessionToken(request))
+    if (!user) return { status: false, message: 'unauthenticated' }
+    try {
+      const d = await (asUser(user.id) as any).members.list(String(params.handle))
+      return { status: true, data: d || [] }
+    } catch (e: any) { return { status: false, message: e?.code || e?.message || 'error' } }
+  })
+
+  .post('/pages/:handle/members', async ({ request, params, body }: any) => {
+    const user = await sessionUser(sessionToken(request))
+    if (!user) return { status: false, message: 'unauthenticated' }
+    try {
+      const d = await (asUser(user.id) as any).members.add(
+        String(params.handle),
+        String(body.handle || '').toLowerCase().replace(/^@/, ''),
+        body.role === 'owner' ? 'owner' : 'trusted',
+      )
+      return { status: true, data: d }
+    } catch (e: any) { return { status: false, message: e?.code || e?.message || 'error' } }
+  }, { body: t.Object({ handle: t.String(), role: t.Optional(t.String()) }) })
+
+  .delete('/pages/:handle/members/:member', async ({ request, params }: any) => {
+    const user = await sessionUser(sessionToken(request))
+    if (!user) return { status: false, message: 'unauthenticated' }
+    try {
+      const d = await (asUser(user.id) as any).members.remove(String(params.handle), String(params.member))
+      return { status: true, data: d }
+    } catch (e: any) { return { status: false, message: e?.code || e?.message || 'error' } }
+  })
+
+  // Identidades con las que puedes actuar: tú y los scans de tu equipo.
+  .get('/me/identities', async ({ request }: any) => {
+    const user = await sessionUser(sessionToken(request))
+    if (!user) return { status: false, message: 'unauthenticated' }
+    try {
+      const pages = await (asUser(user.id) as any).members.mine()
+      return { status: true, data: pages || [] }
+    } catch { return { status: true, data: [] } }
   })
 
   // Avisos del usuario (la vista los pinta en el servidor).

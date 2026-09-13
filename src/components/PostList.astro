@@ -53,7 +53,7 @@ function tokenize(c) {
                 </p>
               )}
               {p.wall && p.wall.type === 'manga' && (
-                <a href={`/@${p.wall.handle}`} data-hover-handle={p.wall.handle}
+                <a href={p.wall.parentHandle ? `/@${p.wall.parentHandle}/${p.wall.handle}` : `/@${p.wall.handle}`} data-hover-handle={p.wall.handle}
                   class="mt-2.5 flex items-center gap-3 p-2.5 rounded-2xl transition hover:opacity-85"
                   style="border:1px solid var(--line);background:var(--surface)">
                   {p.wall.avatarUrl

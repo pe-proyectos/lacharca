@@ -4,6 +4,7 @@
 import ChatDock from './ChatDock'
 import NotifBadge from './NotifBadge'
 import ThemeToggle from './ThemeToggle'
+import IdentitySwitcher from './IdentitySwitcher'
 import NavProgress from './NavProgress'
 import Lightbox from './Lightbox'
 import UserHoverCard from './UserHoverCard'
@@ -60,15 +61,7 @@ const items = [
     <div class="mt-auto">
       {viewer ? (
         <div class="nav-item flex items-center gap-3 p-2 rounded-xl">
-          <a href={`/@${viewer.user.handle}`} class="flex items-center gap-3 min-w-0 flex-1">
-            {viewer.user.avatarUrl
-              ? <img src={viewer.user.avatarUrl} alt="" class="w-9 h-9 rounded-full object-cover shrink-0" />
-              : <span class="grid place-items-center w-9 h-9 rounded-full text-[14px] font-semibold shrink-0" style="background:var(--soft);color:var(--blue)">{(viewer.user.displayName || viewer.user.handle)[0]?.toUpperCase()}</span>}
-            <span class="hidden xl:block min-w-0">
-              <span class="block text-[15px] font-medium truncate">{viewer.user.displayName || viewer.user.handle}</span>
-              <span class="block t-caption truncate">@{viewer.user.handle}</span>
-            </span>
-          </a>
+          <IdentitySwitcher client:load user={{ handle: viewer.user.handle, displayName: viewer.user.displayName, avatarUrl: viewer.user.avatarUrl, type: 'user' }} />
           <ThemeToggle client:idle compact />
           <a href="/auth/logout" class="hidden xl:block t-caption hover:opacity-70 shrink-0">Salir</a>
         </div>

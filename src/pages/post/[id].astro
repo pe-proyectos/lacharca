@@ -44,7 +44,7 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
       {body && <p class="text-[19px] leading-[1.55] whitespace-pre-wrap break-words">{body}</p>}
 
       {post.wall && post.wall.type === 'manga' && (
-        <a href={`/@${post.wall.handle}`} data-hover-handle={post.wall.handle}
+        <a href={post.wall.parentHandle ? `/@${post.wall.parentHandle}/${post.wall.handle}` : `/@${post.wall.handle}`} data-hover-handle={post.wall.handle}
           class="mt-4 flex items-center gap-3 p-3 rounded-2xl transition hover:opacity-85 max-w-md"
           style="border:1px solid var(--line);background:var(--surface)">
           {post.wall.avatarUrl

@@ -5,9 +5,35 @@ let token: string | null = null
 let expMs = 0
 let inflight: Promise<string | null> | null = null
 let base = 'https://hilos.rest'
+// Con qué identidad se actúa: null es tu propia cuenta, un handle es un scan
+// del que formas parte. Vive en el navegador porque es una preferencia de uso.
+let identidad: string | null = null
+
+export function getIdentity(): string | null {
+  if (identidad === null && typeof localStorage !== 'undefined') {
+    identidad = localStorage.getItem('lc-identity') || null
+  }
+  return identidad
+}
+
+export function setIdentity(handle: string | null) {
+  identidad = handle
+  try {
+    if (handle) localStorage.setItem('lc-identity', handle)
+    else localStorage.removeItem('lc-identity')
+  } catch {}
+  clearToken() // el token viejo era de la identidad anterior
+  window.dispatchEvent(new CustomEvent('lc:identity', { detail: { handle } }))
+}
 
 async function fetchToken(): Promise<string | null> {
-  const res = await fetch(`${API}/auth/token`, { method: 'POST', credentials: 'include' })
+  const como = getIdentity()
+  const res = await fetch(`${API}/auth/token`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(como ? { as: como } : {}),
+  })
   const json: any = await res.json().catch(() => ({}))
   if (!json?.status || !json?.data?.token) return null
   token = json.data.token
@@ -74,6 +100,11 @@ export const hilosApi = {
   messages: (id: number, page = 0) => hilosFetch(`/conversations/${id}/messages?page=${page}&limit=40`),
   send: (handle: string, content: string) => hilosFetch('/messages', { method: 'POST', body: JSON.stringify({ handle, content }) }),
   unread: () => hilosFetch('/messages/unread'),
+  identities: async () => {
+    const res = await fetch(`${API}/me/identities`, { credentials: 'include' })
+    const json: any = await res.json().catch(() => ({}))
+    return json?.status ? json.data : []
+  },
   notifications: (page = 0) => hilosFetch(`/notifications?page=${page}&limit=20`),
   notificationsUnread: () => hilosFetch('/notifications/unread'),
   readNotifications: (id?: number) => hilosFetch('/notifications/read', { method: 'POST', body: JSON.stringify(id ? { id } : {}) }),

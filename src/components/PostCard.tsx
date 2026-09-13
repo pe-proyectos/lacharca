@@ -2,7 +2,7 @@ import React from 'react'
 import PostActions from './PostActions'
 import { timeAgo } from '../lib/time'
 
-export interface WallPage { handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null }
+export interface WallPage { handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null; parentHandle?: string | null }
 
 export interface PostShape {
   id: number
@@ -53,7 +53,7 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean }> = ({ post: p, log
           </div>
           {body.trim() && <p className="mt-1.5 t-body whitespace-pre-wrap break-words">{tokenize(body)}</p>}
           {p.wall && p.wall.type === 'manga' && (
-            <a href={`/@${p.wall.handle}`} data-hover-handle={p.wall.handle}
+            <a href={p.wall.parentHandle ? `/@${p.wall.parentHandle}/${p.wall.handle}` : `/@${p.wall.handle}`} data-hover-handle={p.wall.handle}
               className="mt-2.5 flex items-center gap-3 p-2.5 rounded-2xl transition hover:opacity-85"
               style={{ border: '1px solid var(--line)', background: 'var(--surface)' }}>
               {p.wall.avatarUrl
