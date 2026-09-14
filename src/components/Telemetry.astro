@@ -1,0 +1,60 @@
+---
+// Emisor de telemetria. Va en el layout, se ejecuta en cada carga de pagina.
+// Todo lo que identifica al visitante lo calcula el servidor a partir de la
+// peticion: aqui no se guarda ni se lee ninguna cookie.
+---
+<script is:inline>
+  (function () {
+    // La Charca navega con ClientRouter, asi que este script solo corre en la
+    // primera carga. El resto de paginas llegan por el evento astro:page-load.
+    if (window.__lcTelemetria) return
+    window.__lcTelemetria = true
+    if (navigator.webdriver) return
+
+    // El identificador de sesion vive en sessionStorage: muere al cerrar la
+    // pestaña, que es justo lo que queremos medir como "una visita".
+    var sid = ''
+    try {
+      sid = sessionStorage.getItem('lc-sid') || ''
+      if (!sid) {
+        sid = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random())).replace(/-/g, '').slice(0, 32)
+        sessionStorage.setItem('lc-sid', sid)
+      }
+    } catch (e) { /* modo privado: se envia sin sid */ }
+
+    function enviar(ruta, datos) {
+      var cuerpo = JSON.stringify(datos)
+      try {
+        // sendBeacon sobrevive a que el usuario cambie de pagina.
+        if (navigator.sendBeacon && navigator.sendBeacon(ruta, new Blob([cuerpo], { type: 'application/json' }))) return
+      } catch (e) { /* cae al fetch */ }
+      fetch(ruta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: cuerpo, keepalive: true, credentials: 'same-origin' }).catch(function () {})
+    }
+
+    var ruta = location.pathname + location.search
+    var anterior = ''
+
+    function vista() {
+      ruta = location.pathname + location.search
+      // Con view transitions una misma ruta puede reanunciarse; no la contamos dos veces seguidas.
+      if (ruta === anterior) return
+      anterior = ruta
+      enviar('/api/t/hit', { path: ruta, ref: document.referrer || undefined, sid: sid })
+    }
+
+    // Latido mientras la pestaña este visible. Sin esto, alguien leyendo un
+    // hilo largo desapareceria del recuento a los cinco minutos.
+    var timer = null
+    function latir() { if (!document.hidden) enviar('/api/t/ping', { path: ruta, sid: sid }) }
+    function arrancar() { if (!timer) timer = setInterval(latir, 45000) }
+    function parar() { if (timer) { clearInterval(timer); timer = null } }
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { parar() } else { latir(); arrancar() }
+    })
+    document.addEventListener('astro:page-load', vista)
+
+    vista()
+    arrancar()
+  })()
+</script>

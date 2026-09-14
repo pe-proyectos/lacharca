@@ -53,3 +53,47 @@ model Session {
   @@index([userId])
   @@map("session")
 }
+
+// --- Telemetria propia ---
+// Sin cookies ni identificadores persistentes: el visitante se identifica con
+// un hash que incorpora la fecha, asi que caduca solo cada 24 horas.
+
+model Visit {
+  id        Int      @id @default(autoincrement())
+  visitorId String   @db.VarChar(32)
+  sessionId String   @db.VarChar(32)
+  userId    Int?
+  path      String   @db.VarChar(300)
+  refHost   String?  @db.VarChar(120)
+  country   String?  @db.VarChar(2)
+  device    String   @db.VarChar(12)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([createdAt])
+  @@index([visitorId, createdAt])
+  @@map("visit")
+}
+
+// Quien esta ahora mismo en la pagina. Una fila por visitante, se pisa.
+model Presence {
+  visitorId String   @id @db.VarChar(32)
+  userId    Int?
+  handle    String?  @db.VarChar(40)
+  path      String   @db.VarChar(300)
+  device    String   @db.VarChar(12)
+  lastSeen  DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([lastSeen])
+  @@map("presence")
+}
+
+// Resumen por dia, para conservar el historico cuando se poden las visitas.
+model DailyStat {
+  day       DateTime @id @db.Date
+  pageviews Int      @default(0)
+  visitors  Int      @default(0)
+  sessions  Int      @default(0)
+  signedIn  Int      @default(0)
+
+  @@map("daily_stat")
+}

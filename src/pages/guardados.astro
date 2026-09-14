@@ -6,7 +6,7 @@ import { getViewer } from '../lib/session'
 import { hilos } from '../lib/hilos'
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 if (!viewer) return Astro.redirect('/auth/login')
-const actingPage = `external:lacharca:user:${viewer.id}`
+const actingPage = `external:lacharca:user:${viewer.user.id}`
 let posts: any[] = []
 try { posts = (await hilos('/saved?limit=30', actingPage))?.items || [] } catch {}
 ---

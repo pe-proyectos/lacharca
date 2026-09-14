@@ -16,7 +16,7 @@ const post = await hilos(`/posts/${id}`, acting).catch(() => null)
 if (!post) return Astro.redirect('/?post=no_encontrado')
 const comments = (await hilos(`/posts/${id}/comments`, acting).catch(() => [])) || []
 
-const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.includes('r2.hilos.rest')
+import { isMedia } from '../../lib/media'
 const imgs = (post.content || '').split(/\s+/).filter((w: string) => /^https?:\/\//.test(w) && isMedia(w))
 const body = (post.content || '').split('\n').filter((l: string) => !imgs.includes(l.trim())).join('\n')
 const authorName = post.author?.displayName || post.author?.handle || 'Alguien'

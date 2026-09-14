@@ -2,6 +2,7 @@ import React from 'react'
 import PostActions from './PostActions'
 import { Poll, Reveal, Countdown, type PollData, type RevealData, type CountdownData } from './PostExtras'
 import { timeAgo } from '../lib/time'
+import { isMedia } from '../lib/media'
 
 export interface WallPage { handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null; parentHandle?: string | null }
 
@@ -21,7 +22,6 @@ export interface PostShape {
   countdown?: CountdownData | null
 }
 
-const isMedia = (u: string) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.includes('r2.hilos.rest')
 
 function tokenize(c: string) {
   return (c || '').split(/(\s+)/).map((w, i) => {

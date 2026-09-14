@@ -3,7 +3,7 @@ import PostActions from './PostActions'
 import { Poll, Reveal, Countdown } from './PostExtras'
 import { timeAgo } from '../lib/hilos'
 const { posts = [], viewer, empty = 'Aún no hay nada por aquí.' } = Astro.props
-const isMedia = (u) => /\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(u) || u.includes('r2.hilos.rest')
+import { isMedia } from '../lib/media'
 
 // Separa el texto de las imágenes de un comentario: en la vista previa se ve
 // una miniatura, no un enlace kilométrico.

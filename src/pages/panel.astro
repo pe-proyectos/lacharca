@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro'
+import Shell from '../components/Shell.astro'
+import { getViewer } from '../lib/session'
+import TelemetryPanel from '../components/TelemetryPanel'
+
+const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
+if (!viewer) return Astro.redirect('/auth/login')
+
+// La lista de quien puede mirar vive en el API; aqui solo evitamos pintar el
+// panel a cualquiera. La comprobacion que cuenta es la del servidor.
+const admins = (import.meta.env.TELEMETRY_ADMINS || 'shoko').split(',').map((s: string) => s.trim().toLowerCase())
+if (!admins.includes(String(viewer.user.handle).toLowerCase())) return Astro.redirect('/')
+---
+<Layout title="Panel — La Charca" noindex={true}>
+  <Shell viewer={viewer} active="panel" aside="none" wide={true}>
+    <h1 class="t-title mb-1">Panel</h1>
+    <p class="t-sub mb-8">Quién está usando La Charca. Sin cookies de seguimiento ni servicios de terceros.</p>
+    <TelemetryPanel client:load />
+  </Shell>
+</Layout>

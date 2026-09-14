@@ -2,6 +2,7 @@ import { PaperPlaneTilt, ImageSquare, X, Trash } from '@phosphor-icons/react'
 import React, { useState } from 'react'
 import { hilosApi, uploadToHilos, getIdentity, getIdentityPage } from '../lib/hilosClient'
 import MentionAutocomplete from './MentionAutocomplete'
+import { isMedia } from '../lib/media'
 
 interface C { id: number; content: string; parentCommentId: number | null; createdAt: string; author: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
 interface Props { postId: number; initial: C[]; logged: boolean; total?: number; me?: string | null }
@@ -26,7 +27,7 @@ function tokenize(text: string) {
 
 function splitMedia(content: string) {
   const lines = (content || '').split('\n')
-  const imgs = lines.filter((l) => /^https?:\/\/\S+$/.test(l.trim()) && (/\.(png|jpe?g|gif|webp)(\?.*)?$/i.test(l) || l.includes('r2.hilos.rest')))
+  const imgs = lines.filter((l) => /^https?:\/\/\S+$/.test(l.trim()) && (isMedia(l)))
   const text = lines.filter((l) => !imgs.includes(l)).join('\n').trim()
   return { text, imgs: imgs.map((i) => i.trim()) }
 }

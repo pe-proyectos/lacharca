@@ -3,6 +3,7 @@ import { cors } from '@elysiajs/cors'
 import { randomBytes } from 'crypto'
 import { prisma } from './lib/prisma'
 import { createHilos } from './lib/hilos-sdk'
+import { esBot, idVisitante, dispositivo, pais, origenExterno, rutaNormalizada } from './lib/telemetry'
 
 const CAPI_API = process.env.CAPI_API_URL || 'https://capibaratraductor.com'
 const SSO_SECRET = process.env.SSO_SECRET || ''
@@ -89,6 +90,59 @@ async function fetchDirectory(qs: URLSearchParams, userId?: number) {
   const json: any = await res.json().catch(() => ({}))
   return json?.data ?? { items: [], hasMore: false }
 }
+
+
+// ---- Telemetria: apoyo ----
+const VENTANA_VIVA = 5 * 60_000
+const ADMINS = (process.env.TELEMETRY_ADMINS || 'shoko').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+
+async function esAdmin(request: Request): Promise<boolean> {
+  if (process.env.ADMIN_TOKEN && request.headers.get('x-admin-token') === process.env.ADMIN_TOKEN) return true
+  const user = await sessionUser(sessionToken(request))
+  return !!user && ADMINS.includes(user.handle.toLowerCase())
+}
+
+// Tope por visitante: 60 paginas vistas por minuto. Evita que un bucle o un
+// script ajeno inflen las cifras.
+const golpes = new Map<string, { n: number; hasta: number }>()
+function pasaLimite(id: string): boolean {
+  const ahora = Date.now()
+  const e = golpes.get(id)
+  if (!e || e.hasta < ahora) { golpes.set(id, { n: 1, hasta: ahora + 60_000 }); return true }
+  if (e.n >= 60) return false
+  e.n++
+  return true
+}
+
+// Mantenimiento: resume el dia anterior, poda presencias muertas y visitas
+// viejas. El resumen diario sobrevive a la poda, asi que el historico no se
+// pierde aunque el detalle si.
+async function mantenimiento() {
+  try {
+    await prisma.presence.deleteMany({ where: { lastSeen: { lt: new Date(Date.now() - 30 * 60_000) } } })
+    for (const [k, v] of golpes) if (v.hasta < Date.now()) golpes.delete(k)
+
+    const filas: any[] = await prisma.$queryRaw`
+      SELECT date_trunc('day', "createdAt")::date AS day,
+             count(*)::int AS pageviews,
+             count(DISTINCT "visitorId")::int AS visitors,
+             count(DISTINCT "sessionId")::int AS sessions,
+             count(DISTINCT "userId")::int AS "signedIn"
+      FROM visit
+      WHERE "createdAt" >= now() - interval '3 days' AND "createdAt" < date_trunc('day', now())
+      GROUP BY 1`
+    for (const f of filas) {
+      await prisma.dailyStat.upsert({
+        where: { day: f.day },
+        create: { day: f.day, pageviews: f.pageviews, visitors: f.visitors, sessions: f.sessions, signedIn: f.signedIn },
+        update: { pageviews: f.pageviews, visitors: f.visitors, sessions: f.sessions, signedIn: f.signedIn },
+      })
+    }
+    await prisma.visit.deleteMany({ where: { createdAt: { lt: new Date(Date.now() - 90 * 86400_000) } } })
+  } catch (e) { console.error('mantenimiento telemetria', e) }
+}
+setInterval(mantenimiento, 10 * 60_000)
+setTimeout(mantenimiento, 30_000)
 
 const app = new Elysia()
   .use(cors({ origin: true, credentials: true }))
@@ -394,6 +448,137 @@ const app = new Elysia()
       const c = await asUser(user.id).comments.create(Number(params.id), { content, parentCommentId: Number(params.commentId) })
       return { status: true, data: c }
     } catch (e: any) { return { status: false, message: e?.code || 'error' } }
+  })
+
+
+  // ---- Telemetria ----
+  // Quien puede ver los numeros. Por defecto solo shoko; se amplia con env.
+  // (definido junto a las rutas para tenerlo a la vista)
+
+  // Pulso de pagina vista. Lo envia el navegador, nunca el servidor.
+  .post('/t/hit', async ({ request, body }: any) => {
+    const ua = request.headers.get('user-agent') || ''
+    if (esBot(ua)) return { status: true, data: { ignorado: 'bot' } }
+
+    const visitorId = idVisitante(request, ua)
+    if (!pasaLimite(visitorId)) return { status: true, data: { ignorado: 'limite' } }
+
+    const path = rutaNormalizada(String(body?.path || '/'))
+    const sessionId = String(body?.sid || '').slice(0, 32) || visitorId.slice(0, 32)
+    const user = await sessionUser(sessionToken(request))
+
+    try {
+      await prisma.$transaction([
+        prisma.visit.create({
+          data: {
+            visitorId, sessionId, userId: user?.id ?? null, path,
+            refHost: origenExterno(body?.ref, 'lacharca.com'),
+            country: pais(request), device: dispositivo(ua),
+          },
+        }),
+        prisma.presence.upsert({
+          where: { visitorId },
+          create: { visitorId, userId: user?.id ?? null, handle: user?.handle ?? null, path, device: dispositivo(ua) },
+          update: { userId: user?.id ?? null, handle: user?.handle ?? null, path, lastSeen: new Date() },
+        }),
+      ])
+    } catch { /* la telemetria nunca puede romper una visita */ }
+    return { status: true }
+  }, { body: t.Object({ path: t.String(), ref: t.Optional(t.String()), sid: t.Optional(t.String()) }) })
+
+  // Latido: la pestaña sigue abierta y visible. No cuenta como pagina vista.
+  .post('/t/ping', async ({ request, body }: any) => {
+    const ua = request.headers.get('user-agent') || ''
+    if (esBot(ua)) return { status: true }
+    const visitorId = idVisitante(request, ua)
+    const path = rutaNormalizada(String(body?.path || '/'))
+    const user = await sessionUser(sessionToken(request))
+    try {
+      await prisma.presence.upsert({
+        where: { visitorId },
+        create: { visitorId, userId: user?.id ?? null, handle: user?.handle ?? null, path, device: dispositivo(ua) },
+        update: { userId: user?.id ?? null, handle: user?.handle ?? null, path, lastSeen: new Date() },
+      })
+    } catch { /* idem */ }
+    return { status: true }
+  }, { body: t.Object({ path: t.String(), sid: t.Optional(t.String()) }) })
+
+  // Gente dentro ahora mismo (ventana de 5 minutos).
+  .get('/t/live', async ({ request }: any) => {
+    if (!(await esAdmin(request))) return { status: false, message: 'forbidden' }
+    const desde = new Date(Date.now() - VENTANA_VIVA)
+    const filas = await prisma.presence.findMany({
+      where: { lastSeen: { gte: desde } },
+      select: { path: true, handle: true, userId: true, device: true, lastSeen: true },
+      orderBy: { lastSeen: 'desc' },
+      take: 500,
+    })
+    const porRuta = new Map<string, number>()
+    for (const f of filas) porRuta.set(f.path, (porRuta.get(f.path) || 0) + 1)
+    return {
+      status: true,
+      data: {
+        online: filas.length,
+        identificados: filas.filter((f: any) => f.userId).length,
+        anonimos: filas.filter((f: any) => !f.userId).length,
+        movil: filas.filter((f: any) => f.device === 'movil').length,
+        rutas: [...porRuta.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([path, n]) => ({ path, n })),
+        usuarios: [...new Set(filas.filter((f: any) => f.handle).map((f: any) => f.handle))].slice(0, 30),
+      },
+    }
+  })
+
+  // Resumen historico. Combina el detalle reciente con el resumen por dia.
+  .get('/t/stats', async ({ request, query }: any) => {
+    if (!(await esAdmin(request))) return { status: false, message: 'forbidden' }
+    const dias = Math.min(90, Math.max(1, Number(query.days) || 30))
+    const desde = new Date(Date.now() - dias * 86400_000)
+
+    const [serie, totales, rutas, origenes, dispositivos, paises, recurrencia] = await Promise.all([
+      prisma.$queryRaw`
+        SELECT date_trunc('day', "createdAt")::date AS dia,
+               count(*)::int AS pageviews,
+               count(DISTINCT "visitorId")::int AS visitantes,
+               count(DISTINCT "sessionId")::int AS sesiones,
+               count(DISTINCT "userId")::int AS identificados
+        FROM visit WHERE "createdAt" >= ${desde}
+        GROUP BY 1 ORDER BY 1`,
+      prisma.$queryRaw`
+        SELECT count(*)::int AS pageviews,
+               count(DISTINCT "visitorId")::int AS visitantes,
+               count(DISTINCT "sessionId")::int AS sesiones,
+               count(DISTINCT "userId")::int AS identificados
+        FROM visit WHERE "createdAt" >= ${desde}`,
+      prisma.$queryRaw`
+        SELECT path, count(*)::int AS n, count(DISTINCT "visitorId")::int AS visitantes
+        FROM visit WHERE "createdAt" >= ${desde}
+        GROUP BY 1 ORDER BY 2 DESC LIMIT 20`,
+      prisma.$queryRaw`
+        SELECT "refHost" AS host, count(*)::int AS n
+        FROM visit WHERE "createdAt" >= ${desde} AND "refHost" IS NOT NULL
+        GROUP BY 1 ORDER BY 2 DESC LIMIT 15`,
+      prisma.$queryRaw`
+        SELECT device, count(DISTINCT "visitorId")::int AS n
+        FROM visit WHERE "createdAt" >= ${desde} GROUP BY 1 ORDER BY 2 DESC`,
+      prisma.$queryRaw`
+        SELECT country, count(DISTINCT "visitorId")::int AS n
+        FROM visit WHERE "createdAt" >= ${desde} AND country IS NOT NULL
+        GROUP BY 1 ORDER BY 2 DESC LIMIT 12`,
+      // Cuantas paginas ve cada visitante: un solo golpe suele ser trafico
+      // de paso; varias paginas es alguien usando la red de verdad.
+      prisma.$queryRaw`
+        SELECT CASE WHEN n = 1 THEN '1 pagina'
+                    WHEN n <= 3 THEN '2-3 paginas'
+                    WHEN n <= 10 THEN '4-10 paginas'
+                    ELSE 'mas de 10' END AS tramo,
+               count(*)::int AS visitantes
+        FROM (SELECT "visitorId", count(*) AS n FROM visit
+              WHERE "createdAt" >= ${desde} GROUP BY 1) q
+        GROUP BY 1`,
+    ])
+
+    const historico = await prisma.dailyStat.findMany({ orderBy: { day: 'asc' }, take: 400 })
+    return { status: true, data: { dias, serie, totales: (totales as any[])[0] || {}, rutas, origenes, dispositivos, paises, recurrencia, historico } }
   })
 
   .onError(({ error, set }) => { set.status = 400; return { status: false, message: (error as any)?.message || 'error' } })
