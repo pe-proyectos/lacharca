@@ -1,130 +1,58 @@
 ---
-// Layout de 3 columnas sin navbar: nav izquierda (usuario abajo),
-// contenido central protagonista, sidebar derecha con descubrimiento.
+// Barra superior con megamenús (CharcaNav) y, debajo, el contenido central
+// protagonista con el panel de descubrimiento a la derecha. En móvil,
+// CharcaNav añade la barra inferior y el menú completo.
 import ChatDock from './ChatDock'
-import NotifBadge from './NotifBadge'
-import ThemeToggle from './ThemeToggle'
-import IdentitySwitcher from './IdentitySwitcher'
-import ScanNav from './ScanNav'
+import CharcaNav from './CharcaNav'
 import NavProgress from './NavProgress'
 import Lightbox from './Lightbox'
 import UserHoverCard from './UserHoverCard'
 import SideDiscovery from './SideDiscovery.astro'
+import { hilos } from '../lib/hilos'
 
 const { viewer, active = 'home', wide = false, aside: asideMode = 'auto' } = Astro.props
 // El panel derecho nunca se queda vacio: si la vista no aporta contenido
 // propio, mostramos descubrimiento real (a quien seguir, que se mueve).
 const hasOwnAside = Astro.slots.has('aside')
 const hasAside = asideMode !== 'none'
-// Iconos Phosphor (paths oficiales). r = regular, f = fill (estado activo).
-const items = [
-  { href: '/', label: 'Inicio', key: 'home',
-    r: 'M218.83,103.77l-80-75.48a1.14,1.14,0,0,1-.11-.11,16,16,0,0,0-21.53,0l-.11.11L37.17,103.77A16,16,0,0,0,32,115.55V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V160h32v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V115.55A16,16,0,0,0,218.83,103.77ZM208,208H160V160a16,16,0,0,0-16-16H112a16,16,0,0,0-16,16v48H48V115.55l.11-.1L128,40l79.9,75.43.11.1Z',
-    f: 'M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z' },
-  { href: '/?feed=following', label: 'Tu manada', key: 'following',
-    r: 'M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z',
-    f: 'M164.47,195.63a8,8,0,0,1-6.7,12.37H10.23a8,8,0,0,1-6.7-12.37,95.83,95.83,0,0,1,47.22-37.71,60,60,0,1,1,66.5,0A95.83,95.83,0,0,1,164.47,195.63Zm87.91-.15a95.87,95.87,0,0,0-47.13-37.56A60,60,0,0,0,144.7,54.59a4,4,0,0,0-1.33,6A75.83,75.83,0,0,1,147,150.53a4,4,0,0,0,1.07,5.53,112.32,112.32,0,0,1,29.85,30.83,23.92,23.92,0,0,1,3.65,16.47,4,4,0,0,0,3.95,4.64h60a8,8,0,0,0,7.73-5.93A8.22,8.22,0,0,0,252.38,195.48Z' },
-  { href: '/explorar', label: 'Explorar', key: 'explore',
-    r: 'M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z',
-    f: 'M229.66,218.34l-50.06-50.06a88.11,88.11,0,1,0-11.32,11.32l50.06,50.06a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z' },
-  { href: '/mensajes', label: 'Mensajes', key: 'messages',
-    r: 'M216,48H40a16,16,0,0,0-16,16V224a15.84,15.84,0,0,0,9.25,14.5A16.05,16.05,0,0,0,40,240a15.89,15.89,0,0,0,10.25-3.78l.09-.07L83,208H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48Zm0,144H80a8,8,0,0,0-5.23,1.95L40,224V64H216Z',
-    f: 'M216,48H40a16,16,0,0,0-16,16V224a15.84,15.84,0,0,0,9.25,14.5A16.05,16.05,0,0,0,40,240a15.89,15.89,0,0,0,10.25-3.78l.09-.07L83,208H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48Z' },
-  { href: '/avisos', label: 'Avisos', key: 'alerts',
-    r: 'M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z',
-    f: 'M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216Z' },
-  { href: '/guardados', label: 'Guardados', key: 'saved',
-    r: 'M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z',
-    f: 'M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z' },
-  // Tu perfil: el selector de identidad de abajo dejó de ser un enlace, así
-  // que la forma de llegar a tu propia página tiene que estar aquí.
-  ...(viewer ? [{
-    href: `/@${viewer.user.handle}`, label: 'Perfil', key: 'me',
-    r: 'M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z',
-    f: 'M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8Z',
-  }] : []),
-]
+
+// Temas del momento para el megamenú. Cambian despacio: se reutilizan unos
+// minutos para no pedirlos en cada página.
+const g = globalThis as any
+if (!g.__lcTrending || Date.now() - g.__lcTrending.at > 5 * 60 * 1000) {
+  try {
+    const t = (await hilos('/socials/trending?limit=10')) || []
+    g.__lcTrending = { at: Date.now(), tags: t.map((x: any) => x.tag).filter(Boolean) }
+  } catch { g.__lcTrending = { at: Date.now(), tags: g.__lcTrending?.tags || [] } }
+}
+const trending: string[] = g.__lcTrending.tags
+
+const admins = (import.meta.env.TELEMETRY_ADMINS || 'shoko').split(',').map((s: string) => s.trim().toLowerCase())
+const isAdmin = !!viewer && admins.includes(String(viewer.user.handle).toLowerCase())
+const navViewer = viewer ? { handle: viewer.user.handle, displayName: viewer.user.displayName, avatarUrl: viewer.user.avatarUrl } : null
 ---
-<div class="min-h-screen flex">
-  <!-- NAV IZQUIERDA -->
-  <nav class="hidden md:flex flex-col shrink-0 w-[84px] xl:w-[260px] h-screen sticky top-0 px-3 xl:px-5 py-6" style="border-right:1px solid var(--line)">
-    <a href="/" class="flex items-center gap-2.5 px-2 xl:px-3 mb-8">
-      <img src="/logo.webp" alt="La Charca" width="34" height="34" class="shrink-0" style="width:34px;height:34px;object-fit:contain" />
-      <span class="hidden xl:block text-[19px] font-semibold tracking-[-0.03em]">La Charca</span>
-    </a>
+<CharcaNav client:load active={active} viewer={navViewer} trending={trending} isAdmin={isAdmin} />
 
-    <div class="flex flex-col gap-1">
-      {items.map((it) => (
-        <a href={it.href} class={`nav-item flex items-center gap-4 px-3 py-2.5 rounded-xl ${active === it.key ? 'font-semibold' : 'ink-2'}`}
-           style={active === it.key ? 'background:var(--active)' : ''}>
-          <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" class="shrink-0"><path d={active === it.key ? it.f : it.r}/></svg>
-          <span class="hidden xl:block text-[16px] flex-1">{it.label}</span>
-          {it.key === 'alerts' && viewer && <NotifBadge client:idle />}
-        </a>
-      ))}
-    </div>
-
-    {viewer && (
-      <Fragment>
-        <a href="/?compose=1" class="btn justify-center mt-5 hidden xl:flex">Publicar</a>
-        <ScanNav client:idle />
-      </Fragment>
-    )}
-
-    <!-- USUARIO ABAJO -->
-    <div class="mt-auto">
-      {viewer ? (
-        <div class="nav-item flex items-center gap-3 p-2 rounded-xl">
-          <IdentitySwitcher client:load user={{ handle: viewer.user.handle, displayName: viewer.user.displayName, avatarUrl: viewer.user.avatarUrl, type: 'user' }} />
-        </div>
-      ) : (
-        <div class="flex items-center gap-2">
-          <a href="/auth/login" class="btn flex-1 justify-center">Entrar</a>
-          <ThemeToggle client:idle compact />
-        </div>
-      )}
-    </div>
-  </nav>
-
+<div class="mx-auto max-w-[1400px] flex">
   <!-- CENTRO -->
-  <main class="flex-1 min-w-0 px-4 sm:px-8 xl:px-10 py-6 sm:py-8 pb-[calc(84px+env(safe-area-inset-bottom))] md:pb-8"
+  <main class="flex-1 min-w-0 px-4 sm:px-8 xl:px-10 py-6 sm:py-8 pb-[calc(84px+env(safe-area-inset-bottom))] md:pb-10"
     style={hasAside ? 'border-right:1px solid var(--line)' : ''}>
-    <div class={wide ? '' : 'max-w-[1240px]'}>
+    <div class={wide ? '' : 'max-w-[900px] mx-auto'}>
       <slot />
     </div>
   </main>
 
-  <!-- SIDEBAR DERECHA (solo si hay contenido) -->
+  <!-- SIDEBAR DERECHA -->
   {hasAside && (
     <aside class="hidden xl:block w-[340px] shrink-0 px-7 py-8">
-      <div class="sticky top-8 space-y-9">
+      <div class="sticky top-[100px] space-y-9">
         {hasOwnAside ? <slot name="aside" /> : <SideDiscovery viewer={viewer} />}
       </div>
     </aside>
   )}
-
-  <!-- NAV MOVIL (abajo) -->
-  <nav aria-label="Navegación" class="md:hidden fixed bottom-0 inset-x-0 z-50 flex items-stretch justify-around"
-    style="background:color-mix(in srgb, var(--paper) 94%, transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)">
-    {items.map((it) => (
-      <a href={it.href} aria-label={it.label} aria-current={active === it.key ? 'page' : undefined}
-        class={`flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] tap ${active === it.key ? '' : 'ink-3'}`}>
-        <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d={active === it.key ? it.f : it.r}/></svg>
-        <span class="text-[10px] font-medium leading-none">{it.label}</span>
-      </a>
-    ))}
-    <a href={viewer ? `/@${viewer.user.handle}` : '/auth/login'} aria-label={viewer ? 'Tu perfil' : 'Entrar'}
-      aria-current={active === 'me' ? 'page' : undefined}
-      class={`flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] tap ${active === 'me' ? '' : 'ink-3'}`}>
-      {viewer?.user?.avatarUrl
-        ? <img src={viewer.user.avatarUrl} alt="" width="24" height="24" class="rounded-full object-cover" style="width:24px;height:24px" />
-        : <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor" class="ink-3"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"/></svg>}
-      <span class="text-[10px] font-medium leading-none">{viewer ? 'Perfil' : 'Entrar'}</span>
-    </a>
-  </nav>
-
-  <NavProgress client:idle />
-  <Lightbox client:idle />
-  {viewer && <ChatDock client:idle me={viewer.user.handle} />}
-  <UserHoverCard client:idle me={viewer?.user?.handle ?? null} />
 </div>
+
+<NavProgress client:idle />
+<Lightbox client:idle />
+{viewer && <ChatDock client:idle me={viewer.user.handle} />}
+<UserHoverCard client:idle me={viewer?.user?.handle ?? null} />

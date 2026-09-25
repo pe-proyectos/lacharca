@@ -20,7 +20,9 @@ const Avatar = ({ p, size = 36 }: { p: { avatarUrl?: string | null; displayName?
 
 // Permite publicar y responder como tu cuenta o como uno de los scans que
 // administras. Lo que se elige aquí manda en todo lo que escribas después.
-const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
+// `abajo`: desde la barra superior el menú se despliega hacia abajo y a la
+// derecha. `compacto`: solo el avatar, sin nombre.
+const IdentitySwitcher: React.FC<{ user: Page; abajo?: boolean; compacto?: boolean }> = ({ user, abajo = false, compacto = false }) => {
   const [abierto, setAbierto] = useState(false)
   const [scans, setScans] = useState<Identidad[] | null>(null)
   const [activo, setActivo] = useState<string | null>(null)
@@ -75,27 +77,27 @@ const IdentitySwitcher: React.FC<{ user: Page }> = ({ user }) => {
   const hayScans = (scans?.length || 0) > 0
 
   return (
-    <div ref={caja} className="relative flex-1 min-w-0">
+    <div ref={caja} className={compacto ? 'relative shrink-0' : 'relative flex-1 min-w-0'}>
       <button
         type="button"
         onClick={() => setAbierto((o) => !o)}
-        className="flex items-center gap-3 min-w-0 w-full text-left cursor-pointer"
+        className={`flex items-center gap-3 min-w-0 text-left cursor-pointer ${compacto ? 'rounded-full p-0.5 nav-item' : 'w-full'}`}
         title={hayScans ? 'Cambiar de identidad' : 'Opciones de tu cuenta'}
         aria-haspopup="menu"
         aria-expanded={abierto}
       >
         <Avatar p={mostrado} />
-        <span className="hidden xl:block min-w-0 flex-1">
+        <span className={compacto ? 'hidden' : 'block min-w-0 flex-1'}>
           <span className="block text-[15px] font-medium truncate">{mostrado.displayName || mostrado.handle}</span>
           <span className="block t-caption truncate">
             {actual ? `actuando como @${actual.handle}` : `@${user.handle}`}
           </span>
         </span>
-        <CaretUpDown size={16} className="ink-3 shrink-0 hidden xl:block" />
+        {!compacto && <CaretUpDown size={16} className="ink-3 shrink-0" />}
       </button>
 
       {abierto && (
-        <div className="absolute bottom-full mb-2 left-0 w-[264px] rounded-2xl overflow-hidden z-50 rise"
+        <div className={`absolute ${abajo ? 'top-full mt-2 right-0' : 'bottom-full mb-2 left-0'} w-[264px] rounded-2xl overflow-hidden z-[70] rise`}
           style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: '0 14px 40px var(--shadow)' }}>
           <p className="eyebrow px-4 pt-3 pb-2">Publicar como</p>
 
