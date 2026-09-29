@@ -75,7 +75,7 @@ export async function hilosFetch(path: string, init: RequestInit = {}, retry = t
   })
   const json: any = await res.json().catch(() => ({}))
   if (json?.error === 'unauthorized' && retry) { clearToken(); return hilosFetch(path, init, false) }
-  if (json?.error) throw new Error(json.error)
+  if (json?.error) throw Object.assign(new Error(json.error), { detalle: json })
   return json?.data
 }
 

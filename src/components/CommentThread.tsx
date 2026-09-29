@@ -1,5 +1,18 @@
 import { PaperPlaneTilt, ImageSquare, X, Trash } from '@phosphor-icons/react'
 import React, { useState } from 'react'
+
+// Mensaje claro cuando publicar falla (silencio del scan, límite, red).
+function mensajeDeError(e: any): string {
+  if (e?.message === 'muted_scope') {
+    const d = e?.detalle || {}
+    const hasta = d.until && d.until !== 'forever' ? ` hasta el ${new Date(d.until).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''
+    return `${d.scope || 'Este scan'} te silenció${hasta}: no puedes comentar en sus obras. En el resto de la página sí.`
+  }
+  if (e?.message === 'muted') return 'Tu cuenta no puede comentar por ahora.'
+  if (e?.message === 'rate_limited') return 'Vas muy rápido, espera un momento.'
+  return 'No se pudo publicar. Inténtalo de nuevo.'
+}
+
 import { hilosApi, uploadToHilos, getIdentity, getIdentityPage } from '../lib/hilosClient'
 import MentionAutocomplete from './MentionAutocomplete'
 import { isMedia } from '../lib/media'
@@ -107,6 +120,8 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
   }, [postId, loading])
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
+  const [aviso, setAviso] = useState<string | null>(null)
+  const avisar = (m: string) => { setAviso(m); window.setTimeout(() => setAviso(null), 6000) }
   const [replyTo, setReplyTo] = useState<number | null>(null)
   const [replyText, setReplyText] = useState('')
   const [identidadScan, setIdentidadScan] = useState<any>(null)
@@ -187,9 +202,10 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
     try {
       const c = await hilosApi.comment(postId, content, parentId)
       setItems((l) => l.map((x) => (x.id === tempId ? c : x)))
-    } catch {
+    } catch (e: any) {
       setItems((l) => l.filter((x) => x.id !== tempId))   // revertir
       if (parentId) setReplyText(typed); else setText(typed)
+      avisar(mensajeDeError(e))
     } finally { setBusy(false) }
   }
 
@@ -323,6 +339,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
         : roots.length === 0
           ? <p className="t-sub py-8 text-center">Todavía no hay comentarios. Escribe el primero.</p>
           : roots.map((c) => <Item key={c.id} c={c} />)}
+      {aviso && <div className="toast" role="alert">{aviso}</div>}
     </div>
   )
 }

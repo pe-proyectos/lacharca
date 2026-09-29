@@ -1,8 +1,21 @@
 import React, { useRef, useState } from 'react'
+
 import { ImageSquare, X } from '@phosphor-icons/react'
 import { hilosApi, uploadToHilos } from '../lib/hilosClient'
 import MentionAutocomplete from './MentionAutocomplete'
 import PostTools, { type Encuesta, type Programado, type Cuenta } from './PostTools'
+
+// Mensaje claro cuando publicar falla (silencio del scan, límite, red).
+function mensajeDeError(e: any): string {
+  if (e?.message === 'muted_scope') {
+    const d = e?.detalle || {}
+    const hasta = d.until && d.until !== 'forever' ? ` hasta el ${new Date(d.until).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''
+    return `${d.scope || 'Este scan'} te silenció${hasta}: no puedes comentar en sus obras. En el resto de la página sí.`
+  }
+  if (e?.message === 'muted') return 'Tu cuenta no puede comentar por ahora.'
+  if (e?.message === 'rate_limited') return 'Vas muy rápido, espera un momento.'
+  return 'No se pudo publicar. Inténtalo de nuevo.'
+}
 
 interface Props {
   user: { handle: string; displayName?: string | null; avatarUrl?: string | null }
@@ -104,7 +117,7 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
     } catch (e: any) {
       onFailed?.(tempId)
       setContent(text)
-      setErr(e?.message === 'rate_limited' ? 'Vas muy rápido, espera un momento.' : 'No se pudo publicar. Inténtalo de nuevo.')
+      setErr(mensajeDeError(e))
       setBusy(false)
     }
   }
