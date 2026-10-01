@@ -7,6 +7,9 @@ import { esBot, idVisitante, dispositivo, pais, origenExterno, rutaNormalizada }
 
 const CAPI_API = process.env.CAPI_API_URL || 'https://capibaratraductor.com'
 const SSO_SECRET = process.env.SSO_SECRET || ''
+// Redirect exacto con el que se pide el código en CapibaraTraductor; el canje
+// lo exige igual. Fijo en el servidor: no se acepta del cliente.
+const SSO_REDIRECT_URI = process.env.SSO_REDIRECT_URI || 'https://lacharca.com/auth/callback'
 const SESSION_DAYS = 30
 const hilos = createHilos({ baseUrl: process.env.HILOS_BASE || 'https://hilos.rest', secretKey: process.env.HILOS_SECRET_KEY || '' })
 
@@ -156,7 +159,7 @@ const app = new Elysia()
     const res = await fetch(`${CAPI_API}/api/sso/exchange`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-sso-secret': SSO_SECRET },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, redirect: SSO_REDIRECT_URI }),
     })
     const json: any = await res.json().catch(() => ({}))
     if (!json?.status || !json?.data?.user) return { status: false, message: json?.message || 'exchange_failed' }
