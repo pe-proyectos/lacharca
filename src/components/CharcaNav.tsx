@@ -100,7 +100,7 @@ const CharcaNav: React.FC<Props> = ({ active, viewer, trending, isAdmin }) => {
 
   const descubrir: Enlace[] = [
     { href: '/explorar', label: 'Explorar', desc: 'Busca publicaciones, scans y lectores', Icon: Compass },
-    { href: '/?feed=recent', label: 'Lo más nuevo', desc: 'Todo lo que se publica, al momento', Icon: Clock },
+    { href: '/', label: 'Lo más nuevo', desc: 'Todo lo que se publica, al momento', Icon: Clock },
     { href: '/explorar?orden=popular', label: 'Populares', desc: 'Lo que más gusta ahora', Icon: Fire },
     { href: '/explorar?orden=comentado', label: 'Más comentado', desc: 'Donde está la conversación', Icon: ChatsCircle },
     { href: '/scans', label: 'Directorio de scans', desc: 'Todos los grupos de la charca', Icon: Storefront },

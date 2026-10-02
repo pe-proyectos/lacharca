@@ -11,8 +11,9 @@ import PostList from '../components/PostList.astro'
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 const actingPage = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
 const feedParam = Astro.url.searchParams.get('feed')
-// Inicio muestra lo relevante; la manada es cronologica y solo de quien sigues.
-const scope = feedParam === 'following' && viewer ? 'following' : feedParam === 'recent' ? 'recent' : 'foryou'
+// Inicio muestra lo mas nuevo primero; "Lo mejor de hoy" (relevancia) queda
+// como opcion. La manada es cronologica y solo de quien sigues.
+const scope = feedParam === 'following' && viewer ? 'following' : feedParam === 'foryou' ? 'foryou' : 'recent'
 
 // Avisos de vuelta de otros flujos (login, perfiles que ya no existen...).
 const sp = Astro.url.searchParams
@@ -59,9 +60,9 @@ try {
 
     {viewer && (
       <div class="flex items-center gap-2 mb-6">
-        <a href="/" class={`chip ${scope === 'foryou' ? 'is-on' : ''}`}>Lo mejor de hoy</a>
+        <a href="/" class={`chip ${scope === 'recent' ? 'is-on' : ''}`}>Lo más nuevo</a>
         <a href="/?feed=following" class={`chip ${scope === 'following' ? 'is-on' : ''}`}>Tu manada</a>
-        <a href="/?feed=recent" class={`chip ${scope === 'recent' ? 'is-on' : ''}`}>Lo más nuevo</a>
+        <a href="/?feed=foryou" class={`chip ${scope === 'foryou' ? 'is-on' : ''}`}>Lo mejor de hoy</a>
       </div>
     )}
 
