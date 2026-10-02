@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react'
 import { ChatCircle, ArrowBendUpLeft, At, UserPlus, PaperPlaneTilt } from '@phosphor-icons/react'
 import { hilosApi } from '../lib/hilosClient'
 import { timeAgo } from '../lib/time'
+import ChapterChip from './ChapterChip'
+import type { PostChapter } from '../lib/capitulo'
 
 interface N {
   id: number; type: string; postId: number | null; commentId: number | null
   preview: string | null; read: boolean; createdAt: string
+  chapter?: PostChapter | null
   actor: { handle: string; displayName?: string | null; avatarUrl?: string | null; type?: string } | null
 }
 
@@ -114,6 +117,11 @@ const NotificationList: React.FC<{ initial: N[]; hasMore: boolean }> = ({ initia
                 <span className="t-caption"> · {timeAgo(n.createdAt)}</span>
               </span>
               {n.preview && <span className="block t-sub truncate mt-0.5">{n.preview}</span>}
+              {n.chapter && (
+                <span className="flex mt-1.5 min-w-0">
+                  <ChapterChip chapter={n.chapter} work={n.chapter.work?.displayName || null} inLink />
+                </span>
+              )}
             </span>
 
             {!n.read && <span className="w-2 h-2 rounded-full shrink-0 mt-2" style={{ background: 'var(--blue)' }} />}

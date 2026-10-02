@@ -1,5 +1,6 @@
 ---
 import PostActions from './PostActions'
+import ChapterChip from './ChapterChip'
 import { Poll, Reveal, Countdown } from './PostExtras'
 import { timeAgo } from '../lib/hilos'
 const { posts = [], viewer, empty = 'Aún no hay nada por aquí.' } = Astro.props
@@ -43,6 +44,7 @@ function tokenize(c) {
                 <a href={`/@${p.author?.handle}`} data-hover-handle={p.author?.handle} class="text-[16px] font-semibold hover:opacity-70 truncate">{p.author?.displayName || p.author?.handle}</a>
                 {p.author?.type === 'scan' && <span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded" style="background:var(--soft-aqua);color:var(--aqua)">scan</span>}
                 <a href={`/post/${p.id}`} class="t-caption hover:opacity-70">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>
+                <ChapterChip chapter={p.chapter} />
               </div>
               {body.trim() && (
                 <p class="mt-1.5 t-body whitespace-pre-wrap break-words">

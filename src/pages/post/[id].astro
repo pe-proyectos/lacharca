@@ -6,6 +6,7 @@ import PostActions from '../../components/PostActions'
 import CommentThread from '../../components/CommentThread'
 import { Poll, Reveal, Countdown } from '../../components/PostExtras'
 import Shell from '../../components/Shell.astro'
+import ChapterChip from '../../components/ChapterChip'
 
 const id = Number(Astro.params.id)
 if (!Number.isFinite(id)) return Astro.redirect('/')
@@ -43,6 +44,7 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
       </div>
 
       {body && <p class="text-[19px] leading-[1.55] whitespace-pre-wrap break-words">{body}</p>}
+      {post.chapter && <div class="mt-3"><ChapterChip chapter={post.chapter} /></div>}
 
       {post.reveal?.locked && <Reveal client:load data={post.reveal} />}
       {post.poll && <Poll client:load postId={post.id} data={post.poll} logged={!!viewer} />}

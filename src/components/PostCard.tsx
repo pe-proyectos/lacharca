@@ -3,6 +3,8 @@ import PostActions from './PostActions'
 import { Poll, Reveal, Countdown, type PollData, type RevealData, type CountdownData } from './PostExtras'
 import { timeAgo } from '../lib/time'
 import { isMedia } from '../lib/media'
+import ChapterChip from './ChapterChip'
+import type { PostChapter } from '../lib/capitulo'
 
 export interface WallPage { handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null; parentHandle?: string | null }
 
@@ -20,6 +22,7 @@ export interface PostShape {
   poll?: PollData | null
   reveal?: RevealData | null
   countdown?: CountdownData | null
+  chapter?: PostChapter | null
 }
 
 
@@ -54,6 +57,7 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean; me?: string | null 
             {p.pending
               ? <span className="t-caption">@{p.author?.handle} · publicando…</span>
               : <a href={`/post/${p.id}`} className="t-caption hover:opacity-70">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>}
+            {!p.pending && <ChapterChip chapter={p.chapter} />}
           </div>
           {body.trim() && <p className="mt-1.5 t-body whitespace-pre-wrap break-words">{tokenize(body)}</p>}
           {p.reveal?.locked && <Reveal data={p.reveal} />}
