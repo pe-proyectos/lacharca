@@ -1,7 +1,9 @@
 ---
-import { CAPI } from '../../lib/session'
+import { capibara } from '../../i18n/capibara'
 // Detras del proxy el origin puede venir como http; forzamos https en prod.
 const origin = Astro.url.origin.replace(/^http:/, 'https:')
 const back = `${origin}/auth/callback`
-return Astro.redirect(`${CAPI}/sso/authorize?redirect=${encodeURIComponent(back)}`)
+// SSO en el Capibara del idioma elegido: ahí suele estar ya la sesión del
+// lector. Los tres dominios comparten API, así que el código se canjea igual.
+return Astro.redirect(`${capibara().url}/sso/authorize?redirect=${encodeURIComponent(back)}`)
 ---

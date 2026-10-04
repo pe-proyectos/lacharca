@@ -1,6 +1,5 @@
-// CapibaraTraductor en cada idioma: a dónde mandar a leer según el idioma de
-// la interfaz. El inicio de sesión (SSO) siempre va a capibaratraductor.com,
-// que es donde viven las cuentas (lib/session.ts → CAPI).
+// CapibaraTraductor en cada idioma: a dónde mandar a leer (y a iniciar sesión
+// por SSO, pages/auth/login.astro) según el idioma de la interfaz.
 import { idiomaUi, type Idioma } from './index'
 
 export interface SitioCapibara { url: string; marca: string; discord: string }
