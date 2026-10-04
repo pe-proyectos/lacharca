@@ -5,6 +5,8 @@ import { timeAgo } from '../lib/time'
 import { isMedia } from '../lib/media'
 import ChapterChip from './ChapterChip'
 import type { PostChapter } from '../lib/capitulo'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/posts'
 
 export interface WallPage { handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null; parentHandle?: string | null }
 
@@ -38,6 +40,7 @@ function tokenize(c: string) {
 // Mismo diseño que PostList.astro, pero en React: lo usa el feed para los
 // posts recien publicados (optimistas) sin recargar la pagina.
 const PostCard: React.FC<{ post: PostShape; logged: boolean; me?: string | null }> = ({ post: p, logged, me = null }) => {
+  const t = useT(cat)
   const imgs = (p.content || '').split(/\s+/).filter((w) => /^https?:\/\//.test(w) && isMedia(w))
   const body = (p.content || '').split('\n').filter((l) => !imgs.includes(l.trim())).join('\n')
   const name = p.author?.displayName || p.author?.handle || ''
@@ -55,7 +58,7 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean; me?: string | null 
             <a href={`/@${p.author?.handle}`} data-hover-handle={p.author?.handle} className="text-[16px] font-semibold hover:opacity-70 truncate">{name}</a>
             {p.author?.type === 'scan' && <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ background: 'var(--soft-aqua)', color: 'var(--aqua)' }}>scan</span>}
             {p.pending
-              ? <span className="t-caption">@{p.author?.handle} · publicando…</span>
+              ? <span className="t-caption">@{p.author?.handle} · {t('publicando')}</span>
               : <a href={`/post/${p.id}`} className="t-caption hover:opacity-70">@{p.author?.handle} · {timeAgo(p.createdAt)}</a>}
             {!p.pending && <ChapterChip chapter={p.chapter} />}
           </div>
@@ -72,7 +75,7 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean; me?: string | null 
                 ? <img src={p.wall.avatarUrl} alt="" width={44} height={44} loading="lazy" className="rounded-xl object-cover shrink-0" style={{ width: 44, height: 44 }} />
                 : <span className="grid place-items-center rounded-xl text-[15px] font-semibold shrink-0" style={{ width: 44, height: 44, background: 'var(--soft)', color: 'var(--blue)' }}>{(p.wall.displayName || p.wall.handle)[0]?.toUpperCase()}</span>}
               <span className="min-w-0">
-                <span className="block eyebrow">Obra</span>
+                <span className="block eyebrow">{t('obra')}</span>
                 <span className="block text-[14px] font-medium truncate">{p.wall.displayName || p.wall.handle}</span>
               </span>
             </a>
@@ -84,7 +87,7 @@ const PostCard: React.FC<{ post: PostShape; logged: boolean; me?: string | null 
                 <span key={u} className={`media post-media ${imgs.length > 1 ? 'post-media--grid' : ''}`}
                   style={{ ['--media-bg' as any]: `url('${u}')` }}
                   data-lightbox="" data-lightbox-group={`post-${p.id}`} data-src={u}>
-                  <img src={u} alt="Imagen de la publicación" loading="lazy" />
+                  <img src={u} alt={t('img_post')} loading="lazy" />
                 </span>
               ))}
             </div>

@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react'
 import { Camera, FloppyDisk, X } from '@phosphor-icons/react'
 import { hilosApi, uploadToHilos } from '../lib/hilosClient'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/perfil'
 
 interface Props {
   handle: string
@@ -13,6 +15,7 @@ interface Props {
 // Editor del propio perfil: foto, portada, nombre y biografia. Todo optimista;
 // si el servidor rechaza algo se revierte y se explica por que.
 const ProfileEditor: React.FC<Props> = (props) => {
+  const t = useT(cat)
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(props.displayName || '')
   const [bio, setBio] = useState(props.bio || '')
@@ -26,13 +29,13 @@ const ProfileEditor: React.FC<Props> = (props) => {
 
   const pick = async (file: File | undefined, kind: 'avatar' | 'banner') => {
     if (!file) return
-    if (!file.type.startsWith('image/')) { setErr('Elige una imagen.'); return }
-    if (file.size > 5 * 1024 * 1024) { setErr('La imagen no puede pesar más de 5 MB.'); return }
+    if (!file.type.startsWith('image/')) { setErr(t('err_imagen')); return }
+    if (file.size > 5 * 1024 * 1024) { setErr(t('err_peso')); return }
     setErr(null); setUploading(kind)
     try {
       const url = await uploadToHilos(file)
       if (kind === 'avatar') setAvatar(url); else setBanner(url)
-    } catch { setErr('No se pudo subir la imagen.') } finally { setUploading(null) }
+    } catch { setErr(t('err_subir')) } finally { setUploading(null) }
   }
 
   const save = async () => {
@@ -46,13 +49,13 @@ const ProfileEditor: React.FC<Props> = (props) => {
       })
       window.location.reload()
     } catch (e: any) {
-      setErr(e?.message === 'forbidden' ? 'No puedes editar este perfil.' : 'No se pudieron guardar los cambios.')
+      setErr(e?.message === 'forbidden' ? t('err_prohibido') : t('err_guardar'))
       setBusy(false)
     }
   }
 
   if (!open) {
-    return <button type="button" onClick={() => setOpen(true)} className="chip cursor-pointer">Editar perfil</button>
+    return <button type="button" onClick={() => setOpen(true)} className="chip cursor-pointer">{t('editar_perfil')}</button>
   }
 
   return (
@@ -62,8 +65,8 @@ const ProfileEditor: React.FC<Props> = (props) => {
       <div className="w-full sm:max-w-[520px] rounded-t-3xl sm:rounded-3xl overflow-hidden rise"
         style={{ background: 'var(--surface)', border: '1px solid var(--line)', maxHeight: '92dvh', paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--line)' }}>
-          <h2 className="t-section">Editar perfil</h2>
-          <button type="button" onClick={() => !busy && setOpen(false)} className="act" aria-label="Cerrar"><X size={18} /></button>
+          <h2 className="t-section">{t('editar_perfil')}</h2>
+          <button type="button" onClick={() => !busy && setOpen(false)} className="act" aria-label={t('cerrar')}><X size={18} /></button>
         </div>
 
         <div className="overflow-y-auto" style={{ maxHeight: "68dvh" }}>
@@ -92,14 +95,14 @@ const ProfileEditor: React.FC<Props> = (props) => {
             <input ref={avatarInput} type="file" accept="image/*" className="hidden" onChange={(e) => pick(e.target.files?.[0], 'avatar')} />
             <input ref={bannerInput} type="file" accept="image/*" className="hidden" onChange={(e) => pick(e.target.files?.[0], 'banner')} />
 
-            <label className="eyebrow block mb-2">Nombre visible</label>
+            <label className="eyebrow block mb-2">{t('nombre_visible')}</label>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={200}
               className="w-full rounded-xl px-3.5 py-3 text-[16px] focus:outline-none mb-4"
               style={{ background: 'var(--surface)', border: '1px solid var(--line)' }} />
 
-            <label className="eyebrow block mb-2">Biografía</label>
+            <label className="eyebrow block mb-2">{t('biografia')}</label>
             <textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={600} rows={4}
-              placeholder="Cuenta algo sobre ti, qué lees, qué traduces..."
+              placeholder={t('bio_placeholder')}
               className="w-full rounded-xl px-3.5 py-3 text-[16px] resize-none focus:outline-none"
               style={{ background: 'var(--surface)', border: '1px solid var(--line)' }} />
             <p className="t-caption mt-1.5 text-right tabular-nums">{600 - bio.length}</p>
@@ -109,10 +112,10 @@ const ProfileEditor: React.FC<Props> = (props) => {
         </div>
 
         <div className="flex items-center justify-end gap-3 px-5 py-4" style={{ borderTop: '1px solid var(--line)' }}>
-          <button type="button" onClick={() => setOpen(false)} disabled={busy} className="chip cursor-pointer">Cancelar</button>
+          <button type="button" onClick={() => setOpen(false)} disabled={busy} className="chip cursor-pointer">{t('cancelar')}</button>
           <button type="button" onClick={save} disabled={busy || !!uploading}
             className="btn inline-flex items-center gap-2 disabled:opacity-40 cursor-pointer">
-            <FloppyDisk size={16} weight="fill" />{busy ? 'Guardando…' : 'Guardar'}
+            <FloppyDisk size={16} weight="fill" />{busy ? t('guardando') : t('guardar')}
           </button>
         </div>
       </div>

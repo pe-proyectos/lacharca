@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import PostCard, { type PostShape } from './PostCard'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/posts'
 
 interface Props { scope: string; logged: boolean; startPage?: number; pageSize?: number; sort?: string }
 
 // Continuación paginada del feed servido por SSR. Carga 25 posts por tanda con
 // scroll infinito, para no pedirle a la base de datos más de lo necesario.
 const FeedMore: React.FC<Props> = ({ scope, logged, startPage = 1, pageSize = 25, sort }) => {
+  const t = useT(cat)
   const [items, setItems] = useState<PostShape[]>([])
   const [page, setPage] = useState(startPage)
   const [hasMore, setHasMore] = useState(true)
@@ -57,13 +60,13 @@ const FeedMore: React.FC<Props> = ({ scope, logged, startPage = 1, pageSize = 25
 
       {failed && (
         <div className="py-8 text-center">
-          <p className="t-sub mb-3">No pudimos cargar más publicaciones.</p>
-          <button type="button" onClick={() => load(page)} className="chip cursor-pointer">Reintentar</button>
+          <p className="t-sub mb-3">{t('err_mas')}</p>
+          <button type="button" onClick={() => load(page)} className="chip cursor-pointer">{t('reintentar')}</button>
         </div>
       )}
 
       {hasMore && !failed && <div ref={sentinel} className="h-4" />}
-      {!hasMore && items.length > 0 && <p className="t-caption text-center py-10">Llegaste al fondo de la charca.</p>}
+      {!hasMore && items.length > 0 && <p className="t-caption text-center py-10">{t('fondo')}</p>}
     </>
   )
 }

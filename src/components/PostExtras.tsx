@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { LockKey, Timer, CheckCircle } from '@phosphor-icons/react'
 import { hilosApi } from '../lib/hilosClient'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/posts'
 
 export interface PollData {
   id: number; options: string[]; votesCount: number; endsAt: string | null
@@ -24,24 +26,25 @@ const restante = (hasta: string) => {
 }
 
 export const Countdown: React.FC<{ data: CountdownData }> = ({ data }) => {
-  const [t, setT] = useState(() => restante(data.at))
+  const t = useT(cat)
+  const [falta, setFalta] = useState(() => restante(data.at))
   useEffect(() => {
-    const id = setInterval(() => setT(restante(data.at)), 1000)
+    const id = setInterval(() => setFalta(restante(data.at)), 1000)
     return () => clearInterval(id)
   }, [data.at])
 
-  const partes = t
+  const partes = falta
     ? [
-        ...(t.d > 0 ? [[t.d, t.d === 1 ? 'día' : 'días']] : []),
-        [t.h, 'h'], [t.m, 'min'], ...(t.d > 0 ? [] : [[t.s, 'seg']]),
+        ...(falta.d > 0 ? [[falta.d, falta.d === 1 ? t('dia') : t('dias')]] : []),
+        [falta.h, 'h'], [falta.m, 'min'], ...(falta.d > 0 ? [] : [[falta.s, t('seg')]]),
       ]
     : []
 
   return (
     <div className="mt-3 rounded-2xl p-4" style={{ border: '1px solid var(--line)', background: 'var(--surface)' }}>
-      <p className="eyebrow inline-flex items-center gap-1.5 mb-2"><Timer size={13} weight="fill" /> Cuenta atrás</p>
+      <p className="eyebrow inline-flex items-center gap-1.5 mb-2"><Timer size={13} weight="fill" /> {t('cuenta_atras')}</p>
       {data.label && <p className="text-[15px] font-medium mb-2">{data.label}</p>}
-      {t ? (
+      {falta ? (
         <div className="flex items-end gap-4">
           {partes.map(([v, etiqueta]: any) => (
             <span key={etiqueta}>
@@ -51,18 +54,19 @@ export const Countdown: React.FC<{ data: CountdownData }> = ({ data }) => {
           ))}
         </div>
       ) : (
-        <p className="text-[15px] font-medium" style={{ color: 'var(--blue)' }}>Ya llegó el momento</p>
+        <p className="text-[15px] font-medium" style={{ color: 'var(--blue)' }}>{t('ya_llego')}</p>
       )}
-      <p className="t-caption mt-2">{new Date(data.at).toLocaleString('es', { dateStyle: 'long', timeStyle: 'short' })}</p>
+      <p className="t-caption mt-2">{new Date(data.at).toLocaleString(t.locale, { dateStyle: 'long', timeStyle: 'short' })}</p>
     </div>
   )
 }
 
 export const Reveal: React.FC<{ data: RevealData }> = ({ data }) => {
-  const [t, setT] = useState(() => restante(data.at))
+  const t = useT(cat)
+  const [falta, setFalta] = useState(() => restante(data.at))
   useEffect(() => {
     if (!data.locked) return
-    const id = setInterval(() => setT(restante(data.at)), 1000)
+    const id = setInterval(() => setFalta(restante(data.at)), 1000)
     return () => clearInterval(id)
   }, [data.at, data.locked])
 
@@ -71,10 +75,10 @@ export const Reveal: React.FC<{ data: RevealData }> = ({ data }) => {
   return (
     <div className="mt-3 rounded-2xl p-4 text-center" style={{ border: '1px dashed var(--line)', background: 'var(--surface-2)' }}>
       <LockKey size={22} className="ink-3 mx-auto mb-2" />
-      <p className="t-body ink-2">Este mensaje se abre el {new Date(data.at).toLocaleString('es', { dateStyle: 'long', timeStyle: 'short' })}</p>
-      {t && (
+      <p className="t-body ink-2">{t('se_abre_el', { fecha: new Date(data.at).toLocaleString(t.locale, { dateStyle: 'long', timeStyle: 'short' }) })}</p>
+      {falta && (
         <p className="t-sub mt-1 tabular-nums">
-          Faltan {t.d > 0 ? `${t.d} d ` : ''}{t.h} h {t.m} min{t.d > 0 ? '' : ` ${t.s} s`}
+          {t('faltan', { tiempo: `${falta.d > 0 ? `${falta.d} d ` : ''}${falta.h} h ${falta.m} min${falta.d > 0 ? '' : ` ${falta.s} s`}` })}
         </p>
       )}
     </div>
@@ -82,6 +86,7 @@ export const Reveal: React.FC<{ data: RevealData }> = ({ data }) => {
 }
 
 export const Poll: React.FC<{ postId: number; data: PollData; logged: boolean }> = ({ postId, data, logged }) => {
+  const t = useT(cat)
   const [poll, setPoll] = useState(data)
   const [enviando, setEnviando] = useState<number | null>(null)
 
@@ -131,13 +136,13 @@ export const Poll: React.FC<{ postId: number; data: PollData; logged: boolean }>
         )
       })}
       <p className="t-caption">
-        {total} {total === 1 ? 'voto' : 'votos'}
+        {t('votos', { n: total })}
         {poll.closed
-          ? ' · cerrada'
+          ? t('cerrada')
           : poll.endsAt
-            ? ` · cierra el ${new Date(poll.endsAt).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' })}`
+            ? t('cierra_el', { fecha: new Date(poll.endsAt).toLocaleString(t.locale, { dateStyle: 'medium', timeStyle: 'short' }) })
             : ''}
-        {!yaVote && !poll.closed ? ' · toca una opción para votar' : ''}
+        {!yaVote && !poll.closed ? t('toca_votar') : ''}
       </p>
     </div>
   )

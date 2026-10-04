@@ -9,7 +9,11 @@ import ProfileMore from '../components/ProfileMore'
 import SortBar from '../components/SortBar.astro'
 import { hilos } from '../lib/hilos'
 import { getViewer } from '../lib/session'
-import { num, plural } from '../lib/format'
+import { num, followers, posts as nPosts } from '../lib/format'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/perfil'
+
+const t = useT(cat)
 
 const raw = Astro.params.handle || ''
 // Solo tratamos como perfil las rutas que empiezan con @
@@ -42,8 +46,8 @@ if (viewer && page.type === 'scan') {
 }
 const name = page.displayName || page.handle
 
-const kind = page.type === 'scan' ? 'Scan' : page.type === 'manga' ? 'Obra' : 'Lector'
-const desc = page.bio || `${kind} en La Charca. ${plural(page.followersCount, 'seguidor', 'seguidores')} y ${plural(page.postsCount, 'publicación', 'publicaciones')}.`
+const kind = page.type === 'scan' ? t('scan') : page.type === 'manga' ? t('obra') : t('lector')
+const desc = page.bio || t('desc', { kind, seguidores: followers(page.followersCount), publicaciones: nPosts(page.postsCount) })
 ---
 <Layout title={`${name} (@${page.handle}) — La Charca`} description={desc} image={page.avatarUrl || '/logo.png'}>
   <Shell viewer={viewer} active={isMe ? "me" : "none"}>
@@ -59,20 +63,20 @@ const desc = page.bio || `${kind} en La Charca. ${plural(page.followersCount, 's
         <div class="flex-1 min-w-0 pt-1">
           <div class="flex items-center gap-2.5 flex-wrap">
             <h1 class="t-title break-words min-w-0">{name}</h1>
-            {page.type === 'scan' && <span class="chip is-static">Scan</span>}
-            {page.type === 'manga' && <span class="chip is-static">Obra</span>}
+            {page.type === 'scan' && <span class="chip is-static">{t('scan')}</span>}
+            {page.type === 'manga' && <span class="chip is-static">{t('obra')}</span>}
           </div>
           <p class="t-sub mt-0.5">@{page.handle}</p>
           {page.bio && <p class="t-body ink-2 mt-3 whitespace-pre-wrap max-w-xl">{page.bio}</p>}
 
           <div class="flex items-center flex-wrap gap-x-5 gap-y-1.5 mt-4 text-[14px]">
             <a href={`/@${page.handle}/seguidores`} class="hover:opacity-70 transition">
-              <b class="font-semibold tabular-nums" data-followers={page.handle} data-count={page.followersCount || 0}>{num(page.followersCount)}</b> <span class="ink-2">{Number(page.followersCount || 0) === 1 ? "seguidor" : "seguidores"}</span>
+              <b class="font-semibold tabular-nums" data-followers={page.handle} data-count={page.followersCount || 0}>{num(page.followersCount)}</b> <span class="ink-2">{t('seguidores_palabra', { n: Number(page.followersCount || 0) })}</span>
             </a>
             <a href={`/@${page.handle}/siguiendo`} class="hover:opacity-70 transition">
-              <b class="font-semibold tabular-nums">{num(page.followingCount)}</b> <span class="ink-2">siguiendo</span>
+              <b class="font-semibold tabular-nums">{num(page.followingCount)}</b> <span class="ink-2">{t('siguiendo_palabra')}</span>
             </a>
-            <span><b class="font-semibold tabular-nums">{num(page.postsCount)}</b> <span class="ink-2">{Number(page.postsCount || 0) === 1 ? "publicación" : "publicaciones"}</span></span>
+            <span><b class="font-semibold tabular-nums">{num(page.postsCount)}</b> <span class="ink-2">{t('publicaciones_palabra', { n: Number(page.postsCount || 0) })}</span></span>
           </div>
 
           <div class="mt-4 flex items-center gap-2.5 flex-wrap">
@@ -84,8 +88,8 @@ const desc = page.bio || `${kind} en La Charca. ${plural(page.followersCount, 's
                 {viewer && <MessageButton client:load handle={page.handle} canMessage={!!page.viewerFollows} />}
                 {miRolAqui && (
                   <>
-                    <a href={`/@${page.handle}/equipo`} class="chip">Equipo</a>
-                    <a href={`/@${page.handle}/obras`} class="chip">Obras</a>
+                    <a href={`/@${page.handle}/equipo`} class="chip">{t('equipo')}</a>
+                    <a href={`/@${page.handle}/obras`} class="chip">{t('obras')}</a>
                   </>
                 )}
               </>
@@ -97,7 +101,7 @@ const desc = page.bio || `${kind} en La Charca. ${plural(page.followersCount, 's
 
     {posts.length > 1 && <SortBar current={orden} />}
 
-    <PostList posts={posts} viewer={viewer} empty={isMe ? 'Todavía no publicaste nada. Escribe algo desde Inicio.' : 'Sin publicaciones todavía.'} />
+    <PostList posts={posts} viewer={viewer} empty={isMe ? t('vacio_mio') : t('vacio')} />
 
     {wall?.hasMore && <ProfileMore client:visible handle={page.handle} logged={!!viewer} startPage={1} sort={orden} />}
   </Shell>

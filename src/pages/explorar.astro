@@ -8,6 +8,10 @@ import FollowButton from '../components/FollowButton'
 import { posts as postsLabel } from '../lib/format'
 import PageList from '../components/PageList.astro'
 import SortBar from '../components/SortBar.astro'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/paginas-feed'
+
+const t = useT(cat)
 
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 const acting = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
@@ -24,22 +28,22 @@ try {
 let suggested: any[] = []
 try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } catch {}
 ---
-<Layout title="Explorar — La Charca">
+<Layout title={t('explorar_titulo')}>
   <Shell viewer={viewer} active="explore">
-    <h1 class="t-title mb-6">Explorar</h1>
+    <h1 class="t-title mb-6">{t('explorar')}</h1>
     <form method="GET" class="flex items-center gap-2 mb-8 px-4 py-3 rounded-2xl max-w-2xl" style="background: var(--surface);border:1px solid var(--line)">
       <svg width="19" height="19" viewBox="0 0 256 256" fill="currentColor" class="ink-3 shrink-0"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
-      <input name="q" value={q} placeholder="Buscar publicaciones, scans o lectores" autocomplete="off"
+      <input name="q" value={q} placeholder={t('buscar_placeholder')} autocomplete="off"
         class="flex-1 bg-transparent text-[16px] focus:outline-none" />
-      {q && <a href="/explorar" class="t-caption hover:opacity-70 shrink-0">Limpiar</a>}
+      {q && <a href="/explorar" class="t-caption hover:opacity-70 shrink-0">{t('limpiar')}</a>}
     </form>
 
     {!q && suggested.length > 0 && (
       <div class="mb-10">
         <div class="flex items-baseline justify-between gap-4 mb-4">
-          <h2 class="t-section">Scans y lectores</h2>
+          <h2 class="t-section">{t('scans_lectores')}</h2>
           <a href="/scans" class="t-caption inline-flex items-center gap-1.5 hover:opacity-70 transition">
-            Ver todos
+            {t('ver_todos')}
             <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
           </a>
         </div>
@@ -80,13 +84,13 @@ try { suggested = (await hilos('/pages/suggested?limit=12', acting)) || [] } cat
 
     {q && pages.length > 0 && (
       <div class="mb-10">
-        <h2 class="t-section mb-1">Cuentas</h2>
+        <h2 class="t-section mb-1">{t('cuentas')}</h2>
         <PageList pages={pages} viewer={viewer} />
       </div>
     )}
 
-    <h2 class="t-section mb-3">{q ? 'Publicaciones' : 'Lo más reciente'}</h2>
+    <h2 class="t-section mb-3">{q ? t('publicaciones') : t('lo_mas_reciente')}</h2>
     {!q && posts.length > 1 && <SortBar current={orden} />}
-    <PostList posts={posts} viewer={viewer} empty={q ? 'Sin resultados.' : 'Todavía no hay publicaciones.'} />
+    <PostList posts={posts} viewer={viewer} empty={q ? t('sin_resultados') : t('sin_publicaciones')} />
   </Shell>
 </Layout>

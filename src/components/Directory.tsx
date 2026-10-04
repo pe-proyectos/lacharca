@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { MagnifyingGlass, Users, BookOpen } from '@phosphor-icons/react'
 import FollowButton from './FollowButton'
+import { useT } from '../i18n'
+import { posts } from '../lib/format'
+import cat from '../i18n/catalogos/directorio'
 
 interface P { id: number; handle: string; type: string; displayName?: string | null; avatarUrl?: string | null; postsCount: number; followersCount: number; viewerFollows?: boolean }
 interface Props { logged: boolean; initialType?: 'scan' | 'user' | ''; showTabs?: boolean }
 
 const Directory: React.FC<Props> = ({ logged, initialType = '', showTabs = true }) => {
+  const t = useT(cat)
   const [type, setType] = useState<'scan' | 'user' | ''>(initialType)
   const [sort, setSort] = useState('comentado')
   const [q, setQ] = useState('')
@@ -60,27 +64,27 @@ const Directory: React.FC<Props> = ({ logged, initialType = '', showTabs = true 
     <div>
       <form onSubmit={submit} className="flex items-center gap-2 mb-5 px-4 py-3 rounded-2xl max-w-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--line)' }}>
         <MagnifyingGlass size={19} className="ink-3 shrink-0" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar scans o lectores" autoComplete="off"
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('buscar_placeholder')} autoComplete="off"
           className="flex-1 bg-transparent text-[16px] focus:outline-none" />
-        {query && <button type="button" onClick={() => { setQ(''); setQuery('') }} className="t-caption hover:opacity-70">Limpiar</button>}
+        {query && <button type="button" onClick={() => { setQ(''); setQuery('') }} className="t-caption hover:opacity-70">{t('limpiar')}</button>}
       </form>
 
       {showTabs && (
         <div className="flex items-center gap-2 mb-4">
-          <Tab v="" label="Todos" icon={null} />
-          <Tab v="scan" label="Scans" icon={<BookOpen size={16} weight={type === 'scan' ? 'fill' : 'regular'} />} />
-          <Tab v="user" label="Personas" icon={<Users size={16} weight={type === 'user' ? 'fill' : 'regular'} />} />
+          <Tab v="" label={t('todos')} icon={null} />
+          <Tab v="scan" label={t('scans')} icon={<BookOpen size={16} weight={type === 'scan' ? 'fill' : 'regular'} />} />
+          <Tab v="user" label={t('personas')} icon={<Users size={16} weight={type === 'user' ? 'fill' : 'regular'} />} />
         </div>
       )}
 
       <div className="flex items-center gap-1.5 mb-6 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
         {([
-          ['comentado', 'Más publicaciones'],
-          ['popular', 'Más seguidos'],
-          ['reciente', 'Más nuevos'],
-          ['antiguo', 'Más antiguos'],
-          ['menos_popular', 'Menos seguidos'],
-          ['menos_comentado', 'Menos publicaciones'],
+          ['comentado', t('mas_publicaciones')],
+          ['popular', t('mas_seguidos')],
+          ['reciente', t('mas_nuevos')],
+          ['antiguo', t('mas_antiguos')],
+          ['menos_popular', t('menos_seguidos')],
+          ['menos_comentado', t('menos_publicaciones')],
         ] as const).map(([k, label]) => (
           <button key={k} type="button" onClick={() => setSort(k)}
             className={`chip shrink-0 cursor-pointer ${sort === k ? 'is-on' : ''}`}
@@ -99,7 +103,7 @@ const Directory: React.FC<Props> = ({ logged, initialType = '', showTabs = true 
             <a href={`/@${s.handle}`} data-hover-handle={s.handle} className="min-w-0 w-full">
               <span className="block text-[15px] font-semibold truncate">{s.displayName || s.handle}</span>
               <span className="block t-caption">
-                {s.postsCount > 0 ? `${Number(s.postsCount).toLocaleString('es')} publicaciones` : `@${s.handle}`}
+                {s.postsCount > 0 ? posts(s.postsCount) : `@${s.handle}`}
               </span>
             </a>
             <FollowButton handle={s.handle} initialFollowing={s.viewerFollows} logged={logged} followers={s.followersCount || 0} />
@@ -108,9 +112,9 @@ const Directory: React.FC<Props> = ({ logged, initialType = '', showTabs = true 
         {loading && items.length === 0 && Array.from({ length: 8 }).map((_, i) => <div key={`s${i}`} className="skeleton h-[196px] rounded-2xl" />)}
       </div>
 
-      {hasMore && <div ref={sentinel} className="py-10 text-center t-caption">{loading ? 'Cargando…' : ' '}</div>}
-      {!hasMore && items.length > 0 && <p className="text-center t-caption py-10">No hay más resultados.</p>}
-      {!loading && items.length === 0 && <p className="text-center t-body ink-2 py-16">Sin resultados.</p>}
+      {hasMore && <div ref={sentinel} className="py-10 text-center t-caption">{loading ? t('cargando') : ' '}</div>}
+      {!hasMore && items.length > 0 && <p className="text-center t-caption py-10">{t('no_mas')}</p>}
+      {!loading && items.length === 0 && <p className="text-center t-body ink-2 py-16">{t('sin_resultados')}</p>}
     </div>
   )
 }

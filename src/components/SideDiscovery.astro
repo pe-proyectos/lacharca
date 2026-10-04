@@ -4,6 +4,19 @@
 import { hilos } from '../lib/hilos'
 import FollowButton from './FollowButton'
 import { followers, num, posts } from '../lib/format'
+import { useT, IDIOMAS, NOMBRE_IDIOMA } from '../i18n'
+import { capibara } from '../i18n/capibara'
+import cat from '../i18n/catalogos/directorio'
+
+const t = useT(cat)
+const capi = capibara()
+// Enlaces para cambiar de idioma: la misma URL con otro ?lang (el middleware
+// lo aplica y guarda la cookie).
+const urlIdioma = (l: string) => {
+  const u = new URL(Astro.url)
+  u.searchParams.set('lang', l)
+  return u.pathname + u.search
+}
 
 const { viewer } = Astro.props
 const acting = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
@@ -18,7 +31,7 @@ if (!trending.length) { try { active = (await hilos('/socials/active?limit=5')) 
 ---
 {suggested.length > 0 && (
   <div>
-    <h2 class="t-section mb-4">A quién seguir</h2>
+    <h2 class="t-section mb-4">{t('a_quien_seguir')}</h2>
     <div class="space-y-4">
       {suggested.map((s: any) => (
         <div class="flex items-center gap-3">
@@ -35,19 +48,19 @@ if (!trending.length) { try { active = (await hilos('/socials/active?limit=5')) 
         </div>
       ))}
     </div>
-    <a href="/scans" class="t-caption inline-block mt-4 hover:opacity-70 transition">Ver todo el directorio</a>
+    <a href="/scans" class="t-caption inline-block mt-4 hover:opacity-70 transition">{t('ver_directorio')}</a>
   </div>
 )}
 
 {(trending.length > 0 || active.length > 0) && (
   <div>
-    <h2 class="t-section mb-4">Haciendo olas</h2>
+    <h2 class="t-section mb-4">{t('haciendo_olas')}</h2>
     {trending.length > 0 ? (
       <div class="space-y-3">
-        {trending.map((t: any) => (
-          <a href={`/tag/${t.tag}`} class="block hover:opacity-70 transition">
-            <span class="block text-[15px] font-medium">#{t.tag}</span>
-            <span class="block t-caption">{posts(t.count)}</span>
+        {trending.map((tr: any) => (
+          <a href={`/tag/${tr.tag}`} class="block hover:opacity-70 transition">
+            <span class="block text-[15px] font-medium">#{tr.tag}</span>
+            <span class="block t-caption">{posts(tr.count)}</span>
           </a>
         ))}
       </div>
@@ -60,7 +73,7 @@ if (!trending.length) { try { active = (await hilos('/socials/active?limit=5')) 
               : <span class="grid place-items-center rounded-xl text-[13px] font-semibold shrink-0" style="width:36px;height:36px;background:var(--soft);color:var(--blue)">{(a.page.displayName || a.page.handle)[0]?.toUpperCase()}</span>}
             <span class="min-w-0">
               <span class="block text-[14px] font-medium truncate">{a.page.displayName || a.page.handle}</span>
-              <span class="block t-caption">{posts(a.count)} esta semana</span>
+              <span class="block t-caption">{t('esta_semana', { posts: posts(a.count) })}</span>
             </span>
           </a>
         ))}
@@ -70,5 +83,14 @@ if (!trending.length) { try { active = (await hilos('/socials/active?limit=5')) 
 )}
 
 <p class="t-caption leading-relaxed">
-  La Charca · <a href="https://capibaratraductor.com" class="hover:opacity-70">CapibaraTraductor</a>
+  La Charca · <a href={capi.url} class="hover:opacity-70">{capi.marca}</a>
+  <br />
+  {IDIOMAS.map((l, i) => (
+    <>
+      {i > 0 && ' · '}
+      {l === t.idioma
+        ? <b lang={l}>{NOMBRE_IDIOMA[l]}</b>
+        : <a href={urlIdioma(l)} lang={l} hreflang={l} rel="nofollow" class="hover:opacity-70">{NOMBRE_IDIOMA[l]}</a>}
+    </>
+  ))}
 </p>

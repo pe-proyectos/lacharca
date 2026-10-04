@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { X, MagnifyingGlassPlus, MagnifyingGlassMinus, DownloadSimple, ArrowsOut, CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/posts'
 
 const MIN = 1
 const MAX = 6
@@ -8,6 +10,7 @@ const STEP = 0.5
 // Visor de imágenes a pantalla completa: zoom, arrastre y descarga. Se abre
 // desde cualquier imagen marcada con data-lightbox, en SSR o en React.
 const Lightbox: React.FC = () => {
+  const t = useT(cat)
   const [list, setList] = useState<string[]>([])
   const [index, setIndex] = useState(0)
   const [scale, setScale] = useState(1)
@@ -80,7 +83,7 @@ const Lightbox: React.FC = () => {
       const blob = await res.blob()
       const a = document.createElement('a')
       a.href = URL.createObjectURL(blob)
-      a.download = src.split('/').pop()?.split('?')[0] || 'imagen'
+      a.download = src.split('/').pop()?.split('?')[0] || t('archivo_imagen')
       a.click()
       setTimeout(() => URL.revokeObjectURL(a.href), 4000)
     } catch { window.open(src, '_blank') }
@@ -95,14 +98,14 @@ const Lightbox: React.FC = () => {
           {list.length > 1 ? `${index + 1} / ${list.length}` : ''}
         </span>
         <div className="flex items-center gap-1">
-          <button type="button" onClick={() => zoomAt(-STEP)} disabled={scale <= MIN} aria-label="Alejar" title="Alejar (-)"
+          <button type="button" onClick={() => zoomAt(-STEP)} disabled={scale <= MIN} aria-label={t('alejar')} title={t('alejar_t')}
             className="lb-btn"><MagnifyingGlassMinus size={19} /></button>
           <span className="text-[13px] tabular-nums w-12 text-center" style={{ color: 'rgba(255,255,255,.7)' }}>{Math.round(scale * 100)}%</span>
-          <button type="button" onClick={() => zoomAt(STEP)} disabled={scale >= MAX} aria-label="Acercar" title="Acercar (+)"
+          <button type="button" onClick={() => zoomAt(STEP)} disabled={scale >= MAX} aria-label={t('acercar')} title={t('acercar_t')}
             className="lb-btn"><MagnifyingGlassPlus size={19} /></button>
-          <button type="button" onClick={reset} aria-label="Ajustar" title="Ajustar (0)" className="lb-btn"><ArrowsOut size={19} /></button>
-          <button type="button" onClick={download} aria-label="Descargar" title="Descargar" className="lb-btn"><DownloadSimple size={19} /></button>
-          <button type="button" onClick={close} aria-label="Cerrar" title="Cerrar (Esc)" className="lb-btn"><X size={19} /></button>
+          <button type="button" onClick={reset} aria-label={t('ajustar')} title={t('ajustar_t')} className="lb-btn"><ArrowsOut size={19} /></button>
+          <button type="button" onClick={download} aria-label={t('descargar')} title={t('descargar')} className="lb-btn"><DownloadSimple size={19} /></button>
+          <button type="button" onClick={close} aria-label={t('cerrar')} title={t('cerrar_t')} className="lb-btn"><X size={19} /></button>
         </div>
       </header>
 
@@ -120,7 +123,7 @@ const Lightbox: React.FC = () => {
         onClick={(e) => { if (e.target === e.currentTarget) close() }}
         style={{ cursor: scale > 1 ? (drag.current ? 'grabbing' : 'grab') : 'zoom-in' }}>
 
-        {loading && <span className="absolute inset-0 grid place-items-center text-[13px]" style={{ color: 'rgba(255,255,255,.5)' }}>Cargando…</span>}
+        {loading && <span className="absolute inset-0 grid place-items-center text-[13px]" style={{ color: 'rgba(255,255,255,.5)' }}>{t('cargando')}</span>}
 
         <img
           src={src}
@@ -139,9 +142,9 @@ const Lightbox: React.FC = () => {
 
         {list.length > 1 && (
           <>
-            <button type="button" onClick={() => go(-1)} aria-label="Anterior"
+            <button type="button" onClick={() => go(-1)} aria-label={t('anterior')}
               className="lb-nav" style={{ left: 12 }}><CaretLeft size={22} /></button>
-            <button type="button" onClick={() => go(1)} aria-label="Siguiente"
+            <button type="button" onClick={() => go(1)} aria-label={t('siguiente')}
               className="lb-nav" style={{ right: 12 }}><CaretRight size={22} /></button>
           </>
         )}
@@ -149,7 +152,7 @@ const Lightbox: React.FC = () => {
 
       <footer className="shrink-0 px-4 py-3 text-center">
         <a href={src} target="_blank" rel="noopener" className="text-[12px]" style={{ color: 'rgba(255,255,255,.45)' }}>
-          Abrir original en una pestaña nueva
+          {t('abrir_original')}
         </a>
       </footer>
     </div>

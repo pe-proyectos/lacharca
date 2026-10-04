@@ -3,7 +3,10 @@ import PostActions from './PostActions'
 import ChapterChip from './ChapterChip'
 import { Poll, Reveal, Countdown } from './PostExtras'
 import { timeAgo } from '../lib/hilos'
-const { posts = [], viewer, empty = 'Aún no hay nada por aquí.' } = Astro.props
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/posts'
+const t = useT(cat)
+const { posts = [], viewer, empty = t('vacio') } = Astro.props
 import { isMedia } from '../lib/media'
 
 // Separa el texto de las imágenes de un comentario: en la vista previa se ve
@@ -67,7 +70,7 @@ function tokenize(c) {
                     ? <img src={p.wall.avatarUrl} alt="" width="44" height="44" loading="lazy" class="rounded-xl object-cover shrink-0" style="width:44px;height:44px" />
                     : <span class="grid place-items-center rounded-xl text-[15px] font-semibold shrink-0" style="width:44px;height:44px;background:var(--soft);color:var(--blue)">{(p.wall.displayName || p.wall.handle)[0]?.toUpperCase()}</span>}
                   <span class="min-w-0">
-                    <span class="block eyebrow">Obra</span>
+                    <span class="block eyebrow">{t('obra')}</span>
                     <span class="block text-[14px] font-medium truncate">{p.wall.displayName || p.wall.handle}</span>
                   </span>
                 </a>
@@ -79,7 +82,7 @@ function tokenize(c) {
                     <span class={`media post-media ${imgs.length > 1 ? 'post-media--grid' : ''}`}
                       style={`--media-bg:url('${u}')`}
                       data-lightbox data-lightbox-group={`post-${p.id}`} data-src={u}>
-                      <img src={u} alt="Imagen de la publicación" loading="lazy" />
+                      <img src={u} alt={t('img_post')} loading="lazy" />
                     </span>
                   ))}
                 </div>
@@ -103,14 +106,14 @@ function tokenize(c) {
                           </span>
                         )}
                         {c.likesCount > 0 && (
-                          <span class="t-caption ml-1.5 inline-flex items-center gap-0.5 align-middle" title={`${c.likesCount} me gusta`}>
+                          <span class="t-caption ml-1.5 inline-flex items-center gap-0.5 align-middle" title={t('me_gusta_n', { n: Number(c.likesCount).toLocaleString(t.locale), c: Number(c.likesCount) })}>
                             <svg width="11" height="11" viewBox="0 0 256 256" fill="currentColor"><path d="M178,40c-20.65,0-38.73,8.88-50,23.89C116.73,48.88,98.65,40,78,40a62.07,62.07,0,0,0-62,62c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,228.66,240,172,240,102A62.07,62.07,0,0,0,178,40Z"/></svg>
                             {c.likesCount}
                           </span>
                         )}
                         {splitComment(c.content).imgs.slice(0, 3).map((u) => (
                           <a href={`/post/${p.id}`} class="inline-block align-middle ml-1.5 media" style="border-radius:8px">
-                            <img src={u} alt="Imagen del comentario" loading="lazy" width="34" height="34"
+                            <img src={u} alt={t('img_comentario')} loading="lazy" width="34" height="34"
                               style="width:34px;height:34px;object-fit:cover;display:block" />
                           </a>
                         ))}
@@ -119,7 +122,7 @@ function tokenize(c) {
                   ))}
                   {p.commentsCount > p.recentComments.length && (
                     <a href={`/post/${p.id}`} class="t-caption inline-flex items-center gap-1 hover:opacity-70 transition">
-                      Ver las {Number(p.commentsCount).toLocaleString('es')} respuestas
+                      {t('ver_respuestas', { n: Number(p.commentsCount).toLocaleString(t.locale), c: Number(p.commentsCount) })}
                       <svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
                     </a>
                   )}

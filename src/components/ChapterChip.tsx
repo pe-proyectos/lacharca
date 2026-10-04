@@ -1,15 +1,19 @@
 import React from 'react'
 import { BookOpenText, ArrowUpRight } from '@phosphor-icons/react'
 import { urlCapitulo, etiquetaCapitulo, type PostChapter } from '../lib/capitulo'
+import { useT } from '../i18n'
+import { capibara } from '../i18n/capibara'
+import cat from '../i18n/catalogos/posts'
 
 // "Cap. 12" pequeño que lleva al capítulo en CapibaraTraductor. Sin datos del
 // capítulo no pinta nada. `work` añade el nombre de la obra cuando no está a la
 // vista. `inLink`: dentro de otro enlace (avisos) no se puede anidar un <a>.
 const ChapterChip: React.FC<{ chapter?: PostChapter | null; work?: string | null; inLink?: boolean; className?: string }> = ({ chapter, work, inLink = false, className = '' }) => {
+  const t = useT(cat)
   const href = urlCapitulo(chapter)
   if (!chapter || !href) return null
   const label = etiquetaCapitulo(chapter)
-  const title = `Leer ${chapter.number ? `el capítulo ${chapter.number}` : 'el capítulo'}${work ? ` de ${work}` : ''} en CapibaraTraductor`
+  const title = t('leer_capitulo', { numero: chapter.number || null, obra: work || null, marca: capibara().marca })
   const inner = (
     <>
       <BookOpenText size={13} weight="bold" className="shrink-0" aria-hidden />

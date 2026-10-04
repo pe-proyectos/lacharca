@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { Sun, Moon, Desktop } from '@phosphor-icons/react'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/cuenta'
 
 type Theme = 'light' | 'dark' | 'system'
 
 const ORDEN: Theme[] = ['light', 'dark', 'system']
 const ICONO = { light: Sun, dark: Moon, system: Desktop }
-const NOMBRE = { light: 'Claro', dark: 'Oscuro', system: 'Automático' }
 
 // Interruptor de tema. Recorre claro → oscuro → automático; "automático" sigue
 // la preferencia del sistema operativo.
 const ThemeToggle: React.FC<{ compact?: boolean }> = ({ compact = false }) => {
+  const t = useT(cat)
+  const NOMBRE = { light: t('tema_light'), dark: t('tema_dark'), system: t('tema_system') }
   const [theme, setTheme] = useState<Theme>('system')
 
   useEffect(() => {
@@ -39,8 +42,8 @@ const ThemeToggle: React.FC<{ compact?: boolean }> = ({ compact = false }) => {
     <button
       type="button"
       onClick={() => apply(next)}
-      title={`Tema: ${NOMBRE[theme]}. Cambiar a ${NOMBRE[next].toLowerCase()}`}
-      aria-label={`Tema ${NOMBRE[theme]}, cambiar a ${NOMBRE[next].toLowerCase()}`}
+      title={t('tema_title', { actual: NOMBRE[theme], siguiente: NOMBRE[next] })}
+      aria-label={t('tema_aria', { actual: NOMBRE[theme], siguiente: NOMBRE[next] })}
       className={compact ? 'icon-btn shrink-0' : 'nav-item flex items-center gap-4 px-3 py-2.5 rounded-xl ink-2 w-full cursor-pointer'}
     >
       <Icon size={compact ? 20 : 24} weight={theme === 'system' ? 'regular' : 'fill'} className="shrink-0" />

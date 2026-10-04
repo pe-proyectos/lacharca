@@ -4,6 +4,10 @@ import Shell from '../../components/Shell.astro'
 import PostList from '../../components/PostList.astro'
 import { hilos } from '../../lib/hilos'
 import { getViewer } from '../../lib/session'
+import { useT } from '../../i18n'
+import cat from '../../i18n/catalogos/paginas-feed'
+
+const t = useT(cat)
 
 const tag = (Astro.params.tag || '').toLowerCase()
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
@@ -14,9 +18,9 @@ try { const d = await hilos(`/socials/tag/${encodeURIComponent(tag)}`, acting); 
 <Layout title={`#${tag} — La Charca`}>
   <Shell viewer={viewer} active="explore">
     <div class="mb-6">
-      <p class="eyebrow mb-2">Etiqueta</p>
+      <p class="eyebrow mb-2">{t('etiqueta')}</p>
       <h1 class="t-title">#{tag}</h1>
     </div>
-    <PostList posts={posts} viewer={viewer} empty={`Aún no hay publicaciones con #${tag}.`} />
+    <PostList posts={posts} viewer={viewer} empty={t('vacio_tag', { tag })} />
   </Shell>
 </Layout>

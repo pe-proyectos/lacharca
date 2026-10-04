@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { Crown, ShieldCheck, Trash, UserPlus, Warning } from '@phosphor-icons/react'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/equipo'
 
 interface Page { handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null }
 interface Miembro { role: 'owner' | 'trusted'; since?: string; page: Page }
 
-const ERRORES: Record<string, string> = {
-  last_owner: 'No puedes quitar al último propietario: el scan quedaría sin nadie que lo administre.',
-  forbidden: 'Solo un propietario puede cambiar el equipo.',
-  page_not_found: 'No encontramos esa cuenta en La Charca.',
-  cannot_add_self: 'El scan no puede pertenecer a su propio equipo.',
-  not_found: 'Esa persona no está en el equipo.',
+// Códigos de error del API → clave del catálogo.
+const ERRORES: Record<string, 'err_last_owner' | 'err_forbidden' | 'err_page_not_found' | 'err_cannot_add_self' | 'err_not_found'> = {
+  last_owner: 'err_last_owner',
+  forbidden: 'err_forbidden',
+  page_not_found: 'err_page_not_found',
+  cannot_add_self: 'err_cannot_add_self',
+  not_found: 'err_not_found',
 }
 
 const Avatar = ({ p, size = 42 }: { p: Page; size?: number }) =>
@@ -23,6 +26,8 @@ const Avatar = ({ p, size = 42 }: { p: Page; size?: number }) =>
 // Equipo de un scan. Un propietario reparte los papeles; quien es de confianza
 // puede publicar en nombre del scan pero no tocar el equipo.
 const TeamManager: React.FC<{ scan: string; me: string }> = ({ scan, me }) => {
+  const t = useT(cat)
+  const error = (codigo: any, porDefecto: string) => (ERRORES[codigo] ? t(ERRORES[codigo]) : porDefecto)
   const [miembros, setMiembros] = useState<Miembro[] | null>(null)
   const [nuevo, setNuevo] = useState('')
   const [rolNuevo, setRolNuevo] = useState<'owner' | 'trusted'>('trusted')
@@ -53,17 +58,17 @@ const TeamManager: React.FC<{ scan: string; me: string }> = ({ scan, me }) => {
       })
       const j = await res.json()
       if (!j?.status) throw new Error(j?.message || 'error')
-      setNuevo(''); setOk(`@${handle} ya forma parte del equipo`); await cargar()
+      setNuevo(''); setOk(t('ya_forma_parte', { handle })); await cargar()
     } catch (e: any) {
-      setErr(ERRORES[e?.message] || 'No se pudo añadir a esa persona.')
+      setErr(error(e?.message, t('err_anadir')))
     } finally { setBusy(false) }
   }
 
   const quitar = async (m: Miembro) => {
     const propio = m.page.handle === me
     const aviso = propio
-      ? '¿Salir del equipo? Dejarás de poder publicar como este scan.'
-      : `¿Quitar a @${m.page.handle} del equipo?`
+      ? t('confirmar_salir')
+      : t('confirmar_quitar', { handle: m.page.handle })
     if (!confirm(aviso)) return
     setErr(null); setOk(null)
     try {
@@ -75,7 +80,7 @@ const TeamManager: React.FC<{ scan: string; me: string }> = ({ scan, me }) => {
       if (propio) { window.location.href = '/'; return }
       await cargar()
     } catch (e: any) {
-      setErr(ERRORES[e?.message] || 'No se pudo quitar a esa persona.')
+      setErr(error(e?.message, t('err_quitar')))
     }
   }
 
@@ -91,7 +96,7 @@ const TeamManager: React.FC<{ scan: string; me: string }> = ({ scan, me }) => {
       if (!j?.status) throw new Error(j?.message || 'error')
       await cargar()
     } catch (e: any) {
-      setErr(ERRORES[e?.message] || 'No se pudo cambiar el papel.')
+      setErr(error(e?.message, t('err_rol')))
     }
   }
 
@@ -115,23 +120,23 @@ const TeamManager: React.FC<{ scan: string; me: string }> = ({ scan, me }) => {
     <div>
       {soyOwner && (
         <div className="rounded-2xl p-4 mb-6" style={{ background: 'var(--surface)', border: '1px solid var(--line)' }}>
-          <p className="text-[15px] font-medium mb-1">Añadir a alguien</p>
-          <p className="t-sub mb-3">Escribe su @usuario de La Charca. Debe tener cuenta creada.</p>
+          <p className="text-[15px] font-medium mb-1">{t('anadir_alguien')}</p>
+          <p className="t-sub mb-3">{t('anadir_desc')}</p>
           <div className="flex flex-wrap items-center gap-2">
             <input value={nuevo} onChange={(e) => setNuevo(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') añadir() }}
-              placeholder="@usuario"
+              placeholder={t('usuario_placeholder')}
               className="flex-1 min-w-[180px] rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none"
               style={{ background: 'var(--surface-2)', border: '1px solid var(--line)' }} />
             <select value={rolNuevo} onChange={(e) => setRolNuevo(e.target.value as any)}
               className="rounded-xl px-3 py-2.5 text-[14px] focus:outline-none"
               style={{ background: 'var(--surface-2)', border: '1px solid var(--line)' }}>
-              <option value="trusted">De confianza</option>
-              <option value="owner">Propietario</option>
+              <option value="trusted">{t('de_confianza')}</option>
+              <option value="owner">{t('propietario')}</option>
             </select>
             <button type="button" onClick={añadir} disabled={busy || !nuevo.trim()}
               className="btn inline-flex items-center gap-2 disabled:opacity-40 cursor-pointer">
-              <UserPlus size={16} weight="fill" /> Añadir
+              <UserPlus size={16} weight="fill" /> {t('anadir')}
             </button>
           </div>
         </div>
@@ -152,12 +157,12 @@ const TeamManager: React.FC<{ scan: string; me: string }> = ({ scan, me }) => {
               <a href={`/@${m.page.handle}`} data-hover-handle={m.page.handle} className="shrink-0"><Avatar p={m.page} /></a>
               <a href={`/@${m.page.handle}`} data-hover-handle={m.page.handle} className="min-w-0 flex-1">
                 <span className="block text-[15px] font-medium truncate">
-                  {m.page.displayName || m.page.handle}{esYo && <span className="t-caption"> · tú</span>}
+                  {m.page.displayName || m.page.handle}{esYo && <span className="t-caption"> · {t('tu')}</span>}
                 </span>
                 <span className="t-caption inline-flex items-center gap-1.5">
                   {m.role === 'owner'
-                    ? <><Crown size={13} weight="fill" style={{ color: 'var(--blue)' }} /> Propietario</>
-                    : <><ShieldCheck size={13} /> De confianza</>}
+                    ? <><Crown size={13} weight="fill" style={{ color: 'var(--blue)' }} /> {t('propietario')}</>
+                    : <><ShieldCheck size={13} /> {t('de_confianza')}</>}
                 </span>
               </a>
 
@@ -165,16 +170,16 @@ const TeamManager: React.FC<{ scan: string; me: string }> = ({ scan, me }) => {
                 <div className="flex items-center gap-1.5 shrink-0">
                   {m.role === 'trusted' ? (
                     <button type="button" onClick={() => cambiarRol(m, 'owner')} className="chip cursor-pointer"
-                      style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>Hacer propietario</button>
+                      style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>{t('hacer_propietario')}</button>
                   ) : (
                     <button type="button" onClick={() => cambiarRol(m, 'trusted')} disabled={ultimoOwner}
-                      title={ultimoOwner ? 'Es el único propietario' : undefined}
+                      title={ultimoOwner ? t('unico_propietario') : undefined}
                       className="chip cursor-pointer disabled:opacity-40"
-                      style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>Quitar propiedad</button>
+                      style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>{t('quitar_propiedad')}</button>
                   )}
                   <button type="button" onClick={() => quitar(m)} disabled={ultimoOwner}
-                    title={ultimoOwner ? 'No puede quedarse sin propietario' : 'Quitar del equipo'}
-                    aria-label="Quitar del equipo" className="icon-btn shrink-0 disabled:opacity-30">
+                    title={ultimoOwner ? t('sin_propietario') : t('quitar_equipo')}
+                    aria-label={t('quitar_equipo')} className="icon-btn shrink-0 disabled:opacity-30">
                     <Trash size={16} />
                   </button>
                 </div>
@@ -182,7 +187,7 @@ const TeamManager: React.FC<{ scan: string; me: string }> = ({ scan, me }) => {
 
               {!soyOwner && esYo && (
                 <button type="button" onClick={() => quitar(m)} disabled={ultimoOwner}
-                  className="chip cursor-pointer shrink-0" style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>Salir</button>
+                  className="chip cursor-pointer shrink-0" style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>{t('salir')}</button>
               )}
             </div>
           )
@@ -191,7 +196,7 @@ const TeamManager: React.FC<{ scan: string; me: string }> = ({ scan, me }) => {
 
       {!soyOwner && (
         <p className="t-sub mt-5">
-          Puedes publicar y responder en nombre de este scan. Solo un propietario puede cambiar el equipo.
+          {t('nota_confianza')}
         </p>
       )}
     </div>

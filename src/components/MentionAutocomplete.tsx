@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { hilosApi } from '../lib/hilosClient'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/composer'
 
 interface Page { handle: string; displayName?: string | null; avatarUrl?: string | null; type?: string }
 
@@ -14,6 +16,7 @@ interface Props {
 // o simplemente porque sí. Por eso esto solo se ofrece, nunca se impone: si no
 // eliges a nadie, tu texto se queda exactamente como lo escribiste.
 const MentionAutocomplete: React.FC<Props> = ({ inputRef, value, onPick }) => {
+  const t = useT(cat)
   const [items, setItems] = useState<Page[]>([])
   const [activo, setActivo] = useState(0)
   const [visible, setVisible] = useState(false)
@@ -77,7 +80,7 @@ const MentionAutocomplete: React.FC<Props> = ({ inputRef, value, onPick }) => {
   return (
     <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-2xl overflow-hidden rise"
       style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: '0 12px 32px var(--shadow)', maxWidth: 320 }}>
-      <p className="eyebrow px-3 pt-2.5 pb-1.5">Mencionar a alguien · Esc para omitir</p>
+      <p className="eyebrow px-3 pt-2.5 pb-1.5">{t('mencionar')}</p>
       {items.map((p, i) => (
         <button key={p.handle} type="button" onMouseDown={(e) => { e.preventDefault(); elegir(p) }}
           onMouseEnter={() => setActivo(i)}

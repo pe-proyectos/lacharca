@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import PostCard, { type PostShape } from './PostCard'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/perfil'
 
 interface Props { handle: string; logged: boolean; startPage?: number; pageSize?: number; sort?: string }
 
 // Continuación paginada del muro de un perfil. Un scan puede tener miles de
 // publicaciones: se cargan por tandas conforme se baja.
 const ProfileMore: React.FC<Props> = ({ handle, logged, startPage = 1, pageSize = 25, sort = 'reciente' }) => {
+  const t = useT(cat)
   const [items, setItems] = useState<PostShape[]>([])
   const [page, setPage] = useState(startPage)
   const [hasMore, setHasMore] = useState(true)
@@ -56,13 +59,13 @@ const ProfileMore: React.FC<Props> = ({ handle, logged, startPage = 1, pageSize 
 
       {failed && (
         <div className="py-8 text-center">
-          <p className="t-sub mb-3">No pudimos cargar más publicaciones.</p>
-          <button type="button" onClick={() => load(page)} className="chip cursor-pointer">Reintentar</button>
+          <p className="t-sub mb-3">{t('err_mas')}</p>
+          <button type="button" onClick={() => load(page)} className="chip cursor-pointer">{t('reintentar')}</button>
         </div>
       )}
 
       {hasMore && !failed && <div ref={sentinel} className="h-4" />}
-      {!hasMore && items.length > 0 && <p className="t-caption text-center py-10">No hay más publicaciones.</p>}
+      {!hasMore && items.length > 0 && <p className="t-caption text-center py-10">{t('no_mas')}</p>}
     </>
   )
 }

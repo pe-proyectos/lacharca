@@ -3,19 +3,24 @@ import React, { useState } from 'react'
 
 // Mensaje claro cuando publicar falla (silencio del scan, límite, red).
 function mensajeDeError(e: any): string {
+  const t = useT(catErr)
   if (e?.message === 'muted_scope') {
     const d = e?.detalle || {}
-    const hasta = d.until && d.until !== 'forever' ? ` hasta el ${new Date(d.until).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''
-    return `${d.scope || 'Este scan'} te silenció${hasta}: no puedes comentar en sus obras. En el resto de la página sí.`
+    const hasta = d.until && d.until !== 'forever' ? new Date(d.until).toLocaleDateString(t.locale, { day: 'numeric', month: 'long', year: 'numeric' }) : null
+    return t('err_muted_scope', { scope: d.scope || null, hasta })
   }
-  if (e?.message === 'muted') return 'Tu cuenta no puede comentar por ahora.'
-  if (e?.message === 'rate_limited') return 'Vas muy rápido, espera un momento.'
-  return 'No se pudo publicar. Inténtalo de nuevo.'
+  if (e?.message === 'muted') return t('err_muted')
+  if (e?.message === 'rate_limited') return t('err_rate_limited')
+  return t('err_publicar')
 }
 
 import { hilosApi, uploadToHilos, getIdentity, getIdentityPage } from '../lib/hilosClient'
 import MentionAutocomplete from './MentionAutocomplete'
 import { isMedia } from '../lib/media'
+import { timeAgo } from '../lib/time'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/comentarios'
+import catErr from '../i18n/catalogos/composer'
 
 interface C { id: number; content: string; parentCommentId: number | null; createdAt: string; author: { handle: string; displayName?: string | null; avatarUrl?: string | null } }
 interface Props { postId: number; initial: C[]; logged: boolean; total?: number; me?: string | null }
@@ -44,13 +49,6 @@ function splitMedia(content: string) {
   const text = lines.filter((l) => !imgs.includes(l)).join('\n').trim()
   return { text, imgs: imgs.map((i) => i.trim()) }
 }
-function ago(iso: string) {
-  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000))
-  if (s < 60) return 'ahora'
-  const m = Math.floor(s / 60); if (m < 60) return `${m}m`
-  const h = Math.floor(s / 3600); if (h < 24) return `${h}h`
-  return `${Math.floor(s / 86400)}d`
-}
 
 const Avatar = ({ c, size = 36 }: any) => (
   c?.avatarUrl
@@ -75,6 +73,7 @@ const CommentSkeleton = ({ nested = false }: { nested?: boolean }) => (
 const VENTANA_BORRADO_MS = 24 * 3600 * 1000
 
 const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me = null }) => {
+  const t = useT(cat)
   const [items, setItems] = useState<C[]>(initial || [])
   const [miHandle, setMiHandle] = useState<string | null>(null)
 
@@ -95,7 +94,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
     Date.now() - new Date(c.createdAt).getTime() < VENTANA_BORRADO_MS
 
   const borrar = async (c: C) => {
-    if (!confirm('¿Eliminar tu comentario?')) return
+    if (!confirm(t('confirmar_eliminar'))) return
     const antes = items
     setItems((l) => l.filter((x) => x.id !== c.id && x.parentCommentId !== c.id))
     try {
@@ -103,8 +102,8 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
     } catch (e: any) {
       setItems(antes)
       alert(e?.message === 'too_old'
-        ? 'Ya pasaron 24 horas: pídele a un moderador que lo retire.'
-        : 'No se pudo eliminar el comentario.')
+        ? t('err_too_old')
+        : t('err_eliminar'))
     }
   }
   const [loading, setLoading] = useState((initial || []).length === 0 && total > 0)
@@ -194,7 +193,7 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
     const comoScan = getIdentity() ? getIdentityPage() : null
     const autor = comoScan
       ? { handle: comoScan.handle, displayName: comoScan.displayName || comoScan.handle, avatarUrl: comoScan.avatarUrl || null }
-      : { handle: 'tu', displayName: 'Tú', avatarUrl: null }
+      : { handle: 'tu', displayName: t('tu'), avatarUrl: null }
     const optimistic: any = { id: tempId, content, parentCommentId: parentId ?? null, createdAt: new Date().toISOString(), author: autor, pending: true }
     setItems((l) => [...l, optimistic])
     if (parentId) { setReplyText(''); setReplyTo(null) } else { setText(''); clearImage() }
@@ -219,11 +218,11 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
           <div className="min-w-0 flex-1">
             <p className="text-[13px]">
               <a href={`/@${c.author?.handle}`} data-hover-handle={c.author?.handle} className="font-semibold hover:opacity-70">{c.author?.displayName || c.author?.handle}</a>
-              <span className="ink-3"> · {ago(c.createdAt)}</span>
+              <span className="ink-3"> · {timeAgo(c.createdAt)}</span>
             </p>
             {body && <p className="t-body whitespace-pre-wrap break-words mt-0.5">{tokenize(body)}</p>}
             {imgs.map((u, i) => (
-              <img key={i} src={u} alt="Imagen del comentario" loading="lazy"
+              <img key={i} src={u} alt={t('img_comentario')} loading="lazy"
                 data-lightbox="" data-lightbox-group={`comment-${c.id}`} data-src={u}
                 className="mt-2 rounded-xl max-h-72 cursor-zoom-in" style={{ border: '1px solid var(--line)' }} />
             ))}
@@ -237,24 +236,24 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
                 // Al responder dentro de un hilo, dejamos la mención puesta.
                 setReplyText(nested && c.author?.handle ? `@${c.author.handle} ` : '')
               }}
-              className="mt-1.5 text-[13px] font-semibold cursor-pointer hover:opacity-70" style={{ color: "var(--blue)" }}>Responder</button>
+              className="mt-1.5 text-[13px] font-semibold cursor-pointer hover:opacity-70" style={{ color: "var(--blue)" }}>{t('responder')}</button>
 
             {puedoBorrar(c) && (
               <button type="button" onClick={() => borrar(c)}
-                title="Puedes retirarlo durante 24 horas"
+                title={t('puedes_retirar')}
                 className="mt-1.5 ml-3 text-[13px] font-semibold cursor-pointer hover:opacity-70 inline-flex items-center gap-1"
                 style={{ color: 'var(--ink-3)' }}>
-                <Trash size={13} /> Eliminar
+                <Trash size={13} /> {t('eliminar')}
               </button>
             )}
             {replyTo === c.id && (
               <div className="mt-2 flex items-end gap-2">
                 <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={1} autoFocus
                   onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send(c.id) }}
-                  placeholder={`Responder a ${c.author?.displayName || c.author?.handle}`}
+                  placeholder={t('responder_a', { nombre: c.author?.displayName || c.author?.handle || '' })}
                   className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none" style={{ background: "var(--surface-2)", border: "1px solid var(--line)" }} />
                 <button type="button" onClick={() => send(c.id)} disabled={busy || !replyText.trim()}
-                  className="btn disabled:opacity-35 cursor-pointer inline-flex items-center gap-1.5" aria-label="Responder"><PaperPlaneTilt size={16} weight="fill" />Responder</button>
+                  className="btn disabled:opacity-35 cursor-pointer inline-flex items-center gap-1.5" aria-label={t('responder')}><PaperPlaneTilt size={16} weight="fill" />{t('responder')}</button>
               </div>
             )}
             {replies.length > 0 && (
@@ -271,10 +270,10 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
   return (
     <div>
       <div className="flex items-center justify-between gap-3 py-3 flex-wrap">
-        <h2 className="eyebrow">{items.length} {items.length === 1 ? 'comentario' : 'comentarios'}</h2>
+        <h2 className="eyebrow">{t('n_comentarios', { n: items.length })}</h2>
         {items.length > 1 && (
           <div className="flex items-center gap-1.5">
-            {([['reciente', 'Recientes'], ['antiguo', 'Antiguos'], ['popular', 'Populares']] as const).map(([k, label]) => (
+            {([['reciente', t('orden_reciente')], ['antiguo', t('orden_antiguo')], ['popular', t('orden_popular')]] as const).map(([k, label]) => (
               <button key={k} type="button" onClick={() => changeSort(k)} disabled={sorting}
                 className={`chip cursor-pointer ${sort === k ? 'is-on' : ''}`} style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>
                 {label}
@@ -287,16 +286,16 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
         <div className="mb-4">
           {identidadScan && (
             <p className="t-caption mb-2">
-              Respondiendo como <b style={{ color: 'var(--ink)' }}>{identidadScan.displayName || `@${identidadScan.handle}`}</b>
+              {t('respondiendo_como')} <b style={{ color: 'var(--ink)' }}>{identidadScan.displayName || `@${identidadScan.handle}`}</b>
             </p>
           )}
           {image && (
             <div className="relative inline-block mb-2 media post-media" style={{ opacity: image.url ? 1 : 0.55, cursor: 'default', ['--media-bg' as any]: `url('${image.preview}')` }}>
               {image.preview
                 ? <img src={image.preview} alt="" style={{ maxHeight: 220 }} />
-                : <span className="block px-4 py-3 t-caption" style={{ color: 'var(--danger)' }}>La imagen supera los 5 MB</span>}
+                : <span className="block px-4 py-3 t-caption" style={{ color: 'var(--danger)' }}>{t('imagen_pesada')}</span>}
               {!image.url && !image.failed && <span className="absolute inset-0 skeleton rounded-xl" />}
-              <button type="button" onClick={clearImage} aria-label="Quitar imagen"
+              <button type="button" onClick={clearImage} aria-label={t('quitar_imagen')}
                 className="absolute top-1.5 right-1.5 grid place-items-center w-6 h-6 rounded-full cursor-pointer"
                 style={{ background: 'rgba(16,31,56,.65)', color: '#fff' }}>
                 <X size={12} weight="bold" />
@@ -318,26 +317,26 @@ const CommentThread: React.FC<Props> = ({ postId, initial, logged, total = 0, me
             <input ref={fileInput} type="file" accept="image/*" className="hidden"
               onChange={(e) => pickImage(e.target.files?.[0])} />
             <button type="button" onClick={() => fileInput.current?.click()} disabled={!!image}
-              aria-label="Adjuntar imagen" title={image ? 'Solo una imagen por comentario' : 'Adjuntar imagen'}
+              aria-label={t('adjuntar')} title={image ? t('solo_una') : t('adjuntar')}
               className="icon-btn shrink-0">
               <ImageSquare size={20} />
             </button>
             <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1}
               onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send() }}
               onPaste={(e) => { const f = e.clipboardData.files?.[0]; if (f) { e.preventDefault(); pickImage(f) } }}
-              placeholder="Súmate a la conversación"
+              placeholder={t('sumate')}
               className="flex-1 resize-none rounded-xl px-3.5 py-2.5 text-[15px] focus:outline-none" style={{ background: "var(--surface-2)", border: "1px solid var(--line)" }} />
             <button type="button" onClick={() => send()} disabled={busy || (!text.trim() && !image?.url) || (!!image && !image.url && !image.failed)}
-              className="btn disabled:opacity-35 cursor-pointer shrink-0">Enviar</button>
+              className="btn disabled:opacity-35 cursor-pointer shrink-0">{t('enviar')}</button>
           </div>
         </div>
       ) : (
-        <a href="/auth/login" className="btn-ghost w-full justify-center my-2">Únete a la charca para comentar</a>
+        <a href="/auth/login" className="btn-ghost w-full justify-center my-2">{t('unete')}</a>
       )}
       {loading || sorting
         ? <div>{Array.from({ length: Math.min(4, Math.max(2, total)) }).map((_, i) => <CommentSkeleton key={i} />)}</div>
         : roots.length === 0
-          ? <p className="t-sub py-8 text-center">Todavía no hay comentarios. Escribe el primero.</p>
+          ? <p className="t-sub py-8 text-center">{t('vacio')}</p>
           : roots.map((c) => <Item key={c.id} c={c} />)}
       {aviso && <div className="toast" role="alert">{aviso}</div>}
     </div>

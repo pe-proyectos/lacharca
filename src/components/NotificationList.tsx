@@ -4,6 +4,8 @@ import { hilosApi } from '../lib/hilosClient'
 import { timeAgo } from '../lib/time'
 import ChapterChip from './ChapterChip'
 import type { PostChapter } from '../lib/capitulo'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/avisos'
 
 interface N {
   id: number; type: string; postId: number | null; commentId: number | null
@@ -13,15 +15,12 @@ interface N {
 }
 
 const ICON: Record<string, any> = { comment: ChatCircle, reply: ArrowBendUpLeft, mention: At, follow: UserPlus, message: PaperPlaneTilt }
-const VERB: Record<string, string> = {
-  comment: 'comentó tu publicación',
-  reply: 'respondió a tu comentario',
-  mention: 'te mencionó',
-  follow: 'te empezó a seguir',
-  message: 'te envió un mensaje',
-}
+// Tipos de aviso con verbo propio en el catálogo.
+const VERBOS = ['comment', 'reply', 'mention', 'follow', 'message'] as const
+type Verbo = typeof VERBOS[number]
 
 const NotificationList: React.FC<{ initial: N[]; hasMore: boolean }> = ({ initial, hasMore: more0 }) => {
+  const t = useT(cat)
   const [items, setItems] = useState<N[]>(initial || [])
   const [hasMore, setHasMore] = useState(more0)
   const [page, setPage] = useState(0)
@@ -86,8 +85,8 @@ const NotificationList: React.FC<{ initial: N[]; hasMore: boolean }> = ({ initia
     return (
       <div className="py-24 text-center">
         <ChatCircle size={34} className="ink-3 mx-auto mb-4" />
-        <p className="t-body ink-2">Todavía no tienes avisos.</p>
-        <p className="t-sub mt-1">Cuando alguien te responda, te mencione o te siga, aparecerá aquí.</p>
+        <p className="t-body ink-2">{t('vacio')}</p>
+        <p className="t-sub mt-1">{t('vacio_sub')}</p>
       </div>
     )
   }
@@ -96,7 +95,7 @@ const NotificationList: React.FC<{ initial: N[]; hasMore: boolean }> = ({ initia
     <div>
       {items.map((n) => {
         const Icon = ICON[n.type] || ChatCircle
-        const name = n.actor?.displayName || n.actor?.handle || 'Alguien'
+        const name = n.actor?.displayName || n.actor?.handle || t('alguien')
         return (
           <a key={n.id} href={href(n)} className="row flex items-start gap-3.5 py-4" style={{ borderBottom: '1px solid var(--line)' }}>
             <span className="relative shrink-0">
@@ -113,7 +112,7 @@ const NotificationList: React.FC<{ initial: N[]; hasMore: boolean }> = ({ initia
             <span className="min-w-0 flex-1">
               <span className="block text-[15px]">
                 <b className="font-semibold" data-hover-handle={n.actor?.handle}>{name}</b>{' '}
-                <span className="ink-2">{VERB[n.type] || 'interactuó contigo'}</span>
+                <span className="ink-2">{VERBOS.includes(n.type as Verbo) ? t(n.type as Verbo) : t('otro')}</span>
                 <span className="t-caption"> · {timeAgo(n.createdAt)}</span>
               </span>
               {n.preview && <span className="block t-sub truncate mt-0.5">{n.preview}</span>}
@@ -144,7 +143,7 @@ const NotificationList: React.FC<{ initial: N[]; hasMore: boolean }> = ({ initia
       )}
 
       {hasMore && !loading && (
-        <button type="button" onClick={loadMore} className="chip w-full justify-center mt-6 cursor-pointer">Ver más avisos</button>
+        <button type="button" onClick={loadMore} className="chip w-full justify-center mt-6 cursor-pointer">{t('ver_mas')}</button>
       )}
     </div>
   )

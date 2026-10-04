@@ -8,6 +8,10 @@ import {
 import NotifBadge from './NotifBadge'
 import ThemeToggle from './ThemeToggle'
 import IdentitySwitcher from './IdentitySwitcher'
+import LanguageSwitcher from './LanguageSwitcher'
+import { useT } from '../i18n'
+import { capibara as sitioCapibara } from '../i18n/capibara'
+import cat from '../i18n/catalogos/nav'
 import { getIdentity, getIdentityPage, type IdentityPage } from '../lib/hilosClient'
 
 interface Viewer { handle: string; displayName?: string | null; avatarUrl?: string | null }
@@ -20,8 +24,6 @@ interface Props {
 }
 
 type Enlace = { href: string; label: string; desc?: string; Icon: any; external?: boolean; key?: string }
-
-const CAPI = 'https://capibaratraductor.com'
 
 // Scan con el que estás actuando (lo elige IdentitySwitcher y vive en el
 // navegador), para ofrecer sus accesos de administración.
@@ -65,6 +67,8 @@ const Eyebrow = ({ children }: { children: React.ReactNode }) => (
 )
 
 const CharcaNav: React.FC<Props> = ({ active, viewer, trending, isAdmin }) => {
+  const t = useT(cat)
+  const capi = sitioCapibara()
   const [panel, setPanel] = useState<null | 'explorar' | 'charca' | 'capibara'>(null)
   const [hoja, setHoja] = useState(false)
   const [q, setQ] = useState('')
@@ -99,40 +103,40 @@ const CharcaNav: React.FC<Props> = ({ active, viewer, trending, isAdmin }) => {
   const publicarHref = viewer ? '/?compose=1' : '/auth/login'
 
   const descubrir: Enlace[] = [
-    { href: '/explorar', label: 'Explorar', desc: 'Busca publicaciones, scans y lectores', Icon: Compass },
-    { href: '/', label: 'Lo más nuevo', desc: 'Todo lo que se publica, al momento', Icon: Clock },
-    { href: '/explorar?orden=popular', label: 'Populares', desc: 'Lo que más gusta ahora', Icon: Fire },
-    { href: '/explorar?orden=comentado', label: 'Más comentado', desc: 'Donde está la conversación', Icon: ChatsCircle },
-    { href: '/scans', label: 'Directorio de scans', desc: 'Todos los grupos de la charca', Icon: Storefront },
+    { href: '/explorar', label: t('explorar'), desc: t('explorar_desc'), Icon: Compass },
+    { href: '/', label: t('nuevo'), desc: t('nuevo_desc'), Icon: Clock },
+    { href: '/explorar?orden=popular', label: t('populares'), desc: t('populares_desc'), Icon: Fire },
+    { href: '/explorar?orden=comentado', label: t('comentado'), desc: t('comentado_desc'), Icon: ChatsCircle },
+    { href: '/scans', label: t('directorio'), desc: t('directorio_desc'), Icon: Storefront },
   ]
 
   const tuCharca: Enlace[] = viewer ? [
-    { href: '/?feed=following', label: 'Tu manada', desc: 'Lo de quienes sigues', Icon: UsersThree },
-    { href: `/@${viewer.handle}`, label: 'Tu perfil', desc: 'Tus publicaciones y respuestas', Icon: User },
-    { href: '/guardados', label: 'Guardados', desc: 'Lo que marcaste para después', Icon: BookmarkSimple },
-    { href: '/mensajes', label: 'Mensajes', desc: 'Tus conversaciones', Icon: ChatCircleDots },
-    { href: '/avisos', label: 'Avisos', desc: 'Respuestas, menciones y seguidores', Icon: Bell },
-    { href: `/@${viewer.handle}/seguidores`, label: 'Seguidores', desc: 'Quién te sigue', Icon: UserList },
-    { href: `/@${viewer.handle}/siguiendo`, label: 'Siguiendo', desc: 'A quién sigues', Icon: Users },
-    ...(isAdmin ? [{ href: '/panel', label: 'Panel', desc: 'Actividad en tiempo real', Icon: ChartLine }] : []),
+    { href: '/?feed=following', label: t('manada'), desc: t('manada_desc'), Icon: UsersThree },
+    { href: `/@${viewer.handle}`, label: t('perfil'), desc: t('perfil_desc'), Icon: User },
+    { href: '/guardados', label: t('guardados'), desc: t('guardados_desc'), Icon: BookmarkSimple },
+    { href: '/mensajes', label: t('mensajes'), desc: t('mensajes_desc'), Icon: ChatCircleDots },
+    { href: '/avisos', label: t('avisos'), desc: t('avisos_desc'), Icon: Bell },
+    { href: `/@${viewer.handle}/seguidores`, label: t('seguidores'), desc: t('seguidores_desc'), Icon: UserList },
+    { href: `/@${viewer.handle}/siguiendo`, label: t('siguiendo'), desc: t('siguiendo_desc'), Icon: Users },
+    ...(isAdmin ? [{ href: '/panel', label: t('panel'), desc: t('panel_desc'), Icon: ChartLine }] : []),
   ] : []
 
   const deScan: Enlace[] = scan ? [
-    { href: `/@${scan.handle}`, label: 'Perfil del scan', desc: scan.displayName || `@${scan.handle}`, Icon: Storefront },
-    { href: `/@${scan.handle}/equipo`, label: 'Equipo', desc: 'Quién publica por el scan', Icon: Users },
-    { href: `/@${scan.handle}/obras`, label: 'Obras', desc: 'Sus páginas de obra', Icon: BookOpen },
+    { href: `/@${scan.handle}`, label: t('perfil_scan'), desc: scan.displayName || `@${scan.handle}`, Icon: Storefront },
+    { href: `/@${scan.handle}/equipo`, label: t('equipo'), desc: t('equipo_desc'), Icon: Users },
+    { href: `/@${scan.handle}/obras`, label: t('obras'), desc: t('obras_desc'), Icon: BookOpen },
   ] : []
 
   const capibara: Enlace[] = [
-    { href: CAPI, label: 'Leer en CapibaraTraductor', desc: 'Mangas, manhwas y novelas', Icon: BookOpen, external: true },
-    { href: `${CAPI}/search?sort=popular`, label: 'Populares', desc: 'Lo más leído de la semana', Icon: Fire, external: true },
-    { href: `${CAPI}/subscriptions`, label: 'Suscripción Capibara', desc: 'Sin anuncios y capítulos anticipados', Icon: Crown, external: true },
-    { href: 'https://discord.gg/xJqCWAUxVt', label: 'Discord', desc: 'Habla con el equipo', Icon: DiscordLogo, external: true },
+    { href: capi.url, label: t('leer_en', { marca: capi.marca }), desc: t('leer_en_desc'), Icon: BookOpen, external: true },
+    { href: `${capi.url}/search?sort=popular`, label: t('populares'), desc: t('populares_capi_desc'), Icon: Fire, external: true },
+    { href: `${capi.url}/subscriptions`, label: t('suscripcion'), desc: t('suscripcion_desc'), Icon: Crown, external: true },
+    { href: capi.discord, label: 'Discord', desc: t('discord_desc'), Icon: DiscordLogo, external: true },
   ]
 
   const tabs = [
-    { href: '/', label: 'Inicio', key: 'home', Icon: House },
-    ...(viewer ? [{ href: '/?feed=following', label: 'Tu manada', key: 'following', Icon: UsersThree }] : []),
+    { href: '/', label: t('inicio'), key: 'home', Icon: House },
+    ...(viewer ? [{ href: '/?feed=following', label: t('manada'), key: 'following', Icon: UsersThree }] : []),
   ]
 
   const disparador = (p: 'explorar' | 'charca' | 'capibara', label: string, on = false) => (
@@ -160,57 +164,59 @@ const CharcaNav: React.FC<Props> = ({ active, viewer, trending, isAdmin }) => {
       <header ref={raiz} className="sticky top-0 z-50"
         style={{ background: 'color-mix(in srgb, var(--paper) 88%, transparent)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--line)' }}>
         <div className="mx-auto max-w-[1400px] h-[64px] md:h-[68px] px-4 sm:px-6 flex items-center gap-3 md:gap-5">
-          <a href="/" className="flex items-center gap-2.5 shrink-0" aria-label="La Charca, inicio">
+          <a href="/" className="flex items-center gap-2.5 shrink-0" aria-label={t('inicio_aria')}>
             <img src="/logo.webp" alt="" width="34" height="34" style={{ width: 34, height: 34, objectFit: 'contain' }} />
             <span className="text-[19px] font-semibold tracking-[-0.03em]">La Charca</span>
           </a>
 
           {/* Escritorio: enlaces y megamenús */}
-          <nav className="hidden lg:flex items-center gap-1 ml-2" aria-label="Principal">
+          <nav className="hidden lg:flex items-center gap-1 ml-2" aria-label={t('principal')}>
             {tabs.map((t) => (
               <a key={t.key} href={t.href} aria-current={active === t.key ? 'page' : undefined}
                 className={`nav-item rounded-full px-3.5 py-2 text-[15px] ${active === t.key ? 'font-semibold' : 'ink-2'}`}
                 style={active === t.key ? { background: 'var(--active)' } : undefined}>{t.label}</a>
             ))}
-            {disparador('explorar', 'Explorar', active === 'explore')}
-            {viewer && disparador('charca', 'Tu charca', ['saved', 'me', 'panel'].includes(active))}
-            {disparador('capibara', 'Capibara')}
+            {disparador('explorar', t('explorar'), active === 'explore')}
+            {viewer && disparador('charca', t('tu_charca'), ['saved', 'me', 'panel'].includes(active))}
+            {disparador('capibara', t('capibara'))}
           </nav>
 
           {/* Buscador (escritorio) */}
           <form onSubmit={buscar} className="hidden md:flex flex-1 max-w-[360px] ml-auto items-center gap-2 rounded-full px-4 h-11 transition-shadow focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--blue)_25%,transparent)]"
             style={{ background: 'var(--surface)', border: '1px solid var(--line)' }}>
             <MagnifyingGlass size={18} className="ink-3 shrink-0" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar en la charca"
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('buscar_placeholder')}
               className="flex-1 min-w-0 bg-transparent text-[15px] focus:outline-none" />
           </form>
 
           {/* Acciones */}
           <div className="flex items-center gap-1 md:gap-1.5 ml-auto md:ml-0">
             {/* Envueltos: .icon-btn fija su propio display y pisaría hidden/md:hidden. */}
-            <span className="md:hidden"><a href="/explorar" className="icon-btn" aria-label="Buscar"><MagnifyingGlass size={21} /></a></span>
+            <span className="md:hidden"><a href="/explorar" className="icon-btn" aria-label={t('buscar')}><MagnifyingGlass size={21} /></a></span>
             {viewer ? (
               <>
-                <span className="hidden md:inline-flex"><a href={publicarHref} className="btn !py-2.5 !px-4"><Plus size={16} weight="bold" /> Publicar</a></span>
-                <a href="/mensajes" className="icon-btn" aria-label="Mensajes"
+                <span className="hidden md:inline-flex"><a href={publicarHref} className="btn !py-2.5 !px-4"><Plus size={16} weight="bold" /> {t('publicar')}</a></span>
+                <a href="/mensajes" className="icon-btn" aria-label={t('mensajes')}
                   style={active === 'messages' ? { color: 'var(--blue)', background: 'var(--active)' } : undefined}>
                   <ChatCircleDots size={22} weight={active === 'messages' ? 'fill' : 'regular'} />
                 </a>
                 <span className="hidden md:inline-flex">
-                  <a href="/avisos" className="icon-btn relative" aria-label="Avisos"
+                  <a href="/avisos" className="icon-btn relative" aria-label={t('avisos')}
                     style={active === 'alerts' ? { color: 'var(--blue)', background: 'var(--active)' } : undefined}>
                     <Bell size={22} weight={active === 'alerts' ? 'fill' : 'regular'} />
                     <span className="absolute -top-0.5 -right-0.5"><NotifBadge /></span>
                   </a>
                 </span>
+                <span className="hidden md:inline-flex"><LanguageSwitcher /></span>
                 <div className="hidden md:block ml-1">
                   <IdentitySwitcher user={{ handle: viewer.handle, displayName: viewer.displayName, avatarUrl: viewer.avatarUrl, type: 'user' }} abajo compacto />
                 </div>
               </>
             ) : (
               <>
+                <span className="hidden md:inline-flex"><LanguageSwitcher /></span>
                 <ThemeToggle compact />
-                <a href="/auth/login" className="btn !py-2.5 !px-4">Entrar</a>
+                <a href="/auth/login" className="btn !py-2.5 !px-4">{t('entrar')}</a>
               </>
             )}
           </div>
@@ -224,25 +230,25 @@ const CharcaNav: React.FC<Props> = ({ active, viewer, trending, isAdmin }) => {
                 {panel === 'explorar' && (
                   <div className="grid grid-cols-12">
                     <div className="col-span-7 p-4">
-                      <Eyebrow>Descubrir</Eyebrow>
+                      <Eyebrow>{t('descubrir')}</Eyebrow>
                       <div className="grid grid-cols-2 gap-1">{descubrir.map((e) => <Opcion key={e.href} e={e} />)}</div>
                     </div>
                     <div className="col-span-5 p-6" style={{ borderLeft: '1px solid var(--line)', background: 'var(--surface-2)' }}>
-                      <p className="eyebrow mb-3 flex items-center gap-1.5"><Sparkle size={13} weight="fill" /> Haciendo olas</p>
-                      {olas || <p className="t-sub">Todavía no hay temas con tracción esta semana.</p>}
-                      <a href="/explorar" className="btn-ghost !px-0 mt-4">Ver todo en Explorar <CaretRight size={14} weight="bold" /></a>
+                      <p className="eyebrow mb-3 flex items-center gap-1.5"><Sparkle size={13} weight="fill" /> {t('haciendo_olas')}</p>
+                      {olas || <p className="t-sub">{t('sin_olas')}</p>}
+                      <a href="/explorar" className="btn-ghost !px-0 mt-4">{t('ver_explorar')} <CaretRight size={14} weight="bold" /></a>
                     </div>
                   </div>
                 )}
                 {panel === 'charca' && viewer && (
                   <div className="grid grid-cols-12">
                     <div className={`${deScan.length ? 'col-span-8' : 'col-span-12'} p-4`}>
-                      <Eyebrow>Tu charca</Eyebrow>
+                      <Eyebrow>{t('tu_charca')}</Eyebrow>
                       <div className={`grid ${deScan.length ? 'grid-cols-2' : 'grid-cols-3'} gap-1`}>{tuCharca.map((e) => <Opcion key={e.href} e={e} />)}</div>
                     </div>
                     {deScan.length > 0 && (
                       <div className="col-span-4 p-4" style={{ borderLeft: '1px solid var(--line)', background: 'var(--surface-2)' }}>
-                        <Eyebrow>Actuando como @{scan!.handle}</Eyebrow>
+                        <Eyebrow>{t('actuando_como', { handle: scan!.handle })}</Eyebrow>
                         <div className="flex flex-col gap-1">{deScan.map((e) => <Opcion key={e.href} e={e} />)}</div>
                       </div>
                     )}
@@ -251,16 +257,16 @@ const CharcaNav: React.FC<Props> = ({ active, viewer, trending, isAdmin }) => {
                 {panel === 'capibara' && (
                   <div className="grid grid-cols-12">
                     <div className="col-span-8 p-4">
-                      <Eyebrow>CapibaraTraductor</Eyebrow>
+                      <Eyebrow>{capi.marca}</Eyebrow>
                       <div className="grid grid-cols-2 gap-1">{capibara.map((e) => <Opcion key={e.href} e={e} />)}</div>
                     </div>
-                    <a href={CAPI} target="_blank" rel="noopener noreferrer" className="col-span-4 m-3 rounded-2xl p-6 flex flex-col justify-between"
+                    <a href={capi.url} target="_blank" rel="noopener noreferrer" className="col-span-4 m-3 rounded-2xl p-6 flex flex-col justify-between"
                       style={{ background: 'linear-gradient(135deg, var(--blue), var(--aqua))', color: '#fff' }}>
                       <span>
-                        <span className="block text-[22px] font-semibold tracking-[-0.03em] leading-tight">Lee lo que comentas</span>
-                        <span className="block text-[14px] opacity-90 mt-2 leading-snug">La Charca es la comunidad de CapibaraTraductor. Tus capítulos te esperan allá.</span>
+                        <span className="block text-[22px] font-semibold tracking-[-0.03em] leading-tight">{t('promo_titulo')}</span>
+                        <span className="block text-[14px] opacity-90 mt-2 leading-snug">{t('promo_texto', { marca: capi.marca })}</span>
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[14px] font-semibold mt-6">Ir a leer <ArrowSquareOut size={15} weight="bold" /></span>
+                      <span className="inline-flex items-center gap-1 text-[14px] font-semibold mt-6">{t('ir_a_leer')} <ArrowSquareOut size={15} weight="bold" /></span>
                     </a>
                   </div>
                 )}
@@ -271,34 +277,34 @@ const CharcaNav: React.FC<Props> = ({ active, viewer, trending, isAdmin }) => {
       </header>
 
       {/* ═══ BARRA INFERIOR (móvil) ═══ */}
-      <nav aria-label="Navegación" className="md:hidden fixed bottom-0 inset-x-0 z-50"
+      <nav aria-label={t('navegacion')} className="md:hidden fixed bottom-0 inset-x-0 z-50"
         style={{ background: 'color-mix(in srgb, var(--paper) 92%, transparent)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderTop: '1px solid var(--line)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex items-stretch justify-around px-1">
           {[
-            { href: '/', label: 'Inicio', key: 'home', Icon: House },
-            { href: '/explorar', label: 'Explorar', key: 'explore', Icon: Compass },
+            { href: '/', label: t('inicio'), key: 'home', Icon: House },
+            { href: '/explorar', label: t('explorar'), key: 'explore', Icon: Compass },
           ].map(({ key, ...t }) => <Pestana key={key} {...t} on={active === key} />)}
           <div className="flex flex-1 items-start justify-center">
-            <a href={publicarHref} aria-label="Publicar"
+            <a href={publicarHref} aria-label={t('publicar')}
               className="-mt-4 grid place-items-center rounded-2xl active:scale-95 transition-transform"
               style={{ color: '#fff', width: 54, height: 54, background: 'linear-gradient(135deg, var(--blue), var(--aqua))', boxShadow: '0 10px 26px -8px color-mix(in srgb, var(--blue) 70%, transparent), 0 0 0 4px var(--paper)' }}>
               <Plus size={24} weight="bold" />
             </a>
           </div>
           {viewer
-            ? <Pestana href="/avisos" label="Avisos" Icon={Bell} on={active === 'alerts'} badge />
-            : <Pestana href="/scans" label="Scans" Icon={Storefront} on={active === 'scans'} />}
-          <button type="button" onClick={() => setHoja(true)} aria-label="Menú"
+            ? <Pestana href="/avisos" label={t('avisos')} Icon={Bell} on={active === 'alerts'} badge />
+            : <Pestana href="/scans" label={t('scans')} Icon={Storefront} on={active === 'scans'} />}
+          <button type="button" onClick={() => setHoja(true)} aria-label={t('menu')}
             className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[58px] ink-3 active:scale-95 transition-transform">
             {viewer ? <Avatar v={viewer} size={24} /> : <List size={24} />}
-            <span className="text-[10px] font-medium leading-none">Menú</span>
+            <span className="text-[10px] font-medium leading-none">{t('menu')}</span>
           </button>
         </div>
       </nav>
 
       {/* ═══ MENÚ COMPLETO (móvil) ═══ */}
       {hoja && (
-        <div className="md:hidden fixed inset-0 z-[80] flex items-end" role="dialog" aria-modal="true" aria-label="Menú">
+        <div className="md:hidden fixed inset-0 z-[80] flex items-end" role="dialog" aria-modal="true" aria-label={t('menu')}>
           <div className="absolute inset-0" style={{ background: 'var(--scrim)', backdropFilter: 'blur(3px)' }} onClick={() => setHoja(false)} />
           <div className="relative w-full max-h-[92vh] overflow-y-auto overscroll-contain rounded-t-[28px] rise"
             style={{ background: 'var(--paper)', borderTop: '1px solid var(--line)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}>
@@ -309,12 +315,12 @@ const CharcaNav: React.FC<Props> = ({ active, viewer, trending, isAdmin }) => {
                   <img src="/logo.webp" alt="" width="28" height="28" style={{ width: 28, height: 28, objectFit: 'contain' }} />
                   <span className="text-[17px] font-semibold tracking-[-0.03em]">La Charca</span>
                 </span>
-                <button type="button" onClick={() => setHoja(false)} className="icon-btn" aria-label="Cerrar menú"
+                <button type="button" onClick={() => setHoja(false)} className="icon-btn" aria-label={t('cerrar_menu')}
                   style={{ background: 'var(--surface)', border: '1px solid var(--line)' }}><X size={18} /></button>
               </div>
               <form onSubmit={buscar} className="mt-3 flex items-center gap-2 rounded-2xl px-3.5" style={{ background: 'var(--surface)', border: '1px solid var(--line)' }}>
                 <MagnifyingGlass size={18} className="ink-3 shrink-0" />
-                <input type="search" enterKeyHint="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar en la charca"
+                <input type="search" enterKeyHint="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('buscar_placeholder')}
                   className="w-full bg-transparent py-3 text-[16px] focus:outline-none" />
               </form>
             </div>
@@ -326,42 +332,49 @@ const CharcaNav: React.FC<Props> = ({ active, viewer, trending, isAdmin }) => {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  <a href="/auth/login" className="btn justify-center"><SignIn size={17} /> Entrar</a>
-                  <a href="/auth/registro" className="btn-ghost justify-center card"><UserPlus size={17} /> Crear cuenta</a>
+                  <a href="/auth/login" className="btn justify-center"><SignIn size={17} /> {t('entrar')}</a>
+                  <a href="/auth/registro" className="btn-ghost justify-center card"><UserPlus size={17} /> {t('crear_cuenta')}</a>
                 </div>
               )}
             </div>
 
             {viewer && (
-              <SeccionMovil titulo="Tu charca">
+              <SeccionMovil titulo={t('tu_charca')}>
                 <div className="grid grid-cols-2 gap-2">{tuCharca.map((e) => <TarjetaMovil key={e.href} e={e} onClick={() => setHoja(false)} />)}</div>
               </SeccionMovil>
             )}
 
             {deScan.length > 0 && (
-              <SeccionMovil titulo={`Actuando como @${scan!.handle}`}>
+              <SeccionMovil titulo={t('actuando_como', { handle: scan!.handle })}>
                 <div className="grid grid-cols-2 gap-2">{deScan.map((e) => <TarjetaMovil key={e.href} e={e} onClick={() => setHoja(false)} />)}</div>
               </SeccionMovil>
             )}
 
-            <SeccionMovil titulo="Descubrir">
+            <SeccionMovil titulo={t('descubrir')}>
               <div className="grid grid-cols-2 gap-2">{descubrir.map((e) => <TarjetaMovil key={e.href} e={e} onClick={() => setHoja(false)} />)}</div>
             </SeccionMovil>
 
-            {olas && <SeccionMovil titulo="Haciendo olas">{olas}</SeccionMovil>}
+            {olas && <SeccionMovil titulo={t('haciendo_olas')}>{olas}</SeccionMovil>}
 
-            <SeccionMovil titulo="CapibaraTraductor">
+            <SeccionMovil titulo={capi.marca}>
               <div className="grid grid-cols-2 gap-2">{capibara.map((e) => <TarjetaMovil key={e.href} e={e} />)}</div>
             </SeccionMovil>
 
-            <div className="px-4 mt-6 flex items-center gap-2">
+            <div className="px-4 mt-6">
+              <div className="card flex items-center gap-2 pl-3 pr-1.5 py-1.5">
+                <span className="t-caption flex-1">{t('idioma')}</span>
+                <LanguageSwitcher variante="pastillas" />
+              </div>
+            </div>
+
+            <div className="px-4 mt-2 flex items-center gap-2">
               <div className="card flex items-center gap-2 pl-3 pr-1 py-1 flex-1">
-                <span className="t-caption flex-1">Tema</span>
+                <span className="t-caption flex-1">{t('tema')}</span>
                 <ThemeToggle compact />
               </div>
               {viewer && (
                 <a href="/auth/logout" className="card flex items-center justify-center gap-2 px-4 min-h-[50px] t-caption">
-                  <SignOut size={16} /> Cerrar sesión
+                  <SignOut size={16} /> {t('cerrar_sesion')}
                 </a>
               )}
             </div>

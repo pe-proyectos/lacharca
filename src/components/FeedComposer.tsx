@@ -2,12 +2,15 @@ import React, { useEffect, useRef, useState } from 'react'
 import Composer from './Composer'
 import PostCard, { type PostShape } from './PostCard'
 import { getIdentity, getIdentityPage } from '../lib/hilosClient'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/composer'
 
 interface Props { user: { handle: string; displayName?: string | null; avatarUrl?: string | null; type?: string } }
 
 // Envuelve el Composer y pinta arriba del feed SSR los posts recien creados,
 // para que publicar sea instantaneo en vez de recargar la pagina.
 const FeedComposer: React.FC<Props> = ({ user }) => {
+  const t = useT(cat)
   const [fresh, setFresh] = useState<PostShape[]>([])
   const box = useRef<HTMLDivElement>(null)
 
@@ -48,7 +51,7 @@ const FeedComposer: React.FC<Props> = ({ user }) => {
       <div ref={box} className="pb-6 mb-2" style={{ borderBottom: '1px solid var(--line)' }}>
         {comoScan && (
           <p className="t-caption mb-2 inline-flex items-center gap-1.5">
-            Publicando como <b style={{ color: 'var(--ink)' }}>{comoScan.displayName || `@${comoScan.handle}`}</b>
+            {t('publicando_como')} <b style={{ color: 'var(--ink)' }}>{comoScan.displayName || `@${comoScan.handle}`}</b>
           </p>
         )}
         <Composer

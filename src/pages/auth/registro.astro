@@ -1,6 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro'
 import { API } from '../../lib/session'
+import { useT } from '../../i18n'
+import { capibara } from '../../i18n/capibara'
+import cat from '../../i18n/catalogos/registro'
+
+const t = useT(cat)
+const marca = capibara().marca
 
 const raw = Astro.cookies.get('lc_signup')?.value
 if (!raw) return Astro.redirect('/auth/login')
@@ -23,22 +29,22 @@ if (Astro.request.method === 'POST') {
       Astro.cookies.delete('lc_signup', { path: '/' })
       return Astro.redirect('/?bienvenido=1')
     }
-    error = json?.message === 'handle_taken' ? 'Ese @usuario ya está tomado.'
-      : json?.message === 'handle_too_short' ? 'El @usuario debe tener al menos 3 caracteres.'
-      : json?.message === 'ticket_expired' ? 'La sesión de registro expiró. Vuelve a intentarlo.'
-      : 'No pudimos crear tu cuenta.'
-  } catch { error = 'No pudimos crear tu cuenta.' }
+    error = json?.message === 'handle_taken' ? t('err_handle_taken')
+      : json?.message === 'handle_too_short' ? t('err_handle_too_short')
+      : json?.message === 'ticket_expired' ? t('err_ticket_expired')
+      : t('err_generico')
+  } catch { error = t('err_generico') }
 }
 const s = data.suggested || {}
 const linked = data.linkedTo || {}
 ---
-<Layout title="Crea tu cuenta — La Charca" description="Crea tu cuenta de La Charca vinculada a CapibaraTraductor." noindex>
+<Layout title={t('title')} description={t('desc', { marca })} noindex>
   <main class="min-h-screen flex items-center justify-center px-5 py-12">
     <div class="w-full max-w-[420px]">
       <div class="text-center mb-8">
         <img src="/logo.webp" alt="La Charca" width="56" height="56" class="mx-auto mb-4" style="width:56px;height:56px;object-fit:contain" />
-        <h1 class="t-title">Crea tu cuenta</h1>
-        <p class="t-body ink-2 mt-2">Tu cuenta de La Charca es independiente, pero quedará vinculada a la de CapibaraTraductor.</p>
+        <h1 class="t-title">{t('crea_tu_cuenta')}</h1>
+        <p class="t-body ink-2 mt-2">{t('intro', { marca })}</p>
       </div>
 
       <div class="rounded-2xl p-4 mb-6 flex items-center gap-3" style="background: var(--surface);border:1px solid var(--line)">
@@ -46,8 +52,8 @@ const linked = data.linkedTo || {}
           ? <img src={s.avatarUrl} alt="" width="44" height="44" class="rounded-full object-cover shrink-0" style="width:44px;height:44px" />
           : <span class="grid place-items-center rounded-full font-semibold shrink-0" style="width:44px;height:44px;background:var(--soft);color:var(--blue)">{(s.displayName || 'C')[0]?.toUpperCase()}</span>}
         <div class="min-w-0">
-          <p class="text-[15px] font-medium truncate">Se vinculará a <span class="text-blue">@{linked.slug || linked.username}</span></p>
-          <p class="t-caption">Cuenta de CapibaraTraductor verificada</p>
+          <p class="text-[15px] font-medium truncate">{t('se_vinculara')} <span class="text-blue">@{linked.slug || linked.username}</span></p>
+          <p class="t-caption">{t('verificada', { marca })}</p>
         </div>
       </div>
 
@@ -57,23 +63,23 @@ const linked = data.linkedTo || {}
 
       <form method="POST" class="space-y-5">
         <div>
-          <label for="handle" class="eyebrow block mb-2">Tu @usuario en La Charca</label>
+          <label for="handle" class="eyebrow block mb-2">{t('tu_usuario')}</label>
           <div class="flex items-center gap-1 rounded-xl px-3.5 py-3" style="background: var(--surface);border:1px solid var(--line)">
             <span class="ink-3">@</span>
             <input id="handle" name="handle" value={s.handle} required minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]+"
               autocomplete="username" class="flex-1 bg-transparent text-[16px] focus:outline-none" />
           </div>
-          <p class="t-caption mt-1.5">Solo letras, números y guion bajo.</p>
+          <p class="t-caption mt-1.5">{t('solo_letras')}</p>
         </div>
 
         <div>
-          <label for="displayName" class="eyebrow block mb-2">Nombre visible</label>
+          <label for="displayName" class="eyebrow block mb-2">{t('nombre_visible')}</label>
           <input id="displayName" name="displayName" value={s.displayName} maxlength="120" autocomplete="nickname"
             class="w-full rounded-xl px-3.5 py-3 text-[16px] focus:outline-none" style="background: var(--surface);border:1px solid var(--line)" />
         </div>
 
-        <button type="submit" class="btn w-full justify-center">Crear mi cuenta</button>
-        <a href="/" class="block text-center t-caption hover:opacity-70 transition">Cancelar</a>
+        <button type="submit" class="btn w-full justify-center">{t('crear')}</button>
+        <a href="/" class="block text-center t-caption hover:opacity-70 transition">{t('cancelar')}</a>
       </form>
     </div>
   </main>

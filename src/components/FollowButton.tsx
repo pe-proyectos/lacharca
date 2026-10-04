@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { hilosApi } from '../lib/hilosClient'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/perfil'
 
 interface Props { handle: string; initialFollowing?: boolean; logged: boolean; followers?: number; compact?: boolean; onChange?: (following: boolean) => void }
 
 const FollowButton: React.FC<Props> = ({ handle, initialFollowing, logged, followers: f0 = 0, compact = false, onChange }) => {
+  const t = useT(cat)
   const id = React.useRef(Math.random().toString(36).slice(2))
   const [following, setFollowing] = useState(!!initialFollowing)
   const [followers, setFollowers] = useState(f0)
@@ -30,9 +33,9 @@ const FollowButton: React.FC<Props> = ({ handle, initialFollowing, logged, follo
     document.querySelectorAll(`[data-followers="${handle}"]`).forEach((el) => {
       const base = Number((el as HTMLElement).dataset.count || 0)
       const n = Math.max(0, base + (v ? 1 : 0))
-      el.textContent = n.toLocaleString('es')
+      el.textContent = n.toLocaleString(t.locale)
       const word = el.nextElementSibling
-      if (word) word.textContent = n === 1 ? 'seguidor' : 'seguidores'
+      if (word) word.textContent = t('seguidores_palabra', { n })
     })
   }
 
@@ -63,7 +66,7 @@ const FollowButton: React.FC<Props> = ({ handle, initialFollowing, logged, follo
               : { borderColor: 'var(--blue)', background: 'var(--blue)', color: '#fff' })
           : (following ? { borderColor: 'var(--line)', color: 'var(--ink-2)', background: 'var(--surface)' } : undefined)
       }>
-      {busy ? '…' : following ? 'Siguiendo' : 'Seguir'}
+      {busy ? '…' : following ? t('siguiendo_btn') : t('seguir')}
     </button>
   )
 }

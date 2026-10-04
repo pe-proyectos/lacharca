@@ -2,7 +2,11 @@
 // Lista de pages (seguidores, siguiendo, resultados de busqueda).
 import FollowButton from './FollowButton'
 import { followers } from '../lib/format'
-const { pages = [], viewer, empty = 'No hay nadie por aquí todavía.' } = Astro.props
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/directorio'
+
+const t = useT(cat)
+const { pages = [], viewer, empty = t('lista_vacia') } = Astro.props
 
 ---
 {pages.length === 0 ? (

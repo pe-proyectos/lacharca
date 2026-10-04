@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 import {
   CaretUpDown, Check, Users, ArrowSquareOut, BookOpen, ChatCircleDots,
-  MagnifyingGlass, SignOut, Sun, Moon, Desktop,
+  MagnifyingGlass, SignOut, Sun, Moon, Desktop, Translate,
 } from '@phosphor-icons/react'
 import { hilosApi, getIdentity, setIdentity } from '../lib/hilosClient'
+import LanguageSwitcher from './LanguageSwitcher'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/cuenta'
 
 interface Page {
   handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null
@@ -23,6 +26,7 @@ const Avatar = ({ p, size = 36 }: { p: { avatarUrl?: string | null; displayName?
 // `abajo`: desde la barra superior el menú se despliega hacia abajo y a la
 // derecha. `compacto`: solo el avatar, sin nombre.
 const IdentitySwitcher: React.FC<{ user: Page; abajo?: boolean; compacto?: boolean }> = ({ user, abajo = false, compacto = false }) => {
+  const t = useT(cat)
   const [abierto, setAbierto] = useState(false)
   const [scans, setScans] = useState<Identidad[] | null>(null)
   const [activo, setActivo] = useState<string | null>(null)
@@ -42,7 +46,7 @@ const IdentitySwitcher: React.FC<{ user: Page; abajo?: boolean; compacto?: boole
   }
 
   const IconoTema = tema === 'dark' ? Moon : tema === 'light' ? Sun : Desktop
-  const NOMBRE_TEMA = { light: 'Claro', dark: 'Oscuro', system: 'Automático' }[tema]
+  const NOMBRE_TEMA = { light: t('tema_light'), dark: t('tema_dark'), system: t('tema_system') }[tema]
 
   useEffect(() => { setActivo(getIdentity()) }, [])
 
@@ -82,7 +86,7 @@ const IdentitySwitcher: React.FC<{ user: Page; abajo?: boolean; compacto?: boole
         type="button"
         onClick={() => setAbierto((o) => !o)}
         className={`flex items-center gap-3 min-w-0 text-left cursor-pointer ${compacto ? 'rounded-full p-0.5 nav-item' : 'w-full'}`}
-        title={hayScans ? 'Cambiar de identidad' : 'Opciones de tu cuenta'}
+        title={hayScans ? t('cambiar_identidad') : t('opciones_cuenta')}
         aria-haspopup="menu"
         aria-expanded={abierto}
       >
@@ -90,7 +94,7 @@ const IdentitySwitcher: React.FC<{ user: Page; abajo?: boolean; compacto?: boole
         <span className={compacto ? 'hidden' : 'block min-w-0 flex-1'}>
           <span className="block text-[15px] font-medium truncate">{mostrado.displayName || mostrado.handle}</span>
           <span className="block t-caption truncate">
-            {actual ? `actuando como @${actual.handle}` : `@${user.handle}`}
+            {actual ? t('actuando_como', { handle: actual.handle }) : `@${user.handle}`}
           </span>
         </span>
         {!compacto && <CaretUpDown size={16} className="ink-3 shrink-0" />}
@@ -99,14 +103,14 @@ const IdentitySwitcher: React.FC<{ user: Page; abajo?: boolean; compacto?: boole
       {abierto && (
         <div className={`absolute ${abajo ? 'top-full mt-2 right-0' : 'bottom-full mb-2 left-0'} w-[264px] rounded-2xl overflow-hidden z-[70] rise`}
           style={{ background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: '0 14px 40px var(--shadow)' }}>
-          <p className="eyebrow px-4 pt-3 pb-2">Publicar como</p>
+          <p className="eyebrow px-4 pt-3 pb-2">{t('publicar_como')}</p>
 
           {(scans?.length || 0) > 5 && (
             <div className="px-3 pb-2">
               <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'var(--surface-2)' }}>
                 <MagnifyingGlass size={15} className="ink-3" />
                 <input value={busca} onChange={(e) => setBusca(e.target.value)} autoFocus
-                  placeholder="Buscar scan"
+                  placeholder={t('buscar_scan')}
                   className="flex-1 bg-transparent text-[14px] focus:outline-none" />
               </div>
             </div>
@@ -117,7 +121,7 @@ const IdentitySwitcher: React.FC<{ user: Page; abajo?: boolean; compacto?: boole
             <Avatar p={user} size={32} />
             <span className="min-w-0 flex-1">
               <span className="block text-[14px] font-medium truncate">{user.displayName || user.handle}</span>
-              <span className="block t-caption">Tu cuenta</span>
+              <span className="block t-caption">{t('tu_cuenta')}</span>
             </span>
             {!activo && <Check size={16} weight="bold" style={{ color: 'var(--blue)' }} />}
           </button>
@@ -134,11 +138,11 @@ const IdentitySwitcher: React.FC<{ user: Page; abajo?: boolean; compacto?: boole
                 <Avatar p={s.page} size={32} />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[14px] font-medium truncate">{s.page.displayName || s.page.handle}</span>
-                  <span className="block t-caption">{s.role === 'owner' ? 'Propietario' : 'De confianza'}</span>
+                  <span className="block t-caption">{s.role === 'owner' ? t('propietario') : t('de_confianza')}</span>
                 </span>
                 {activo === s.page.handle && <Check size={16} weight="bold" style={{ color: 'var(--blue)' }} />}
               </button>
-              <a href={`/@${s.page.handle}`} title="Ir al perfil del scan" aria-label="Ir al perfil del scan"
+              <a href={`/@${s.page.handle}`} title={t('ir_perfil_scan')} aria-label={t('ir_perfil_scan')}
                 className="icon-btn shrink-0" style={{ width: 32, height: 32 }}>
                 <ArrowSquareOut size={15} />
               </a>
@@ -148,15 +152,15 @@ const IdentitySwitcher: React.FC<{ user: Page; abajo?: boolean; compacto?: boole
 
           {activo && (
             <div className="border-t" style={{ borderColor: 'var(--line)' }}>
-              <p className="eyebrow px-4 pt-3 pb-1.5">Administrar el scan</p>
+              <p className="eyebrow px-4 pt-3 pb-1.5">{t('administrar_scan')}</p>
               <a href={`/@${activo}/equipo`} className="row flex items-center gap-2.5 px-4 py-2.5 t-caption">
-                <Users size={15} /> Equipo
+                <Users size={15} /> {t('equipo')}
               </a>
               <a href={`/@${activo}/obras`} className="row flex items-center gap-2.5 px-4 py-2.5 t-caption">
-                <BookOpen size={15} /> Obras
+                <BookOpen size={15} /> {t('obras')}
               </a>
               <a href="/mensajes" className="row flex items-center gap-2.5 px-4 py-2.5 t-caption">
-                <ChatCircleDots size={15} /> Bandeja del scan
+                <ChatCircleDots size={15} /> {t('bandeja_scan')}
               </a>
             </div>
           )}
@@ -164,10 +168,14 @@ const IdentitySwitcher: React.FC<{ user: Page; abajo?: boolean; compacto?: boole
           <div className="border-t" style={{ borderColor: 'var(--line)' }}>
             <button type="button" onClick={cambiarTema}
               className="row w-full flex items-center gap-2.5 px-4 py-2.5 t-caption text-left cursor-pointer">
-              <IconoTema size={15} weight={tema === 'system' ? 'regular' : 'fill'} /> Tema: {NOMBRE_TEMA}
+              <IconoTema size={15} weight={tema === 'system' ? 'regular' : 'fill'} /> {t('tema_actual', { nombre: NOMBRE_TEMA })}
             </button>
+            <div className="row flex items-center justify-between gap-2.5 px-4 py-2 t-caption">
+              <span className="flex items-center gap-2.5"><Translate size={15} /> {t('idioma')}</span>
+              <LanguageSwitcher variante="pastillas" />
+            </div>
             <a href="/auth/logout" className="row flex items-center gap-2.5 px-4 py-2.5 t-caption">
-              <SignOut size={15} /> Cerrar sesión
+              <SignOut size={15} /> {t('cerrar_sesion')}
             </a>
           </div>
         </div>

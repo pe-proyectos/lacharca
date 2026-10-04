@@ -1,0 +1,51 @@
+// Avisos (/avisos): lista de notificaciones.
+import { catalogo } from '../index'
+
+export default catalogo(
+  {
+    avisos: 'Avisos',
+    titulo: 'Avisos — La Charca',
+    intro: 'Respuestas, menciones y gente nueva en tu charca.',
+    vacio: 'Todavía no tienes avisos.',
+    vacio_sub: 'Cuando alguien te responda, te mencione o te siga, aparecerá aquí.',
+    alguien: 'Alguien',
+    // Verbos por tipo de aviso
+    comment: 'comentó tu publicación',
+    reply: 'respondió a tu comentario',
+    mention: 'te mencionó',
+    follow: 'te empezó a seguir',
+    message: 'te envió un mensaje',
+    otro: 'interactuó contigo',
+    ver_mas: 'Ver más avisos',
+  },
+  {
+    avisos: 'Notifications',
+    titulo: 'Notifications — La Charca',
+    intro: 'Replies, mentions and new people in your pond.',
+    vacio: "You don't have any notifications yet.",
+    vacio_sub: 'When someone replies to you, mentions you or follows you, it will show up here.',
+    alguien: 'Someone',
+    comment: 'commented on your post',
+    reply: 'replied to your comment',
+    mention: 'mentioned you',
+    follow: 'started following you',
+    message: 'sent you a message',
+    otro: 'interacted with you',
+    ver_mas: 'See more notifications',
+  },
+  {
+    avisos: 'Notificações',
+    titulo: 'Notificações — La Charca',
+    intro: 'Respostas, menções e gente nova na sua lagoa.',
+    vacio: 'Você ainda não tem notificações.',
+    vacio_sub: 'Quando alguém responder, mencionar ou seguir você, vai aparecer aqui.',
+    alguien: 'Alguém',
+    comment: 'comentou na sua publicação',
+    reply: 'respondeu ao seu comentário',
+    mention: 'mencionou você',
+    follow: 'começou a seguir você',
+    message: 'enviou uma mensagem para você',
+    otro: 'interagiu com você',
+    ver_mas: 'Ver mais notificações',
+  },
+)

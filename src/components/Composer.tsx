@@ -4,17 +4,20 @@ import { ImageSquare, X } from '@phosphor-icons/react'
 import { hilosApi, uploadToHilos } from '../lib/hilosClient'
 import MentionAutocomplete from './MentionAutocomplete'
 import PostTools, { type Encuesta, type Programado, type Cuenta } from './PostTools'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/composer'
 
 // Mensaje claro cuando publicar falla (silencio del scan, límite, red).
 function mensajeDeError(e: any): string {
+  const t = useT(cat)
   if (e?.message === 'muted_scope') {
     const d = e?.detalle || {}
-    const hasta = d.until && d.until !== 'forever' ? ` hasta el ${new Date(d.until).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''
-    return `${d.scope || 'Este scan'} te silenció${hasta}: no puedes comentar en sus obras. En el resto de la página sí.`
+    const hasta = d.until && d.until !== 'forever' ? new Date(d.until).toLocaleDateString(t.locale, { day: 'numeric', month: 'long', year: 'numeric' }) : null
+    return t('err_muted_scope', { scope: d.scope || null, hasta })
   }
-  if (e?.message === 'muted') return 'Tu cuenta no puede comentar por ahora.'
-  if (e?.message === 'rate_limited') return 'Vas muy rápido, espera un momento.'
-  return 'No se pudo publicar. Inténtalo de nuevo.'
+  if (e?.message === 'muted') return t('err_muted')
+  if (e?.message === 'rate_limited') return t('err_rate_limited')
+  return t('err_publicar')
 }
 
 interface Props {
@@ -31,6 +34,7 @@ const MAX_SIZE = 5 * 1024 * 1024
 interface Attachment { id: string; preview: string; url: string | null; failed?: boolean }
 
 const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) => {
+  const t = useT(cat)
   const [content, setContent] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -52,14 +56,14 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
     if (!files?.length) return
     setErr(null)
     const room = MAX_IMAGES - images.length
-    if (room <= 0) { setErr(`Puedes adjuntar hasta ${MAX_IMAGES} imágenes.`); return }
+    if (room <= 0) { setErr(t('err_max_imagenes', { n: MAX_IMAGES })); return }
 
     const chosen = Array.from(files).slice(0, room)
-    if (files.length > room) setErr(`Solo caben ${MAX_IMAGES} imágenes por publicación.`)
+    if (files.length > room) setErr(t('err_caben', { n: MAX_IMAGES }))
 
     for (const file of chosen) {
-      if (!file.type.startsWith('image/')) { setErr('Solo se pueden adjuntar imágenes.'); continue }
-      if (file.size > MAX_SIZE) { setErr('Cada imagen debe pesar menos de 5 MB.'); continue }
+      if (!file.type.startsWith('image/')) { setErr(t('err_solo_imagenes')); continue }
+      if (file.size > MAX_SIZE) { setErr(t('err_peso')); continue }
 
       const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`
       const preview = URL.createObjectURL(file)
@@ -69,7 +73,7 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
         setImages((l) => l.map((i) => (i.id === id ? { ...i, url } : i)))
       } catch {
         setImages((l) => l.map((i) => (i.id === id ? { ...i, failed: true } : i)))
-        setErr('No se pudo subir una de las imágenes.')
+        setErr(t('err_subir'))
       }
     }
     if (fileInput.current) fileInput.current.value = ''
@@ -150,8 +154,8 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
             if (files.length) { e.preventDefault(); pick(e.clipboardData.files) }
           }}
           rows={2}
-          placeholder="¿Qué cuentas hoy?"
-          aria-label="Escribe una publicación"
+          placeholder={t('placeholder')}
+          aria-label={t('escribe')}
           className="w-full resize-none bg-transparent text-[19px] tracking-[-0.02em] placeholder-[color:var(--ink-3)] focus:outline-none"
         />
 
@@ -167,10 +171,10 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
                 {!img.url && !img.failed && <span className="absolute inset-0 skeleton" />}
                 {img.failed && (
                   <span className="absolute inset-0 grid place-items-center text-[12px] font-medium" style={{ background: 'rgba(180,35,24,.12)', color: 'var(--danger)' }}>
-                    No se pudo subir
+                    {t('no_subio')}
                   </span>
                 )}
-                <button type="button" onClick={() => remove(img.id)} aria-label="Quitar imagen"
+                <button type="button" onClick={() => remove(img.id)} aria-label={t('quitar_imagen')}
                   className="absolute top-2 right-2 grid place-items-center w-7 h-7 rounded-full cursor-pointer"
                   style={{ background: 'rgba(16,31,56,.65)', color: '#fff' }}>
                   <X size={14} weight="bold" />
@@ -188,8 +192,8 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
           <div className="flex items-center gap-1">
           <button type="button" onClick={() => fileInput.current?.click()}
             disabled={images.length >= MAX_IMAGES}
-            title={images.length >= MAX_IMAGES ? `Máximo ${MAX_IMAGES} imágenes` : 'Añadir imágenes'}
-            aria-label="Añadir imágenes"
+            title={images.length >= MAX_IMAGES ? t('maximo_imagenes', { n: MAX_IMAGES }) : t('anadir_imagenes')}
+            aria-label={t('anadir_imagenes')}
             className="inline-flex items-center gap-1.5 icon-btn"
             style={{ width: 'auto', padding: '0 12px' }}>
             <ImageSquare size={20} />
@@ -208,7 +212,7 @@ const Composer: React.FC<Props> = ({ user, onOptimistic, onPosted, onFailed }) =
             )}
             <button type="button" onClick={submit} disabled={!canPost}
               className="btn disabled:opacity-35 disabled:cursor-default cursor-pointer">
-              {busy ? 'Publicando…' : uploading ? 'Subiendo…' : 'Publicar'}
+              {busy ? t('publicando') : uploading ? t('subiendo') : t('publicar')}
             </button>
           </div>
         </div>

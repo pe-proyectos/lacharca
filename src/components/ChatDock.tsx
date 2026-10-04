@@ -3,12 +3,14 @@ import { ChatCircleDots, X, PaperPlaneTilt, CaretLeft, LockSimple, MagnifyingGla
 import { hilosApi } from '../lib/hilosClient'
 import { timeAgo } from '../lib/time'
 import FollowButton from './FollowButton'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/mensajes'
+import { num as n, posts } from '../lib/format'
 
 interface Page {
   handle: string; displayName?: string | null; avatarUrl?: string | null; type?: string
   bio?: string | null; followersCount?: number; followingCount?: number; postsCount?: number
 }
-const n = (v: any) => Number(v || 0).toLocaleString('es')
 interface Conv { id: number; page: Page; canRead: boolean; unread: number; lastMessageAt: string; lastMessage: { content: string; createdAt: string; mine: boolean } | null }
 interface Msg { id: number; content: string; createdAt: string; mine: boolean; pending?: boolean }
 
@@ -27,6 +29,7 @@ const Avatar = ({ p, size = 40 }: { p: Page; size?: number }) =>
 // quien sigues, y solo lees a quien sigues: la regla la aplica hilos.rest, aqui
 // nada mas la explicamos.
 const ChatDock: React.FC<{ me: string }> = ({ me }) => {
+  const t = useT(cat)
   const [open, setOpen] = useState(false)
   const [convs, setConvs] = useState<Conv[] | null>(null)
   const [active, setActive] = useState<Conv | null>(null)
@@ -147,21 +150,21 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
 
   const shown = (convs || []).filter((c) => {
     if (!q.trim()) return true
-    const t = `${c.page.displayName || ''} ${c.page.handle}`.toLowerCase()
-    return t.includes(q.trim().toLowerCase())
+    const nombre = `${c.page.displayName || ''} ${c.page.handle}`.toLowerCase()
+    return nombre.includes(q.trim().toLowerCase())
   })
 
   return (
     <>
       {!open && (
-        <button type="button" onClick={() => setOpen(true)} aria-label="Mensajes"
+        <button type="button" onClick={() => setOpen(true)} aria-label={t('mensajes')}
           className="fixed z-40 right-4 md:right-5 rounded-full flex items-center gap-2 px-4 py-3 cursor-pointer transition hover:-translate-y-0.5 tap"
           style={{
             background: 'var(--blue)', color: '#fff', boxShadow: '0 8px 28px rgba(37,99,235,.35)',
             bottom: 'var(--dock-bottom)', minHeight: 52,
           }}>
           <ChatCircleDots size={20} weight="fill" />
-          <span className="text-[14px] font-medium hidden sm:block">Mensajes</span>
+          <span className="text-[14px] font-medium hidden sm:block">{t('mensajes')}</span>
           {unread > 0 && (
             <span className="grid place-items-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold tabular-nums"
               style={{ background: 'var(--surface)', color: 'var(--blue)' }}>{unread > 99 ? '99+' : unread}</span>
@@ -182,7 +185,7 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
           <header className="flex items-center gap-2 px-4 py-3 shrink-0" style={{ borderBottom: '1px solid var(--line)' }}>
             {active ? (
               <>
-                <button type="button" onClick={() => { setActive(null); setMsgs(null); loadConvs() }} className="act" aria-label="Volver"><CaretLeft size={18} /></button>
+                <button type="button" onClick={() => { setActive(null); setMsgs(null); loadConvs() }} className="act" aria-label={t('volver')}><CaretLeft size={18} /></button>
                 <a href={`/@${active.page.handle}`} className="flex items-center gap-2.5 min-w-0 flex-1">
                   <Avatar p={active.page} size={32} />
                   <span className="min-w-0">
@@ -192,9 +195,9 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
                 </a>
               </>
             ) : (
-              <h2 className="t-section flex-1">Mensajes</h2>
+              <h2 className="t-section flex-1">{t('mensajes')}</h2>
             )}
-            <button type="button" onClick={() => setOpen(false)} className="act" aria-label="Cerrar"><X size={18} /></button>
+            <button type="button" onClick={() => setOpen(false)} className="act" aria-label={t('cerrar')}><X size={18} /></button>
           </header>
 
           {!active ? (
@@ -202,7 +205,7 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
               <div className="px-4 py-2.5 shrink-0" style={{ borderBottom: '1px solid var(--line)' }}>
                 <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'var(--surface-2)' }}>
                   <MagnifyingGlass size={16} className="ink-3" />
-                  <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar conversación"
+                  <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('buscar_conversacion')}
                     className="flex-1 bg-transparent text-[14px] focus:outline-none" />
                 </div>
               </div>
@@ -222,8 +225,8 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
                 ) : shown.length === 0 ? (
                   <div className="px-6 py-12 text-center">
                     <ChatCircleDots size={30} className="ink-3 mx-auto mb-3" />
-                    <p className="t-body ink-2">Todavía no tienes mensajes.</p>
-                    <p className="t-sub mt-1">Sigue a alguien y escríbele desde su perfil.</p>
+                    <p className="t-body ink-2">{t('sin_mensajes_tuyos')}</p>
+                    <p className="t-sub mt-1">{t('sigue_desde_perfil')}</p>
                   </div>
                 ) : shown.map((c) => (
                   <button key={c.id} type="button" onClick={() => openConv(c)}
@@ -236,8 +239,8 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
                       </span>
                       <span className="flex items-center gap-1.5 t-caption truncate">
                         {c.canRead
-                          ? (c.lastMessage ? `${c.lastMessage.mine ? 'Tú: ' : ''}${c.lastMessage.content}` : 'Sin mensajes')
-                          : <><LockSimple size={12} /> Te escribió. Síguelo para leerlo.</>}
+                          ? (c.lastMessage ? `${c.lastMessage.mine ? t('tu_prefijo') : ''}${c.lastMessage.content}` : t('sin_mensajes'))
+                          : <><LockSimple size={12} /> {t('te_escribio')}</>}
                       </span>
                     </span>
                     {c.unread > 0 && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'var(--blue)' }} />}
@@ -274,28 +277,28 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
                           {lockedPage.bio && <p className="t-sub mt-2.5 line-clamp-3" style={{ color: 'var(--ink-2)' }}>{lockedPage.bio}</p>}
                           <div className="flex items-center justify-center gap-4 mt-3 text-[13px]">
                             <a href={`/@${lockedPage.handle}/seguidores`} className="hover:opacity-70">
-                              <b className="font-semibold tabular-nums">{n(lockedPage.followersCount)}</b> <span className="ink-2">seguidores</span>
+                              <b className="font-semibold tabular-nums">{n(lockedPage.followersCount)}</b> <span className="ink-2">{t('seguidores', { n: Number(lockedPage.followersCount || 0) })}</span>
                             </a>
                             <a href={`/@${lockedPage.handle}/siguiendo`} className="hover:opacity-70">
-                              <b className="font-semibold tabular-nums">{n(lockedPage.followingCount)}</b> <span className="ink-2">siguiendo</span>
+                              <b className="font-semibold tabular-nums">{n(lockedPage.followingCount)}</b> <span className="ink-2">{t('siguiendo')}</span>
                             </a>
                           </div>
-                          <p className="t-caption mt-1">{n(lockedPage.postsCount)} publicaciones</p>
+                          <p className="t-caption mt-1">{posts(lockedPage.postsCount)}</p>
                         </>
                       )}
 
                       <div className="mt-4 flex items-center justify-center gap-2.5">
                         <FollowButton handle={active.page.handle} logged followers={lockedPage?.followersCount || 0} onChange={onFollowed} />
-                        <a href={`/@${active.page.handle}`} className="chip">Ver perfil</a>
+                        <a href={`/@${active.page.handle}`} className="chip">{t('ver_perfil')}</a>
                       </div>
                     </div>
 
                     <p className="t-sub text-center mt-4 px-4 inline-flex items-center justify-center gap-1.5 w-full">
-                      <LockSimple size={14} /> Sigue a @{active.page.handle} para leer sus mensajes y responder.
+                      <LockSimple size={14} /> {t('sigue_para_leer_responder', { handle: active.page.handle })}
                     </p>
                   </div>
                 ) : msgs.length === 0 ? (
-                  <p className="t-sub text-center py-10">Escribe el primer mensaje.</p>
+                  <p className="t-sub text-center py-10">{t('primer_mensaje')}</p>
                 ) : msgs.map((m) => (
                   <div key={m.id} className={`max-w-[78%] px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${m.mine ? 'ml-auto' : ''}`}
                     style={m.mine
@@ -312,17 +315,17 @@ const ChatDock: React.FC<{ me: string }> = ({ me }) => {
                     <>
                       <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1}
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
-                        placeholder="Escribe un mensaje"
+                        placeholder={t('escribe_mensaje')}
                         className="flex-1 resize-none rounded-2xl px-3.5 py-2.5 text-[15px] focus:outline-none"
                         style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', maxHeight: 96 }} />
-                      <button type="button" onClick={send} disabled={!text.trim()} aria-label="Enviar"
+                      <button type="button" onClick={send} disabled={!text.trim()} aria-label={t('enviar')}
                         className="grid place-items-center w-10 h-10 rounded-full shrink-0 disabled:opacity-35 cursor-pointer"
                         style={{ background: 'var(--blue)', color: '#fff' }}>
                         <PaperPlaneTilt size={17} weight="fill" />
                       </button>
                     </>
                   ) : (
-                    <p className="t-caption flex-1 text-center py-2">Sigue a @{active.page.handle} para escribirle.</p>
+                    <p className="t-caption flex-1 text-center py-2">{t('sigue_para_escribir', { handle: active.page.handle })}</p>
                   )}
                 </div>
               )}

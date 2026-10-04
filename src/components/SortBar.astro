@@ -1,17 +1,20 @@
 ---
 // Barra de ordenación para listas servidas por el servidor: cada opción es un
 // enlace, así el orden elegido queda en la URL y se puede compartir.
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/posts'
+const t = useT(cat)
 const {
   current = 'reciente',
   base = '',
   param = 'orden',
   options = [
-    ['reciente', 'Recientes'],
-    ['antiguo', 'Antiguos'],
-    ['popular', 'Populares'],
-    ['comentado', 'Más comentados'],
-    ['menos_popular', 'Menos populares'],
-    ['menos_comentado', 'Menos comentados'],
+    ['reciente', t('orden_reciente')],
+    ['antiguo', t('orden_antiguo')],
+    ['popular', t('orden_popular')],
+    ['comentado', t('orden_comentado')],
+    ['menos_popular', t('orden_menos_popular')],
+    ['menos_comentado', t('orden_menos_comentado')],
   ],
 } = Astro.props
 

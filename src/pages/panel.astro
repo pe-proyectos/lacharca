@@ -3,6 +3,10 @@ import Layout from '../layouts/Layout.astro'
 import Shell from '../components/Shell.astro'
 import { getViewer } from '../lib/session'
 import TelemetryPanel from '../components/TelemetryPanel'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/panel'
+
+const t = useT(cat)
 
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 if (!viewer) return Astro.redirect('/auth/login')
@@ -12,10 +16,10 @@ if (!viewer) return Astro.redirect('/auth/login')
 const admins = (import.meta.env.TELEMETRY_ADMINS || 'shoko').split(',').map((s: string) => s.trim().toLowerCase())
 if (!admins.includes(String(viewer.user.handle).toLowerCase())) return Astro.redirect('/')
 ---
-<Layout title="Panel — La Charca" noindex={true}>
+<Layout title={t('title')} noindex={true}>
   <Shell viewer={viewer} active="panel" aside="none" wide={true}>
-    <h1 class="t-title mb-1">Panel</h1>
-    <p class="t-sub mb-8">Quién está usando La Charca. Sin cookies de seguimiento ni servicios de terceros.</p>
+    <h1 class="t-title mb-1">{t('panel')}</h1>
+    <p class="t-sub mb-8">{t('panel_desc')}</p>
     <TelemetryPanel client:load />
   </Shell>
 </Layout>

@@ -3,6 +3,9 @@
 // la URL del lector; los de antes solo su referencia 'chapter:<id>', y para esos
 // CapibaraTraductor resuelve el enlace (sitio del idioma, +18, novelas).
 
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/posts'
+
 export interface PostChapter {
   ref?: string | null
   id?: number | null
@@ -21,5 +24,6 @@ export function urlCapitulo(c: PostChapter | null | undefined): string | null {
 }
 
 export function etiquetaCapitulo(c: PostChapter): string {
-  return c.number ? `Cap. ${c.number}` : 'Capítulo'
+  const t = useT(cat)
+  return c.number ? t('cap_n', { n: c.number }) : t('capitulo')
 }

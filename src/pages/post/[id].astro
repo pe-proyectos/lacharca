@@ -7,6 +7,10 @@ import CommentThread from '../../components/CommentThread'
 import { Poll, Reveal, Countdown } from '../../components/PostExtras'
 import Shell from '../../components/Shell.astro'
 import ChapterChip from '../../components/ChapterChip'
+import { useT } from '../../i18n'
+import cat from '../../i18n/catalogos/paginas-feed'
+
+const t = useT(cat)
 
 const id = Number(Astro.params.id)
 if (!Number.isFinite(id)) return Astro.redirect('/')
@@ -20,14 +24,14 @@ const comments = (await hilos(`/posts/${id}/comments`, acting).catch(() => [])) 
 import { isMedia } from '../../lib/media'
 const imgs = (post.content || '').split(/\s+/).filter((w: string) => /^https?:\/\//.test(w) && isMedia(w))
 const body = (post.content || '').split('\n').filter((l: string) => !imgs.includes(l.trim())).join('\n')
-const authorName = post.author?.displayName || post.author?.handle || 'Alguien'
-const snippet = (body || 'Publicación').replace(/\s+/g, ' ').trim().slice(0, 150)
-const n = (v: any) => Number(v || 0).toLocaleString('es')
+const authorName = post.author?.displayName || post.author?.handle || t('alguien')
+const snippet = (body || t('publicacion')).replace(/\s+/g, ' ').trim().slice(0, 150)
+const n = (v: any) => Number(v || 0).toLocaleString(t.locale)
 
 ---
 <Layout
   title={`${authorName}: "${snippet.slice(0, 60)}" — La Charca`}
-  description={snippet || `Publicación de ${authorName} en La Charca.`}
+  description={snippet || t('descripcion_post', { autor: authorName })}
   image={imgs[0] || post.author?.avatarUrl || '/logo.png'}>
   <Shell viewer={viewer} active="none">
     <article class="pb-7 mb-1" style="border-bottom:1px solid var(--line)">
@@ -58,7 +62,7 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
             ? <img src={post.wall.avatarUrl} alt="" width="52" height="52" loading="lazy" class="rounded-xl object-cover shrink-0" style="width:52px;height:52px" />
             : <span class="grid place-items-center rounded-xl text-[17px] font-semibold shrink-0" style="width:52px;height:52px;background:var(--soft);color:var(--blue)">{(post.wall.displayName || post.wall.handle)[0]?.toUpperCase()}</span>}
           <span class="min-w-0">
-            <span class="block eyebrow">Obra</span>
+            <span class="block eyebrow">{t('obra')}</span>
             <span class="block text-[15px] font-medium truncate">{post.wall.displayName || post.wall.handle}</span>
           </span>
         </a>
@@ -70,15 +74,15 @@ const n = (v: any) => Number(v || 0).toLocaleString('es')
             <span class={`media post-media ${imgs.length > 1 ? 'post-media--grid' : ''}`}
               style={`--media-bg:url('${src}')`}
               data-lightbox data-lightbox-group={`post-${post.id}`} data-src={src}>
-              <img src={src} alt="Imagen de la publicación" loading="lazy" />
+              <img src={src} alt={t('img_post')} loading="lazy" />
             </span>
           ))}
         </div>
       )}
 
       <p class="t-caption mt-4">
-        <time datetime={post.createdAt}>{new Date(post.createdAt).toLocaleString('es', { dateStyle: 'long', timeStyle: 'short' })}</time>
-        {post.likesCount > 0 && <span> · {n(post.likesCount)} me gusta</span>}
+        <time datetime={post.createdAt}>{new Date(post.createdAt).toLocaleString(t.locale, { dateStyle: 'long', timeStyle: 'short' })}</time>
+        {post.likesCount > 0 && <span> · {t('me_gusta_n', { n: n(post.likesCount), c: Number(post.likesCount) })}</span>}
       </p>
 
       <PostActions client:load postId={post.id} likes={post.likesCount || 0} comments={post.commentsCount || 0} liked={post.liked} saved={post.saved} logged={!!viewer} commentsAnchor="comentarios" authorHandle={post.author?.handle} me={viewer?.user?.handle ?? null} />

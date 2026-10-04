@@ -7,6 +7,12 @@ import FeedComposer from '../components/FeedComposer'
 import FeedMore from '../components/FeedMore'
 import SortBar from '../components/SortBar.astro'
 import PostList from '../components/PostList.astro'
+import { useT } from '../i18n'
+import { capibara } from '../i18n/capibara'
+import cat from '../i18n/catalogos/paginas-feed'
+
+const t = useT(cat)
+const { marca } = capibara()
 
 const viewer = await getViewer(Astro.cookies.get('lc_session')?.value)
 const actingPage = viewer?.user?.id ? `external:lacharca:user:${viewer.user.id}` : null
@@ -18,11 +24,11 @@ const scope = feedParam === 'following' && viewer ? 'following' : feedParam === 
 // Avisos de vuelta de otros flujos (login, perfiles que ya no existen...).
 const sp = Astro.url.searchParams
 const notice =
-  sp.get('bienvenido') === '1' ? { tone: 'ok', text: 'Tu cuenta está lista. Bienvenido a La Charca.' }
-  : sp.get('auth') === 'failed' ? { tone: 'err', text: 'No pudimos completar el inicio de sesión. Inténtalo de nuevo.' }
-  : sp.get('auth') === 'missing_code' ? { tone: 'err', text: 'El enlace de acceso expiró. Vuelve a entrar con CapibaraTraductor.' }
-  : sp.get('perfil') === 'no_encontrado' ? { tone: 'err', text: 'Ese perfil no existe o cambió de nombre.' }
-  : sp.get('post') === 'no_encontrado' ? { tone: 'err', text: 'Esa publicación ya no está disponible.' }
+  sp.get('bienvenido') === '1' ? { tone: 'ok', text: t('aviso_bienvenido') }
+  : sp.get('auth') === 'failed' ? { tone: 'err', text: t('aviso_auth_failed') }
+  : sp.get('auth') === 'missing_code' ? { tone: 'err', text: t('aviso_missing_code', { marca }) }
+  : sp.get('perfil') === 'no_encontrado' ? { tone: 'err', text: t('aviso_perfil') }
+  : sp.get('post') === 'no_encontrado' ? { tone: 'err', text: t('aviso_post') }
   : null
 
 let posts: any[] = []
@@ -48,11 +54,11 @@ try {
     )}
     {!viewer && (
       <div class="mb-10 pb-10" style="border-bottom:1px solid var(--line)">
-        <p class="eyebrow mb-4">La comunidad de CapibaraTraductor</p>
-        <h1 class="t-hero mb-5">Conversa sobre<br/>lo que lees.</h1>
-        <p class="t-body ink-2 max-w-md">Sigue a tus scans, comenta capítulos y comparte lo que estás leyendo.</p>
+        <p class="eyebrow mb-4">{t('comunidad_de', { marca })}</p>
+        <h1 class="t-hero mb-5">{t('hero_1')}<br/>{t('hero_2')}</h1>
+        <p class="t-body ink-2 max-w-md">{t('hero_texto')}</p>
         <a href="/auth/login" class="btn mt-7 inline-flex items-center gap-2">
-          Continuar con CapibaraTraductor
+          {t('continuar_con', { marca })}
           <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></svg>
         </a>
       </div>
@@ -60,9 +66,9 @@ try {
 
     {viewer && (
       <div class="flex items-center gap-2 mb-6">
-        <a href="/" class={`chip ${scope === 'recent' ? 'is-on' : ''}`}>Lo más nuevo</a>
-        <a href="/?feed=following" class={`chip ${scope === 'following' ? 'is-on' : ''}`}>Tu manada</a>
-        <a href="/?feed=foryou" class={`chip ${scope === 'foryou' ? 'is-on' : ''}`}>Lo mejor de hoy</a>
+        <a href="/" class={`chip ${scope === 'recent' ? 'is-on' : ''}`}>{t('lo_mas_nuevo')}</a>
+        <a href="/?feed=following" class={`chip ${scope === 'following' ? 'is-on' : ''}`}>{t('tu_manada')}</a>
+        <a href="/?feed=foryou" class={`chip ${scope === 'foryou' ? 'is-on' : ''}`}>{t('lo_mejor')}</a>
       </div>
     )}
 
@@ -70,7 +76,7 @@ try {
 
     {sortable && posts.length > 1 && <SortBar current={orden} />}
 
-    <PostList posts={posts} viewer={viewer} empty={scope === "following" ? "Tu manada aún es pequeña. Sigue scans y lectores para llenar esta vista." : "La charca está tranquila."} />
+    <PostList posts={posts} viewer={viewer} empty={scope === "following" ? t('vacio_manada') : t('vacio_inicio')} />
 
     {feedData?.hasMore && <FeedMore client:visible scope={scope} logged={!!viewer} startPage={1} sort={sortable ? orden : undefined} />}
 

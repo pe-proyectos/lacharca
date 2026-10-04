@@ -4,6 +4,10 @@ import Shell from '../../components/Shell.astro'
 import PageList from '../../components/PageList.astro'
 import { hilos } from '../../lib/hilos'
 import { getViewer } from '../../lib/session'
+import { useT } from '../../i18n'
+import cat from '../../i18n/catalogos/perfil'
+
+const t = useT(cat)
 
 const raw = Astro.params.handle || ''
 if (!raw.startsWith('@')) return Astro.redirect('/')
@@ -16,15 +20,15 @@ if (!page) return Astro.redirect('/?perfil=no_encontrado')
 const pages = (await hilos(`/pages/${encodeURIComponent(handle)}/following?limit=50`, acting).catch(() => [])) || []
 const name = page.displayName || page.handle
 ---
-<Layout title={`Siguiendo de ${name} — La Charca`} description={`Cuentas relacionadas con ${name} (@${page.handle}) en La Charca.`} noindex>
+<Layout title={t('siguiendo_title', { name })} description={t('relacionadas_desc', { name, handle: page.handle })} noindex>
   <Shell viewer={viewer} active="none">
     <div class="mb-6">
       <a href={`/@${page.handle}`} class="t-caption inline-flex items-center gap-1.5 hover:opacity-70 transition">
         <svg width="15" height="15" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
-        Volver a {name}
+        {t('volver_a', { name })}
       </a>
-      <h1 class="t-title mt-2">Siguiendo</h1>
+      <h1 class="t-title mt-2">{t('siguiendo')}</h1>
     </div>
-    <PageList pages={pages} viewer={viewer} empty="Esta cuenta no sigue a nadie todavía." />
+    <PageList pages={pages} viewer={viewer} empty={t('siguiendo_vacio')} />
   </Shell>
 </Layout>

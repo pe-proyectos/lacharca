@@ -5,6 +5,8 @@ import {
 } from '@phosphor-icons/react'
 import { hilosApi, getIdentity } from '../lib/hilosClient'
 import { timeAgo } from '../lib/time'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/mensajes'
 
 interface Page { handle: string; displayName?: string | null; avatarUrl?: string | null; type?: string }
 interface Conv {
@@ -27,6 +29,7 @@ const Avatar = ({ p, size = 44 }: { p: Page; size?: number }) =>
 // (/mensajes/@handle), para que un enlace se pueda pasar a otro miembro del
 // equipo y le abra exactamente lo mismo.
 const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, initialHandle }) => {
+  const t = useT(cat)
   const [convs, setConvs] = useState<Conv[] | null>(null)
   const [archivadas, setArchivadas] = useState(false)
   const [activa, setActiva] = useState<Conv | null>(null)
@@ -106,13 +109,13 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
     const q = busca.trim().replace(/^@/, '')
     if (q.length < 2) { setCandidatos([]); return }
     setBuscando(true)
-    const t = setTimeout(async () => {
+    const espera = setTimeout(async () => {
       try {
         const d = await hilosApi.buscarPages(q)
         setCandidatos((d?.items || []).filter((p: Page) => p.handle !== me))
       } catch { setCandidatos([]) } finally { setBuscando(false) }
     }, 250)
-    return () => clearTimeout(t)
+    return () => clearTimeout(espera)
   }, [busca, nuevo, me])
 
   const enviar = async () => {
@@ -150,8 +153,8 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
 
   const filtradas = (convs || []).filter((c) => {
     if (!busca.trim() || nuevo) return true
-    const t = `${c.page.displayName || ''} ${c.page.handle}`.toLowerCase()
-    return t.includes(busca.trim().toLowerCase())
+    const nombre = `${c.page.displayName || ''} ${c.page.handle}`.toLowerCase()
+    return nombre.includes(busca.trim().toLowerCase())
   })
 
   return (
@@ -164,12 +167,12 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
             <div className="flex items-center gap-2 rounded-xl px-3 py-2 flex-1" style={{ background: 'var(--surface-2)' }}>
               <MagnifyingGlass size={16} className="ink-3" />
               <input value={busca} onChange={(e) => setBusca(e.target.value)}
-                placeholder={nuevo ? 'Escribe un @usuario' : 'Buscar'}
+                placeholder={nuevo ? t('escribe_usuario') : t('buscar')}
                 className="flex-1 bg-transparent text-[14px] focus:outline-none" />
-              {busca && <button type="button" onClick={() => setBusca('')} className="ink-3" aria-label="Limpiar"><X size={14} /></button>}
+              {busca && <button type="button" onClick={() => setBusca('')} className="ink-3" aria-label={t('limpiar')}><X size={14} /></button>}
             </div>
             <button type="button" onClick={() => { setNuevo((v) => !v); setBusca('') }}
-              className="icon-btn shrink-0" title="Nuevo mensaje" aria-label="Nuevo mensaje"
+              className="icon-btn shrink-0" title={t('nuevo_mensaje')} aria-label={t('nuevo_mensaje')}
               style={nuevo ? { background: 'var(--soft)', color: 'var(--blue)' } : undefined}>
               <PencilSimpleLine size={18} />
             </button>
@@ -178,9 +181,9 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
           {!nuevo && (
             <div className="flex items-center gap-1.5">
               <button type="button" onClick={() => { setArchivadas(false); cargar(false) }}
-                className={`chip cursor-pointer ${!archivadas ? 'is-on' : ''}`} style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>Activos</button>
+                className={`chip cursor-pointer ${!archivadas ? 'is-on' : ''}`} style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>{t('activos')}</button>
               <button type="button" onClick={() => { setArchivadas(true); cargar(true) }}
-                className={`chip cursor-pointer ${archivadas ? 'is-on' : ''}`} style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>Archivados</button>
+                className={`chip cursor-pointer ${archivadas ? 'is-on' : ''}`} style={{ padding: '5px 12px', fontSize: 13, minHeight: 0 }}>{t('archivados')}</button>
             </div>
           )}
         </div>
@@ -189,7 +192,7 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
           {nuevo ? (
             <div className="py-2">
               {busca.trim().length < 2 ? (
-                <p className="t-sub text-center py-10 px-6">Escribe al menos dos letras del @usuario.</p>
+                <p className="t-sub text-center py-10 px-6">{t('dos_letras')}</p>
               ) : buscando ? (
                 <div className="p-3 space-y-3">{[0, 1, 2].map((i) => (
                   <div key={i} className="flex items-center gap-3">
@@ -198,7 +201,7 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
                   </div>))}
                 </div>
               ) : candidatos.length === 0 ? (
-                <p className="t-sub text-center py-10 px-6">Nadie coincide con eso.</p>
+                <p className="t-sub text-center py-10 px-6">{t('nadie_coincide')}</p>
               ) : candidatos.map((p) => (
                 <button key={p.handle} type="button" onClick={() => empezarCon(p)}
                   className="row w-full flex items-center gap-3 px-3 py-2.5 text-left cursor-pointer">
@@ -220,8 +223,8 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
           ) : filtradas.length === 0 ? (
             <div className="px-6 py-14 text-center">
               <ChatCircleDots size={30} className="ink-3 mx-auto mb-3" />
-              <p className="t-body ink-2">{archivadas ? 'No hay conversaciones archivadas.' : 'Todavía no hay mensajes.'}</p>
-              {!archivadas && <p className="t-sub mt-1">Sigue a alguien y escríbele para empezar.</p>}
+              <p className="t-body ink-2">{archivadas ? t('sin_archivadas') : t('sin_mensajes_aun')}</p>
+              {!archivadas && <p className="t-sub mt-1">{t('sigue_para_empezar')}</p>}
             </div>
           ) : filtradas.map((c) => (
             <div key={c.id} className={`row flex items-center gap-1 px-1 ${activa?.id === c.id ? 'is-active' : ''}`}
@@ -235,15 +238,15 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
                   </span>
                   <span className="flex items-center gap-1.5 t-caption truncate">
                     {c.canRead
-                      ? (c.lastMessage ? `${c.lastMessage.mine ? 'Tú: ' : ''}${c.lastMessage.content}` : 'Sin mensajes')
-                      : <><LockSimple size={12} /> Te escribió. Síguelo para leerlo.</>}
+                      ? (c.lastMessage ? `${c.lastMessage.mine ? t('tu_prefijo') : ''}${c.lastMessage.content}` : t('sin_mensajes'))
+                      : <><LockSimple size={12} /> {t('te_escribio')}</>}
                   </span>
                 </span>
                 {c.unread > 0 && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: 'var(--blue)' }} />}
               </button>
               <button type="button" onClick={() => archivar(c, !archivadas)}
                 className="icon-btn shrink-0" style={{ width: 34, height: 34 }}
-                title={archivadas ? 'Devolver a activos' : 'Archivar'} aria-label={archivadas ? 'Devolver a activos' : 'Archivar'}>
+                title={archivadas ? t('devolver_activos') : t('archivar')} aria-label={archivadas ? t('devolver_activos') : t('archivar')}>
                 {archivadas ? <ArrowCounterClockwise size={15} /> : <Archive size={15} />}
               </button>
             </div>
@@ -257,9 +260,9 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
           <div className="flex-1 grid place-items-center px-8 text-center">
             <div>
               <ChatCircleDots size={38} className="ink-3 mx-auto mb-4" />
-              <p className="t-body ink-2">Elige una conversación</p>
+              <p className="t-body ink-2">{t('elige_conversacion')}</p>
               <p className="t-sub mt-1">
-                {identidad ? `Estás viendo la bandeja de @${identidad}.` : 'O empieza una nueva con el lápiz.'}
+                {identidad ? t('viendo_bandeja', { handle: identidad }) : t('empieza_lapiz')}
               </p>
             </div>
           </div>
@@ -267,7 +270,7 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
           <>
             <header className="flex items-center gap-2.5 px-4 py-3 shrink-0" style={{ borderBottom: '1px solid var(--line)' }}>
               <button type="button" onClick={() => { setActiva(null); history.pushState({}, '', '/mensajes') }}
-                className="icon-btn md:hidden shrink-0" aria-label="Volver"><CaretLeft size={18} /></button>
+                className="icon-btn md:hidden shrink-0" aria-label={t('volver')}><CaretLeft size={18} /></button>
               <a href={`/@${activa.page.handle}`} className="flex items-center gap-2.5 min-w-0 flex-1">
                 <Avatar p={activa.page} size={36} />
                 <span className="min-w-0">
@@ -277,7 +280,7 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
               </a>
               {activa.id > 0 && (
                 <button type="button" onClick={() => archivar(activa, !activa.archived)} className="icon-btn shrink-0"
-                  title="Archivar" aria-label="Archivar"><Archive size={17} /></button>
+                  title={t('archivar')} aria-label={t('archivar')}><Archive size={17} /></button>
               )}
             </header>
 
@@ -287,12 +290,12 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
               ) : !activa.canRead ? (
                 <div className="px-4 py-12 text-center">
                   <LockSimple size={26} className="ink-3 mx-auto mb-3" />
-                  <p className="t-body ink-2">@{activa.page.handle} escribió.</p>
-                  <p className="t-sub mt-1">Para leer y responder hay que seguirlo primero.</p>
-                  <a href={`/@${activa.page.handle}`} className="btn mt-5 inline-block">Ver su perfil</a>
+                  <p className="t-body ink-2">{t('escribio', { handle: activa.page.handle })}</p>
+                  <p className="t-sub mt-1">{t('seguir_para_leer')}</p>
+                  <a href={`/@${activa.page.handle}`} className="btn mt-5 inline-block">{t('ver_su_perfil')}</a>
                 </div>
               ) : msgs.length === 0 ? (
-                <p className="t-sub text-center py-10">Escribe el primer mensaje.</p>
+                <p className="t-sub text-center py-10">{t('primer_mensaje')}</p>
               ) : msgs.map((m) => (
                 <div key={m.id} className={`max-w-[74%] px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${m.mine ? 'ml-auto' : ''}`}
                   style={m.mine
@@ -309,17 +312,17 @@ const Inbox: React.FC<{ me: string; initialHandle?: string | null }> = ({ me, in
                   <>
                     <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={1}
                       onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar() } }}
-                      placeholder="Escribe un mensaje"
+                      placeholder={t('escribe_mensaje')}
                       className="flex-1 resize-none rounded-2xl px-3.5 py-2.5 text-[15px] focus:outline-none"
                       style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', maxHeight: 120 }} />
-                    <button type="button" onClick={enviar} disabled={!texto.trim()} aria-label="Enviar"
+                    <button type="button" onClick={enviar} disabled={!texto.trim()} aria-label={t('enviar')}
                       className="grid place-items-center w-10 h-10 rounded-full shrink-0 disabled:opacity-35 cursor-pointer"
                       style={{ background: 'var(--blue)', color: '#fff' }}>
                       <PaperPlaneTilt size={17} weight="fill" />
                     </button>
                   </>
                 ) : (
-                  <p className="t-caption flex-1 text-center py-2">Sigue a @{activa.page.handle} para escribirle.</p>
+                  <p className="t-caption flex-1 text-center py-2">{t('sigue_para_escribir', { handle: activa.page.handle })}</p>
                 )}
               </div>
             )}

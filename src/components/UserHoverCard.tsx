@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 import FollowButton from './FollowButton'
 import MessageButton from './MessageButton'
+import { useT } from '../i18n'
+import cat from '../i18n/catalogos/cuenta'
+import { num as n, posts } from '../lib/format'
 
 interface Page {
   handle: string; type?: string; displayName?: string | null; avatarUrl?: string | null
@@ -16,11 +19,11 @@ const rutaDe = (p: { handle: string; type?: string; parentHandle?: string | null
 
 // Cache entre montajes: pasar el raton por el mismo perfil no repite la llamada.
 const cache = new Map<string, Page | null>()
-const n = (v: any) => Number(v || 0).toLocaleString('es')
 
 // Tarjeta flotante al pasar el cursor sobre una mención o un enlace de perfil.
 // Se activa sobre cualquier ancla con data-hover-handle dentro de la página.
 const UserHoverCard: React.FC<{ me?: string | null }> = ({ me = null }) => {
+  const t = useT(cat)
   const [page, setPage] = useState<Page | null>(null)
   const [pos, setPos] = useState<{ x: number; y: number; above: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
@@ -109,8 +112,8 @@ const UserHoverCard: React.FC<{ me?: string | null }> = ({ me = null }) => {
             <div className="min-w-0">
               <a href={rutaDe(page)} className="block text-[15px] font-semibold truncate hover:opacity-70">{page.displayName || page.handle}</a>
               <span className="block t-caption truncate">@{page.handle}</span>
-              {page.type === 'scan' && <span className="chip is-static mt-1.5">Scan</span>}
-              {page.type === 'manga' && <span className="chip is-static mt-1.5">Obra</span>}
+              {page.type === 'scan' && <span className="chip is-static mt-1.5">{t('scan')}</span>}
+              {page.type === 'manga' && <span className="chip is-static mt-1.5">{t('obra')}</span>}
             </div>
           </div>
 
@@ -118,13 +121,13 @@ const UserHoverCard: React.FC<{ me?: string | null }> = ({ me = null }) => {
 
           <div className="flex items-center gap-4 mt-3 text-[13px]">
             <a href={`/@${page.handle}/seguidores`} className="hover:opacity-70">
-              <b className="font-semibold tabular-nums">{n(page.followersCount)}</b> <span className="ink-2">seguidores</span>
+              <b className="font-semibold tabular-nums">{n(page.followersCount)}</b> <span className="ink-2">{t('seguidores', { n: Number(page.followersCount || 0) })}</span>
             </a>
             <a href={`/@${page.handle}/siguiendo`} className="hover:opacity-70">
-              <b className="font-semibold tabular-nums">{n(page.followingCount)}</b> <span className="ink-2">siguiendo</span>
+              <b className="font-semibold tabular-nums">{n(page.followingCount)}</b> <span className="ink-2">{t('siguiendo')}</span>
             </a>
           </div>
-          <p className="t-caption mt-1">{n(page.postsCount)} {Number(page.postsCount || 0) === 1 ? 'publicación' : 'publicaciones'}</p>
+          <p className="t-caption mt-1">{posts(page.postsCount)}</p>
 
           {/* Poder actuar desde aquí: es el gesto natural tras mirar un perfil. */}
           {page.handle !== me && (
