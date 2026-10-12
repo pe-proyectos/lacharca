@@ -3,6 +3,7 @@ import { cors } from '@elysiajs/cors'
 import { randomBytes } from 'crypto'
 import { prisma } from './lib/prisma'
 import { createHilos } from './lib/hilos-sdk'
+import { refrescoBase, planPerfil } from './lib/perfil'
 import { esBot, idVisitante, dispositivo, pais, origenExterno, rutaNormalizada } from './lib/telemetry'
 
 const CAPI_API = process.env.CAPI_API_URL || 'https://capibaratraductor.com'
@@ -75,14 +76,34 @@ async function claimMigratedPage(user: any, capibaraUserId: string | number) {
   return false
 }
 
-async function syncPage(user: any) {
+// Guarda en la base la foto actual de Capibara (si la copia es suya o falta).
+// Muta `user` para que la sesion devuelva lo ya guardado.
+async function refrescarBase(user: any, ext: any) {
+  const data = refrescoBase(user, ext)
+  if (!Object.keys(data).length) return
+  await prisma.user.update({ where: { id: user.id }, data })
+  Object.assign(user, data)
+}
+
+// Lleva el perfil a la page de hilos sin pisar lo editado en La Charca: lee la
+// page primero y solo cambia lo vacio o lo que es copia de Capibara (ver
+// lib/perfil.ts). Si no se puede leer la page, no se escribe nada.
+async function syncPage(user: any, ext: any) {
   try {
+    const externalId = `lacharca:user:${user.id}`
+    const { items } = await hilos.pages.byExternal([externalId])
+    const plan = planPerfil(user, items?.[0] ?? null, ext)
     const page = await hilos.pages.upsert({
-      externalId: `lacharca:user:${user.id}`, handle: user.handle, type: 'user',
-      displayName: user.displayName || user.handle, avatarUrl: user.avatarUrl || undefined, bio: user.bio || undefined,
+      externalId, handle: user.handle, type: 'user', ...plan.upsert,
       createdAt: new Date(user.createdAt).toISOString(),
     })
-    if (page?.id && page.id !== user.hilosPageId) await prisma.user.update({ where: { id: user.id }, data: { hilosPageId: page.id } })
+    if (page?.handle && Object.keys(plan.parche).length) await hilos.pages.update(page.handle, plan.parche)
+    const data: any = { ...plan.base }
+    if (page?.id && page.id !== user.hilosPageId) data.hilosPageId = page.id
+    if (Object.keys(data).length) {
+      await prisma.user.update({ where: { id: user.id }, data })
+      Object.assign(user, data)
+    }
   } catch { /* la sesion no depende de hilos */ }
 }
 
@@ -172,7 +193,9 @@ const app = new Elysia()
 
     if (identity?.user) {
       const user = identity.user
-      await syncPage(user)
+      // Nunca se reenvia la copia guardada: manda la foto actual de Capibara.
+      await refrescarBase(user, ext)
+      await syncPage(user, ext)
       const token = randomBytes(32).toString('hex')
       await prisma.session.create({ data: { userId: user.id, token, expiresAt: new Date(Date.now() + SESSION_DAYS * 86400_000) } })
       return { status: true, data: { state: 'signed_in', token, user: publicUser(user) } }
@@ -226,7 +249,7 @@ const app = new Elysia()
     })
     pending.delete(String(body.ticket))
     const inherited = await claimMigratedPage(user, ext.id)
-    if (!inherited) await syncPage(user)
+    if (!inherited) await syncPage(user, ext)
     const token = randomBytes(32).toString('hex')
     await prisma.session.create({ data: { userId: user.id, token, expiresAt: new Date(Date.now() + SESSION_DAYS * 86400_000) } })
     return { status: true, data: { state: 'signed_in', token, user: publicUser(user) } }

@@ -32,6 +32,7 @@ export function createHilos(opts: HilosOptions) {
     pages: {
       upsert: (p: { externalId?: string | number; handle?: string; type?: string; displayName?: string; avatarUrl?: string; bio?: string; parentHandle?: string; parentExternalId?: string | number; metadata?: any; createdAt?: string }): Promise<HilosPage> => req('POST', '/pages', p),
       get: (handle: string): Promise<HilosPage> => req('GET', `/pages/${encodeURIComponent(handle)}`),
+      byExternal: (ids: (string | number)[]): Promise<{ items: (HilosPage & { bannerUrl: string | null })[]; hasMore: boolean }> => req('GET', `/pages/by-external?ids=${encodeURIComponent(ids.join(','))}`),
       posts: (handle: string, page = 0, limit = 20): Promise<Paged<HilosPost>> => req('GET', `/pages/${encodeURIComponent(handle)}/posts?page=${page}&limit=${limit}`),
       claim: (p: { fromExternalId: string; toExternalId: string; handle?: string; displayName?: string; avatarUrl?: string }): Promise<HilosPage> => req('POST', '/pages/claim', p),
       update: (handle: string, p: { displayName?: string; bio?: string; avatarUrl?: string | null; bannerUrl?: string | null; handle?: string }, acting?: string | number): Promise<HilosPage> => req('PATCH', `/pages/${encodeURIComponent(handle)}`, p, acting),
